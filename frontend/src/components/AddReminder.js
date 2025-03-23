@@ -10,24 +10,46 @@ const AddReminder = ({ onCancel, onSave }) => {
     description: '',
     status: 'active'
   });
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setReminder(prev => ({
+    setReminder((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
+  };
+
+  // Function to check if the date is in the past
+  const isDateInPast = (date) => {
+    const currentDate = new Date();
+    const selectedDate = new Date(date);
+
+    // Set time to 00:00:00 to only compare the date (ignore time part)
+    selectedDate.setHours(0, 0, 0, 0);
+    currentDate.setHours(0, 0, 0, 0);
+
+    return selectedDate < currentDate;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate if the selected date is not in the past
+    if (isDateInPast(reminder.date)) {
+      setError('The selected date cannot be in the past.');
+      return; // Prevent form submission if the date is in the past
+    } else {
+      setError(''); // Clear error message when the date is valid
+    }
+
     try {
       const response = await fetch('http://localhost:5001/api/reminders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(reminder)
+        body: JSON.stringify(reminder),
       });
 
       if (response.ok) {
@@ -73,6 +95,7 @@ const AddReminder = ({ onCancel, onSave }) => {
               value={reminder.date}
               onChange={handleChange}
               required
+              min={new Date().toISOString().split('T')[0]} // Disable previous days
             />
           </div>
 
@@ -119,6 +142,8 @@ const AddReminder = ({ onCancel, onSave }) => {
           />
         </div>
 
+        {error && <p className="error">{error}</p>} {/* Display error message */}
+
         <div className="form-actions">
           <button type="submit" className="save-btn">Save Reminder</button>
           <button type="button" className="cancel-btn" onClick={onCancel}>Cancel</button>
@@ -128,4 +153,4 @@ const AddReminder = ({ onCancel, onSave }) => {
   );
 };
 
-export default AddReminder; 
+export default AddReminder;

@@ -1,36 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/ReminderDetail.css';
 import { notificationService } from '../services/NotificationService';
 
 const ReminderDetail = ({ reminder, onBack, onEdit, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedReminder, setEditedReminder] = useState(null);
+  const [editedReminder, setEditedReminder] = useState({ ...reminder });
+  const [isLoading, setIsLoading] = useState(false);
+  const [status, setStatus] = useState(reminder.status);
+  const [error, setError] = useState('');
 
-  if (!reminder) {
-    return (
-      <div className="reminder-detail">
-        <div className="detail-header">
-          <button className="back-btn" onClick={onBack}>
-            <i className="fas fa-arrow-left"></i>
-            Back to Reminders
-          </button>
-          <h1>Reminder Not Found</h1>
-        </div>
-        <p>This reminder could not be found.</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    setEditedReminder({ ...reminder });
+  }, [reminder]);
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this reminder?')) {
-      return;
-    }
+    if (!window.confirm('Are you sure you want to delete this reminder?')) return;
+    setIsLoading(true);
     try {
-      await onDelete(reminder._id);
-      onBack(); // Navigate back after successful deletion
-    } catch (error) {
-      console.error('Error deleting reminder:', error);
-      alert('Failed to delete reminder');
+      const response = await fetch(`http://localhost:5001/api/reminders/${reminder._id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete reminder');
+      
+      onDelete(reminder._id);
+      onBack();
+    } catch (err) {
+      console.error('Error deleting reminder:', err);
+      setError('Failed to delete reminder');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -44,37 +43,36 @@ const ReminderDetail = ({ reminder, onBack, onEdit, onDelete }) => {
         body: JSON.stringify({ status: newStatus }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update reminder status');
-      }
-
+      if (!response.ok) throw new Error('Failed to update reminder status');
       const updatedReminder = await response.json();
-      onEdit(updatedReminder); // Update parent component
-      
-      // Handle notifications based on status
+      setStatus(updatedReminder.status);
+
       if (newStatus === 'active') {
         notificationService.scheduleNotification(updatedReminder);
       } else {
         notificationService.cancelAllNotifications();
       }
-      
-      alert('Reminder status updated successfully');
-      onBack(); // Navigate back after successful status update
+
+      onEdit(updatedReminder);
+      alert('Reminder status updated');
     } catch (err) {
       console.error('Error updating reminder status:', err);
-      alert('Failed to update reminder status');
+      setError('Failed to update reminder status');
     }
   };
 
   const handleEdit = () => {
-    setEditedReminder({
-      ...reminder,
-      date: new Date(reminder.date).toISOString().split('T')[0]
-    });
     setIsEditing(true);
   };
 
   const handleSave = async () => {
+    if (!editedReminder.title || !editedReminder.date || !editedReminder.time) {
+      alert('Please fill in all fields.');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
     try {
       const response = await fetch(`http://localhost:5001/api/reminders/${reminder._id}`, {
         method: 'PUT',
@@ -84,37 +82,30 @@ const ReminderDetail = ({ reminder, onBack, onEdit, onDelete }) => {
         body: JSON.stringify(editedReminder),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update reminder');
-      }
-
+      if (!response.ok) throw new Error('Failed to update reminder');
       const updatedReminder = await response.json();
-      onEdit(updatedReminder); // Update parent component
-      
-      // Update notifications if status is active
-      if (updatedReminder.status === 'active') {
-        notificationService.scheduleNotification(updatedReminder);
-      }
-      
+      onEdit(updatedReminder);
       setIsEditing(false);
-      alert('Reminder updated successfully');
-      onBack(); // Navigate back after successful update
+      alert('Reminder updated');
+      onBack();
     } catch (err) {
       console.error('Error updating reminder:', err);
-      alert('Failed to update reminder');
+      setError('Failed to update reminder');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    setEditedReminder(null);
+    setEditedReminder({ ...reminder });
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setEditedReminder(prev => ({
+    setEditedReminder((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -122,35 +113,32 @@ const ReminderDetail = ({ reminder, onBack, onEdit, onDelete }) => {
     <div className="reminder-detail">
       <div className="detail-header">
         <button className="back-btn" onClick={onBack}>
-          <i className="fas fa-arrow-left"></i>
-          Back to Reminders
+          <i className="fas fa-arrow-left"></i> Back to Reminders
         </button>
         <div className="header-actions">
           {isEditing ? (
             <>
-              <button className="save-btn" onClick={handleSave}>
-                <i className="fas fa-save"></i>
-                Save Changes
+              <button className="save-btn" onClick={handleSave} disabled={isLoading}>
+                <i className="fas fa-save"></i> {isLoading ? 'Saving...' : 'Save Changes'}
               </button>
               <button className="cancel-btn" onClick={handleCancel}>
-                <i className="fas fa-times"></i>
-                Cancel
+                <i className="fas fa-times"></i> Cancel
               </button>
             </>
           ) : (
             <>
               <button className="edit-btn" onClick={handleEdit}>
-                <i className="fas fa-edit"></i>
-                Edit Reminder
+                <i className="fas fa-edit"></i> Edit Reminder
               </button>
-              <button className="delete-btn" onClick={handleDelete}>
-                <i className="fas fa-trash"></i>
-                Delete Reminder
+              <button className="delete-btn" onClick={handleDelete} disabled={isLoading}>
+                <i className="fas fa-trash"></i> {isLoading ? 'Deleting...' : 'Delete Reminder'}
               </button>
             </>
           )}
         </div>
       </div>
+
+      {error && <div className="error-message">{error}</div>}
 
       <div className="detail-content">
         <div className="detail-section">
@@ -165,9 +153,7 @@ const ReminderDetail = ({ reminder, onBack, onEdit, onDelete }) => {
           ) : (
             <h2>{reminder.title}</h2>
           )}
-          <span className={`status-badge ${reminder.status.toLowerCase()}`}>
-            {reminder.status}
-          </span>
+          <span className={`status-badge ${status.toLowerCase()}`}>{status}</span>
         </div>
 
         <div className="detail-section">
@@ -237,26 +223,33 @@ const ReminderDetail = ({ reminder, onBack, onEdit, onDelete }) => {
               rows="4"
             />
           ) : (
-            <p className="description">{reminder.description || 'No description provided.'}</p>
+            <p>{reminder.description || 'No description provided.'}</p>
           )}
         </div>
 
         <div className="detail-section">
-          <h3>Additional Actions</h3>
+          <h3>Actions</h3>
           <div className="action-buttons">
-            <button 
+            <button
+              className="mark-read-btn"
+              onClick={() => handleStatusUpdate('read')}
+              disabled={isLoading}
+            >
+              <i className="fas fa-check"></i> Mark as Read
+            </button>
+            <button
               className="snooze-btn"
               onClick={() => handleStatusUpdate('snoozed')}
+              disabled={isLoading}
             >
-              <i className="fas fa-clock"></i>
-              Snooze for 15 minutes
+              <i className="fas fa-clock"></i> Snooze for 15 minutes
             </button>
-            <button 
+            <button
               className="dismiss-btn"
               onClick={() => handleStatusUpdate('dismissed')}
+              disabled={isLoading}
             >
-              <i className="fas fa-check"></i>
-              Mark as Complete
+              <i className="fas fa-check"></i> Mark as Complete
             </button>
           </div>
         </div>
@@ -265,4 +258,4 @@ const ReminderDetail = ({ reminder, onBack, onEdit, onDelete }) => {
   );
 };
 
-export default ReminderDetail; 
+export default ReminderDetail;

@@ -90,6 +90,7 @@ const NotificationList = ({ onAddClick, onReminderClick }) => {
       setReminders(reminders.map(reminder => 
         reminder._id === id ? updatedReminder : reminder
       ));
+
       alert(`Reminder ${newStatus} successfully`);
     } catch (err) {
       console.error('Error updating reminder status:', err);
@@ -176,6 +177,12 @@ const NotificationList = ({ onAddClick, onReminderClick }) => {
                 >
                   <i className="fas fa-check"></i> Dismiss
                 </button>
+                <button 
+                  className="delete-btn"
+                  onClick={() => handleDelete(reminder._id)} // Delete button calls handleDelete
+                >
+                  <i className="fas fa-trash-alt"></i> Delete
+                </button>
               </div>
             </div>
           ))
@@ -194,4 +201,4 @@ const NotificationList = ({ onAddClick, onReminderClick }) => {
   );
 };
 
-export default NotificationList; 
+export default NotificationList;

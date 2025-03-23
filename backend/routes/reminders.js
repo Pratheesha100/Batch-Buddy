@@ -102,11 +102,11 @@ router.delete('/:id', async (req, res) => {
     if (!reminder) {
       return res.status(404).json({ message: 'Reminder not found' });
     }
-    await reminder.remove();
+    await reminder.deleteOne(); // Updated to use deleteOne() instead of remove()
     res.json({ message: 'Reminder deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-module.exports = router; 
+module.exports = router;
