@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mic, Calendar, Clock, ChevronRight, BookOpen, Beaker, Users } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 const BatchBuddy = () => {
   const navigate = useNavigate();
-  
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [recognition, setRecognition] = useState(null);
+  const [startSound, setStartSound] = useState(null);
+  const [stopSound, setStopSound] = useState(null);
+
   const scheduleData = {
     Yesterday: [
       { id: 1, subject: 'Web Development', time: '09:00 AM - 11:00 AM', type: 'Lab' },
@@ -38,6 +43,167 @@ const BatchBuddy = () => {
     navigate('/mark-attendance', { state: { day } });
   };
 
+  // Initialize audio objects
+  useEffect(() => {
+    const startAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    const stopAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    
+    startAudio.volume = 0.3;
+    stopAudio.volume = 0.3;
+    
+    setStartSound(startAudio);
+    setStopSound(stopAudio);
+
+    return () => {
+      startAudio.pause();
+      stopAudio.pause();
+    };
+  }, []);
+
+  // Speech Recognition Setup
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window) {
+      const recognitionInstance = new window.webkitSpeechRecognition();
+      recognitionInstance.continuous = false;
+      recognitionInstance.interimResults = false;
+      recognitionInstance.lang = 'en-US';
+
+      recognitionInstance.onstart = () => {
+        setIsListening(true);
+        console.log('Started listening...');
+        if (startSound) {
+          startSound.currentTime = 0;
+          startSound.play().catch(error => console.error('Error playing start sound:', error));
+        }
+      };
+
+      recognitionInstance.onend = () => {
+        setIsListening(false);
+        console.log('Stopped listening...');
+        if (stopSound) {
+          stopSound.currentTime = 0;
+          stopSound.play().catch(error => console.error('Error playing stop sound:', error));
+        }
+      };
+
+      recognitionInstance.onresult = (event) => {
+        const transcript = event.results[0][0].transcript.toLowerCase();
+        console.log('Recognized:', transcript);
+        setTranscript(transcript);
+        handleVoiceCommand(transcript);
+      };
+
+      recognitionInstance.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+        if (stopSound) {
+          stopSound.currentTime = 0;
+          stopSound.play().catch(error => console.error('Error playing stop sound:', error));
+        }
+      };
+
+      setRecognition(recognitionInstance);
+    } else {
+      console.error('Speech recognition not supported');
+    }
+
+    return () => {
+      if (recognition) {
+        recognition.stop();
+      }
+    };
+  }, [startSound, stopSound]);
+
+  const startListening = () => {
+    if (recognition) {
+      try {
+        recognition.start();
+        console.log('Starting speech recognition...');
+      } catch (error) {
+        console.error('Error starting speech recognition:', error);
+        speak("Sorry, there was an error starting voice recognition. Please try again.");
+      }
+    } else {
+      speak("Sorry, voice recognition is not supported in your browser.");
+    }
+  };
+
+  const speak = (text) => {
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.1;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    
+    utterance.onstart = () => console.log('Started speaking...');
+    utterance.onend = () => console.log('Finished speaking...');
+    utterance.onerror = (event) => console.error('Speech synthesis error:', event);
+    
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleVoiceCommand = (command) => {
+    console.log('Processing command:', command);
+    
+    // Create a command map for faster lookup
+    const commandMap = {
+      'today': scheduleData.Today,
+      'tomorrow': scheduleData.Tomorrow,
+      'yesterday': scheduleData.Yesterday
+    };
+
+    // Quick check for timetable queries with more flexible matching
+    const timeTableMatch = command.match(/(?:what(?:'s| is)|show|tell me|read).*(?:time ?table|schedule|timetable).*(today|tomorrow|yesterday)?/i);
+    
+    if (timeTableMatch) {
+      const day = (timeTableMatch[1] || 'today').toLowerCase();
+      const schedule = commandMap[day];
+      
+      if (schedule) {
+        const response = `${day}'s schedule is: ` + 
+          schedule.map((item, index) => {
+            const isLast = index === schedule.length - 1;
+            return `${item.subject} from ${item.time}, which is a ${item.type}${isLast ? '.' : '. Then, '}`;
+          }).join('');
+        
+        console.log('Speaking response:', response);
+        speak(response);
+        return;
+      }
+    }
+
+    // Handle attendance marking commands with more flexible matching
+    const attendanceMatch = command.match(/(?:mark|record|take).*(?:attendance|present).*(?:for|on)?\s*(today|tomorrow|yesterday)?/i);
+    
+    if (attendanceMatch) {
+      const day = (attendanceMatch[1] || 'today').toLowerCase();
+      const dayMap = {
+        'today': 'Today',
+        'tomorrow': 'Tomorrow',
+        'yesterday': 'Yesterday'
+      };
+      
+      const selectedDay = dayMap[day];
+      if (selectedDay) {
+        console.log('Navigating to mark attendance for:', selectedDay);
+        speak(`Taking you to mark ${day}'s attendance.`);
+        // Use the handleMarkAttendance function instead of direct navigation
+        setTimeout(() => {
+          handleMarkAttendance(selectedDay);
+        }, 1500);
+        return;
+      } else {
+        speak("Please specify which day you want to mark attendance for: yesterday, today, or tomorrow.");
+        return;
+      }
+    }
+
+    // Default response
+    speak("I didn't quite catch that. You can ask me about your schedule by saying 'What is my time table today?' or mark your attendance by saying 'Mark my attendance for today'");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Navigation Bar */}
@@ -63,8 +229,13 @@ const BatchBuddy = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
-              <button className="text-gray-500 hover:text-blue-600 hover:scale-110 transition-all">
-                <Mic className="w-5 h-5" />
+              <button 
+                onClick={startListening}
+                className={`text-gray-500 hover:text-blue-600 hover:scale-110 transition-all ${
+                  isListening ? 'animate-pulse bg-green-400/40' : ''
+                }`}
+              >
+                <Mic className={`w-5 h-5 ${isListening ? 'text-green-400' : 'text-white'}`} />
               </button>
               <Link to="/signin" className="text-gray-500 hover:text-blue-600 text-sm font-medium">Sign In</Link>
               <Link to="/register" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-6 py-2 rounded-full text-sm font-medium transition-all hover:shadow-lg hover:scale-105">
@@ -84,9 +255,19 @@ const BatchBuddy = () => {
           <p className="text-xl opacity-90 mb-12 max-w-2xl mx-auto animate-fade-in-delay">
             Your intelligent companion for managing academic schedules, attendance, and reminders
           </p>
-          <button className="bg-white/20 hover:bg-white/30 w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 mx-auto backdrop-blur-sm hover:shadow-2xl animate-bounce-slow">
-            <Mic className="w-10 h-10" />
+          <button 
+            onClick={startListening}
+            className={`bg-white/20 hover:bg-white/30 w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 mx-auto backdrop-blur-sm hover:shadow-2xl ${
+              isListening ? 'animate-pulse bg-green-400/40' : 'animate-bounce-slow'
+            }`}
+          >
+            <Mic className={`w-10 h-10 ${isListening ? 'text-green-400' : 'text-white'}`} />
           </button>
+          {transcript && (
+            <p className="mt-4 text-sm text-white/80">
+              You said: "{transcript}"
+            </p>
+          )}
         </div>
       </div>
 
@@ -107,8 +288,8 @@ const BatchBuddy = () => {
                 {scheduleData[day].map((item) => (
                   <div key={item.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-all border-b border-gray-100 last:border-0">
                     <div className="p-2 bg-blue-50 rounded-lg">
-                      {getTypeIcon(item.type)}
-                    </div>
+                        {getTypeIcon(item.type)}
+                      </div>
                     <div className="flex-1">
                       <h3 className="text-sm font-semibold text-gray-800">{item.subject}</h3>
                       <p className="text-xs text-gray-500">{item.time}</p>
@@ -135,7 +316,7 @@ const BatchBuddy = () => {
           <button className="flex items-center space-x-2 bg-white hover:bg-gray-50 px-6 py-3 rounded-full text-gray-600 text-sm font-medium transition-all hover:shadow-md">
             <span>View Calendar</span>
             <Calendar className="w-4 h-4" />
-          </button>
+            </button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all p-6 border-t-4 border-red-500 hover:scale-[1.02]">
@@ -161,9 +342,9 @@ const BatchBuddy = () => {
               <span className="flex items-center space-x-2 bg-blue-50 px-3 py-2 rounded-lg">
                 <Clock className="w-4 h-4 text-blue-500" />
                 <span>03:00 PM</span>
-              </span>
-            </div>
-          </div>
+                </span>
+                  </div>
+                </div>
           <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all p-6 border-t-4 border-green-500 hover:scale-[1.02]">
             <h3 className="text-lg font-bold text-gray-800 mb-4">DS Viva</h3>
             <div className="flex space-x-6 text-sm text-gray-500">
@@ -175,7 +356,7 @@ const BatchBuddy = () => {
                 <Clock className="w-4 h-4 text-green-500" />
                 <span>--</span>
               </span>
-            </div>
+              </div>
           </div>
         </div>
       </div>

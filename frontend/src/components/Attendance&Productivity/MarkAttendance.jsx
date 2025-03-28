@@ -1,18 +1,213 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, Circle, Clock, Users, BookOpen, Beaker, Calendar, Mic } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Clock, Users, BookOpen, Beaker, Calendar, Mic, Check, X, User } from 'lucide-react';
 import './MarkAttendance.css';
 import { Link } from 'react-router-dom';
 
 const MarkAttendance = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const day = location.state?.day || 'Today';
+  const [selectedDay, setSelectedDay] = useState(location.state?.day || 'Today');
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [recognition, setRecognition] = useState(null);
+  const [startSound, setStartSound] = useState(null);
+  const [stopSound, setStopSound] = useState(null);
   const [subjects, setSubjects] = useState([
     { id: 1, name: 'Advanced Mathematics', time: '09:00 AM - 10:30 AM', type: 'Lecture', attended: false },
     { id: 2, name: 'Database Systems', time: '11:00 AM - 12:30 PM', type: 'Lab', attended: false },
     { id: 3, name: 'Software Engineering', time: '02:00 PM - 03:30 PM', type: 'Tutorial', attended: false },
   ]);
+
+  // Initialize audio objects
+  useEffect(() => {
+    const startAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    const stopAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    
+    startAudio.volume = 0.3;
+    stopAudio.volume = 0.3;
+    
+    setStartSound(startAudio);
+    setStopSound(stopAudio);
+
+    return () => {
+      startAudio.pause();
+      stopAudio.pause();
+    };
+  }, []);
+
+  // Speech Recognition Setup
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window) {
+      const recognitionInstance = new window.webkitSpeechRecognition();
+      recognitionInstance.continuous = false;
+      recognitionInstance.interimResults = false;
+      recognitionInstance.lang = 'en-US';
+
+      recognitionInstance.onstart = () => {
+        setIsListening(true);
+        console.log('Started listening...');
+        if (startSound) {
+          startSound.currentTime = 0;
+          startSound.play().catch(error => console.error('Error playing start sound:', error));
+        }
+      };
+
+      recognitionInstance.onend = () => {
+        setIsListening(false);
+        console.log('Stopped listening...');
+        if (stopSound) {
+          stopSound.currentTime = 0;
+          stopSound.play().catch(error => console.error('Error playing stop sound:', error));
+        }
+      };
+
+      recognitionInstance.onresult = (event) => {
+        const transcript = event.results[0][0].transcript.toLowerCase();
+        console.log('Recognized:', transcript);
+        setTranscript(transcript);
+        handleVoiceCommand(transcript);
+      };
+
+      recognitionInstance.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+        if (stopSound) {
+          stopSound.currentTime = 0;
+          stopSound.play().catch(error => console.error('Error playing stop sound:', error));
+        }
+      };
+
+      setRecognition(recognitionInstance);
+    } else {
+      console.error('Speech recognition not supported');
+    }
+
+    return () => {
+      if (recognition) {
+        recognition.stop();
+      }
+    };
+  }, [startSound, stopSound]);
+
+  const startListening = () => {
+    if (recognition) {
+      try {
+        recognition.start();
+        console.log('Starting speech recognition...');
+      } catch (error) {
+        console.error('Error starting speech recognition:', error);
+        speak("Sorry, there was an error starting voice recognition. Please try again.");
+      }
+    } else {
+      speak("Sorry, voice recognition is not supported in your browser.");
+    }
+  };
+
+  const speak = (text) => {
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.1;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    
+    utterance.onstart = () => console.log('Started speaking...');
+    utterance.onend = () => console.log('Finished speaking...');
+    utterance.onerror = (event) => console.error('Speech synthesis error:', event);
+    
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleMarkPresent = () => {
+    // Mark all subjects as present
+    setSubjects(subjects.map(subject => ({
+      ...subject,
+      attended: true
+    })));
+    speak(`Marked all subjects as present for ${selectedDay.toLowerCase()}`);
+  };
+
+  const handleMarkAbsent = () => {
+    // Mark all subjects as absent
+    setSubjects(subjects.map(subject => ({
+      ...subject,
+      attended: false
+    })));
+    speak(`Marked all subjects as absent for ${selectedDay.toLowerCase()}`);
+  };
+
+  const handleVoiceCommand = (command) => {
+    console.log('Processing command:', command);
+    
+    // Handle submit attendance command
+    if (command.includes('submit') && command.includes('attendance')) {
+      speak("Submitting your attendance and taking you to the attendance view.");
+      handleSubmit();
+      return;
+    }
+
+    // Handle attendance marking commands
+    const attendanceMatch = command.match(/(?:mark|set|record).*(?:me|attendance).*(?:as)?\s*(present|absent)/i);
+    
+    if (attendanceMatch) {
+      const status = attendanceMatch[1].toLowerCase();
+      if (status === 'present') {
+        // Mark all subjects as present
+        setSubjects(subjects.map(subject => ({
+          ...subject,
+          attended: true
+        })));
+        speak(`Marked all subjects as present for ${selectedDay.toLowerCase()}`);
+      } else if (status === 'absent') {
+        // Mark all subjects as absent
+        setSubjects(subjects.map(subject => ({
+          ...subject,
+          attended: false
+        })));
+        speak(`Marked all subjects as absent for ${selectedDay.toLowerCase()}`);
+      }
+      return;
+    }
+
+    // Handle individual subject attendance
+    const subjectMatch = command.match(/(?:mark|set|record).*(?:me|attendance).*(?:as)?\s*(present|absent).*(?:for|in)?\s*([a-zA-Z\s]+)/i);
+    if (subjectMatch) {
+      const status = subjectMatch[1].toLowerCase();
+      const subjectName = subjectMatch[2].trim();
+      const subject = subjects.find(s => 
+        s.name.toLowerCase().includes(subjectName.toLowerCase())
+      );
+      
+      if (subject) {
+        if (status === 'present') {
+          setSubjects(subjects.map(s => 
+            s.id === subject.id ? { ...s, attended: true } : s
+          ));
+          speak(`Marked you as present for ${subject.name}`);
+        } else if (status === 'absent') {
+          setSubjects(subjects.map(s => 
+            s.id === subject.id ? { ...s, attended: false } : s
+          ));
+          speak(`Marked you as absent for ${subject.name}`);
+        }
+      } else {
+        speak(`Sorry, I couldn't find a subject matching "${subjectName}". Available subjects are: ${subjects.map(s => s.name).join(', ')}`);
+      }
+      return;
+    }
+
+    // Handle navigation commands
+    if (command.includes('go back') || command.includes('back to home')) {
+      speak("Navigating back to home page.");
+      setTimeout(() => navigate('/'), 1500);
+      return;
+    }
+
+    // Default response
+    speak("I didn't quite catch that. You can say 'Mark me as present' or 'Mark me as absent' to mark your attendance. You can also specify a subject like 'Mark me as present for Advanced Mathematics'. To submit attendance, say 'Submit attendance'");
+  };
 
   const getTypeIcon = (type) => {
     switch (type) {
@@ -48,7 +243,9 @@ const MarkAttendance = () => {
 
   const handleSubmit = () => {
     // Here you would typically send the attendance data to your backend
-    console.log('Attendance submitted:', subjects);
+    console.log('Submitting attendance:', subjects);
+    
+    // Navigate to AttendanceView page
     navigate('/attendance');
   };
 
@@ -71,14 +268,13 @@ const MarkAttendance = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="relative">
-                <input type="search" placeholder="Search..." className="pl-10 pr-4 py-2 rounded-full border border-gray-200 text-sm w-48 focus:w-64 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" />
-                <svg className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <button className="text-gray-500 hover:text-blue-600 hover:scale-110 transition-all">
-                <Mic className="w-5 h-5" />
+              <button 
+                onClick={startListening}
+                className={`text-gray-500 hover:text-blue-600 hover:scale-110 transition-all ${
+                  isListening ? 'animate-pulse bg-green-400/40' : ''
+                }`}
+              >
+                <Mic className={`w-5 h-5 ${isListening ? 'text-green-400' : 'text-gray-500'}`} />
               </button>
               <Link to="/signin" className="text-gray-500 hover:text-blue-600 text-sm font-medium">Sign In</Link>
               <Link to="/register" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-6 py-2 rounded-full text-sm font-medium transition-all hover:shadow-lg hover:scale-105">
@@ -99,7 +295,7 @@ const MarkAttendance = () => {
             <ArrowLeft className="w-5 h-5" />
             <span>Back</span>
           </button>
-          <h1 className="text-2xl font-bold text-gray-900 ml-4">Mark Attendance - {day}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 ml-4">Mark Attendance - {selectedDay}</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

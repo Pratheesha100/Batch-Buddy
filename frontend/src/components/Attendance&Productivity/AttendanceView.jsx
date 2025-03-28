@@ -75,7 +75,7 @@ const AttendanceView = () => {
                 <svg className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-              </div>
+            </div>
               <button className="text-gray-500 hover:text-blue-600 hover:scale-110 transition-all">
                 <Mic className="w-5 h-5" />
               </button>
@@ -91,7 +91,7 @@ const AttendanceView = () => {
       {/* Main Content */}
       <div className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
+        {/* Header */}
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Attendance Overview</h1>
             <div className="flex space-x-2">
@@ -188,18 +188,18 @@ const AttendanceView = () => {
                 </div>
                 <div className="bg-blue-100 p-3 rounded-lg">
                   <Mic className="w-6 h-6 text-blue-600" />
-                </div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Time Distribution and Upcoming Events */}
+        {/* Time Distribution and Upcoming Events */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Time Distribution */}
+          {/* Time Distribution */}
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-xl font-semibold mb-6">Time Distribution</h3>
-              <div className="space-y-6">
-                <div>
+            <h3 className="text-xl font-semibold mb-6">Time Distribution</h3>
+            <div className="space-y-6">
+              <div>
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-gray-600">Lectures</span>
                     <span className="text-gray-900">{currentData.timeDistribution.lectures}%</span>
@@ -209,51 +209,51 @@ const AttendanceView = () => {
                       className="h-2 bg-blue-500 rounded-full" 
                       style={{ width: `${currentData.timeDistribution.lectures}%` }}
                     ></div>
-                  </div>
+                </div>
                 </div>
                 <div>
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-gray-600">Self-Study</span>
                     <span className="text-gray-900">{currentData.timeDistribution.selfStudy}%</span>
-                  </div>
+              </div>
                   <div className="h-2 bg-gray-100 rounded-full">
                     <div 
                       className="h-2 bg-green-500 rounded-full" 
                       style={{ width: `${currentData.timeDistribution.selfStudy}%` }}
                     ></div>
-                  </div>
+                </div>
                 </div>
                 <div>
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-gray-600">Exams</span>
                     <span className="text-gray-900">{currentData.timeDistribution.exams}%</span>
-                  </div>
+              </div>
                   <div className="h-2 bg-gray-100 rounded-full">
                     <div 
                       className="h-2 bg-purple-500 rounded-full" 
                       style={{ width: `${currentData.timeDistribution.exams}%` }}
                     ></div>
-                  </div>
+                </div>
                 </div>
                 <div>
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-gray-600">Lab Work</span>
                     <span className="text-gray-900">{currentData.timeDistribution.labWork}%</span>
-                  </div>
+              </div>
                   <div className="h-2 bg-gray-100 rounded-full">
                     <div 
                       className="h-2 bg-orange-500 rounded-full" 
                       style={{ width: `${currentData.timeDistribution.labWork}%` }}
                     ></div>
-                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Upcoming Events */}
+          {/* Upcoming Events */}
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-xl font-semibold mb-6">Upcoming Events</h3>
-              <div className="space-y-4">
+            <h3 className="text-xl font-semibold mb-6">Upcoming Events</h3>
+            <div className="space-y-4">
                 <div className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50">
                   <div className="bg-blue-100 p-2 rounded-lg">
                     <BookOpen className="w-5 h-5 text-blue-600" />
@@ -261,29 +261,29 @@ const AttendanceView = () => {
                   <div className="flex-1">
                     <h4 className="text-gray-900 font-medium">Advanced Mathematics</h4>
                     <p className="text-gray-500 text-sm">Today, 10:00 AM</p>
-                  </div>
+                </div>
                   <span className="bg-blue-100 text-blue-600 text-xs font-medium px-2.5 py-0.5 rounded">LECTURE</span>
                 </div>
 
                 <div className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50">
                   <div className="bg-purple-100 p-2 rounded-lg">
                     <Beaker className="w-5 h-5 text-purple-600" />
-                  </div>
+              </div>
                   <div className="flex-1">
                     <h4 className="text-gray-900 font-medium">Chemistry Lab</h4>
                     <p className="text-gray-500 text-sm">Today, 2:00 PM</p>
-                  </div>
+                </div>
                   <span className="bg-purple-100 text-purple-600 text-xs font-medium px-2.5 py-0.5 rounded">LAB</span>
                 </div>
 
                 <div className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50">
                   <div className="bg-green-100 p-2 rounded-lg">
                     <Users className="w-5 h-5 text-green-600" />
-                  </div>
+              </div>
                   <div className="flex-1">
                     <h4 className="text-gray-900 font-medium">Study Group</h4>
                     <p className="text-gray-500 text-sm">Tomorrow, 9:00 AM</p>
-                  </div>
+                </div>
                   <span className="bg-green-100 text-green-600 text-xs font-medium px-2.5 py-0.5 rounded">GROUP</span>
                 </div>
               </div>

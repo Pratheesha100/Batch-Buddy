@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Mic, Calendar, Clock, ChevronRight, BookOpen, Beaker, Users } from "lucide-react";
 import { Link } from "react-router-dom";
-import { BookOpen, Beaker, Users, Clock, Calendar, Download, Mic } from 'lucide-react';
-import './TimeTable.css';
 
 const TimeTable = () => {
+  const navigate = useNavigate();
   const [selectedDay, setSelectedDay] = useState('Monday');
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [recognition, setRecognition] = useState(null);
+  const [startSound, setStartSound] = useState(null);
+  const [stopSound, setStopSound] = useState(null);
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -66,8 +72,12 @@ const TimeTable = () => {
     }
   };
 
+  const startListening = () => {
+    // Implementation of startListening function
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Navigation Bar */}
       <nav className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -85,14 +95,13 @@ const TimeTable = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="relative">
-                <input type="search" placeholder="Search..." className="pl-10 pr-4 py-2 rounded-full border border-gray-200 text-sm w-48 focus:w-64 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" />
-                <svg className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <button className="text-gray-500 hover:text-blue-600 hover:scale-110 transition-all">
-                <Mic className="w-5 h-5" />
+              <button 
+                onClick={startListening}
+                className={`text-gray-500 hover:text-blue-600 hover:scale-110 transition-all ${
+                  isListening ? 'animate-pulse bg-green-400/40' : ''
+                }`}
+              >
+                <Mic className={`w-5 h-5 ${isListening ? 'text-green-400' : 'text-gray-500'}`} />
               </button>
               <Link to="/signin" className="text-gray-500 hover:text-blue-600 text-sm font-medium">Sign In</Link>
               <Link to="/register" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-6 py-2 rounded-full text-sm font-medium transition-all hover:shadow-lg hover:scale-105">
@@ -103,81 +112,58 @@ const TimeTable = () => {
         </div>
       </nav>
 
-      {/* Main Content */}
-      <div className="py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Weekly Schedule</h1>
-              <p className="text-gray-600">View and manage your class schedule</p>
-            </div>
-            <button className="flex items-center space-x-2 bg-white hover:bg-gray-50 px-4 py-2 rounded-lg text-gray-600 text-sm font-medium transition-all hover:shadow-md">
-              <Download className="w-5 h-5" />
-              <span>Export Calendar</span>
-            </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">Weekly Schedule</h1>
+          <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all flex items-center space-x-2">
+            <Calendar className="w-5 h-5" />
+            <span>Export Calendar</span>
+          </button>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="flex flex-wrap gap-2 mb-6">
+            {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
+              <button
+                key={day}
+                onClick={() => setSelectedDay(day)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  selectedDay === day
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {day}
+              </button>
+            ))}
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="border-b border-gray-200">
-              <div className="flex space-x-1 p-2">
-                {days.map((day) => (
-                  <button
-                    key={day}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                      selectedDay === day
-                        ? 'bg-blue-500 text-white'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                    onClick={() => setSelectedDay(day)}
-                  >
-                    {day}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="p-6">
-              {scheduleData[selectedDay].length > 0 ? (
-                <div className="space-y-4">
-                  {scheduleData[selectedDay].map((session, index) => (
-                    <div
-                      key={index}
-                      className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className={`p-3 rounded-lg ${getTypeColor(session.type)}`}>
-                          {getTypeIcon(session.type)}
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-gray-900">{session.subject}</h3>
-                          <div className="flex items-center space-x-4 mt-1">
-                            <span className="flex items-center text-sm text-gray-500">
-                              <Clock className="w-4 h-4 mr-1" />
-                              {session.time}
-                            </span>
-                            <span className="text-sm text-gray-500">
-                              Room {session.room}
-                            </span>
-                          </div>
-                          <div className="mt-2 flex items-center justify-between">
-                            <span className="text-sm text-gray-600">{session.lecturer}</span>
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${getTypeColor(session.type)}`}>
-                              {session.type}
-                            </span>
-                          </div>
-                        </div>
+          <div className="space-y-4">
+            {scheduleData[selectedDay].map((item, index) => (
+              <div key={index} className="bg-gray-50 rounded-lg p-6 hover:bg-gray-100 transition-all">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className={`p-3 rounded-lg ${
+                      item.type === 'Lecture' ? 'bg-blue-50' :
+                      item.type === 'Lab' ? 'bg-green-50' :
+                      'bg-purple-50'
+                    }`}>
+                      {item.type === 'Lecture' ? <BookOpen className="w-6 h-6 text-blue-600" /> :
+                       item.type === 'Lab' ? <Beaker className="w-6 h-6 text-green-600" /> :
+                       <Users className="w-6 h-6 text-purple-600" />}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800">{item.subject}</h3>
+                      <div className="flex items-center space-x-2 text-gray-500 text-sm">
+                        <Clock className="w-4 h-4" />
+                        <span>{item.time}</span>
                       </div>
                     </div>
-                  ))}
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
                 </div>
-              ) : (
-                <div className="text-center py-12">
-                  <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Classes Scheduled</h3>
-                  <p className="text-gray-500">There are no classes scheduled for {selectedDay}</p>
-                </div>
-              )}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
