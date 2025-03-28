@@ -2,6 +2,7 @@ import { Route, Routes, useLocation } from "react-router-dom";
 
 // Admin management system
 import Test from "./components/AdminManagement/test"; // Capitalized
+import UserLog from "./components/UserManagement/UserLog";
 
 // User management system
 
@@ -15,7 +16,7 @@ function App() {
   return (
       <Routes>
         {/* Admin Routes */}
-        <Route path="/" element={<Test />} />
+        <Route path="/" element={<UserLog />} />
         
         {/* User Routes */}
 

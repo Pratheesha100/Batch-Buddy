@@ -1,13 +1,31 @@
-const express = require("express");
-const app = express();
-const PORT = 3000;
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import connectDB from './DB/connectDB.js';
+import userRoutes from './Routes/UserLogRoutes.js';
 
-// Sample route
-app.get("/", (req, res) => {
-    res.send("Hello, Node.js is working!");
+dotenv.config();
+
+const app = express();
+
+// Connect to MongoDB
+connectDB();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Routes
+app.use('/api/user', userRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!' });
 });
 
-// Start the server
+const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
