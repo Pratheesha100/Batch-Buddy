@@ -1,11 +1,17 @@
 import { Route, Routes, useLocation } from "react-router-dom";
 
+
 // Admin management system
 import Test from "./components/AdminManagement/test"; // Capitalized
 
 // User management system
 
 // Attendance management system
+import BatchBuddy from "./components/Attendance&Productivity/Home";
+import TimeTable from "./components/Attendance&Productivity/TimeTable";
+import AttendanceView from "./components/Attendance&Productivity/AttendanceView";
+import MarkAttendance from "./components/Attendance&Productivity/MarkAttendance";
+import Contact from "./components/Contact/Contact";
 
 // Notification management system
 
@@ -15,13 +21,19 @@ function App() {
   return (
       <Routes>
         {/* Admin Routes */}
-        <Route path="/" element={<Test />} />
+        <Route path="/" element={<BatchBuddy />} />
+        <Route path="/timetable" element={<TimeTable />} />
+        <Route path="/attendance" element={<AttendanceView />} />
+        <Route path="/mark-attendance" element={<MarkAttendance />} />
+        <Route path="/contact" element={<Contact />} />
         
         {/* User Routes */}
 
         {/* Notification Routes */}
 
         {/* Attendance Routes */}
+        
+
       </Routes>  
       
   );
