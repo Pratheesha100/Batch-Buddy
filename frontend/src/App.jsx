@@ -11,7 +11,7 @@ import BatchBuddy from "./components/Attendance&Productivity/Home";
 import TimeTable from "./components/Attendance&Productivity/TimeTable";
 import AttendanceView from "./components/Attendance&Productivity/AttendanceView";
 import MarkAttendance from "./components/Attendance&Productivity/MarkAttendance";
-import Contact from "./components/Contact/Contact";
+import Contact from "./components/Attendance&Productivity/Contact";
 
 // Notification management system
 

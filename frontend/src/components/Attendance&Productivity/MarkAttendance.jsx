@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Circle, Clock, Users, BookOpen, Beaker, Calendar, Mic, Check, X, User } from 'lucide-react';
-import './MarkAttendance.css';
+
 import { Link } from 'react-router-dom';
 
 const MarkAttendance = () => {
