@@ -1,16 +1,13 @@
 import React from 'react';
 import { Route, Routes } from "react-router-dom";
-import LandingPage from "./components/UserManagement/landingPage";
-import UserLog from "./components/UserManagement/UserLog";
-import Register from "./components/UserManagement/Register";
+
 
 // Admin management system
 
 // User management system
-
-// Attendance management system
-
-// Notification management system
+import LandingPage from "./components/UserManagement/landingPage";
+import UserLog from "./components/UserManagement/UserLog";
+import Register from "./components/UserManagement/Register";
 
 function App() {
   return (
@@ -25,5 +22,11 @@ function App() {
     </div>
   );
 }
+
+// Attendance management system
+
+// Notification management system
+
+
 
 export default App;

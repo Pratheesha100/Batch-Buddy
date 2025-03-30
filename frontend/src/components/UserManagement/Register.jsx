@@ -126,10 +126,10 @@ const Register = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-blue-600 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
+      <div className="max-w-md w-full bg-transparent backdrop-blur-sm border border-white/20 rounded-2xl shadow-xl p-8">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">BatchBuddy</h2>
-          <p className="text-gray-600">Create your account</p>
+          <h2 className="text-3xl font-bold text-white mb-2">BatchBuddy</h2>
+          <p className="text-white/80">Create your account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -141,9 +141,9 @@ const Register = () => {
               placeholder="Full Name"
               onChange={handleChange}
               required
-              className={inputClassName}
+              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200 text-white placeholder-white/60"
             />
-            {errors.name && <p className={errorClassName}>{errors.name}</p>}
+            {errors.name && <p className="text-red-300 text-sm mt-1">{errors.name}</p>}
           </div>
 
           <div>
@@ -155,9 +155,9 @@ const Register = () => {
               onChange={handleChange}
               required
               maxLength="10"
-              className={inputClassName}
+              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200 text-white placeholder-white/60"
             />
-            {errors.itNumber && <p className={errorClassName}>{errors.itNumber}</p>}
+            {errors.itNumber && <p className="text-red-300 text-sm mt-1">{errors.itNumber}</p>}
           </div>
 
           <div>
@@ -168,9 +168,9 @@ const Register = () => {
               placeholder="Email Address"
               onChange={handleChange}
               required
-              className={inputClassName}
+              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200 text-white placeholder-white/60"
             />
-            {errors.email && <p className={errorClassName}>{errors.email}</p>}
+            {errors.email && <p className="text-red-300 text-sm mt-1">{errors.email}</p>}
           </div>
 
           <div>
@@ -182,9 +182,9 @@ const Register = () => {
               onChange={handleChange}
               required
               maxLength="10"
-              className={inputClassName}
+              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200 text-white placeholder-white/60"
             />
-            {errors.phoneNumber && <p className={errorClassName}>{errors.phoneNumber}</p>}
+            {errors.phoneNumber && <p className="text-red-300 text-sm mt-1">{errors.phoneNumber}</p>}
           </div>
 
           <div>
@@ -194,39 +194,57 @@ const Register = () => {
               value={formData.year}
               readOnly
               disabled
-              className={`${inputClassName} bg-gray-100`}
+              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200 text-white placeholder-white/60"
             />
           </div>
 
           <div>
-            <select name="batch" value={formData.batch} onChange={handleChange} required className={selectClassName}>
-              <option value="">Select Batch</option>
-              <option value="Y1S1">Y1S1</option>
-              <option value="Y1S2">Y1S2</option>
-              <option value="Y2S1">Y2S1</option>
-              <option value="Y2S2">Y2S2</option>
-              <option value="Y3S1">Y3S1</option>
-              <option value="Y3S2">Y3S2</option>
-              <option value="Y4S1">Y4S1</option>
-              <option value="Y4S2">Y4S2</option>
+            <select 
+              name="batch" 
+              value={formData.batch} 
+              onChange={handleChange} 
+              required 
+              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200 text-white placeholder-white/60"
+            >
+              <option value="" className="bg-gray-800">Select Batch</option>
+              <option value="Y1S1" className="bg-gray-800">Y1S1</option>
+              <option value="Y1S2" className="bg-gray-800">Y1S2</option>
+              <option value="Y2S1" className="bg-gray-800">Y2S1</option>
+              <option value="Y2S2" className="bg-gray-800">Y2S2</option>
+              <option value="Y3S1" className="bg-gray-800">Y3S1</option>
+              <option value="Y3S2" className="bg-gray-800">Y3S2</option>
+              <option value="Y4S1" className="bg-gray-800">Y4S1</option>
+              <option value="Y4S2" className="bg-gray-800">Y4S2</option>
             </select>
           </div>
 
           <div>
-            <select name="weekType" value={formData.weekType} onChange={handleChange} required className={selectClassName}>
-              <option value="">Select Week Type</option>
-              <option value="WE">Weekend</option>
-              <option value="WD">Weekday</option>
+            <select 
+              name="weekType" 
+              value={formData.weekType} 
+              onChange={handleChange} 
+              required 
+              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200 text-white placeholder-white/60"
+            >
+              <option value="" className="bg-gray-800">Select Week Type</option>
+              <option value="WE" className="bg-gray-800">Weekend</option>
+              <option value="WD" className="bg-gray-800">Weekday</option>
             </select>
           </div>
 
           <div>
-            <select name="degree" value={formData.degree} onChange={handleChange} required className={selectClassName}>
-              <option value="">Select Degree</option>
-              <option value="BScIT">BSc Honours Specialization in Information Technology</option>
-              <option value="BScSE">BSc Honours Specialization in Software Engineering</option>
-              <option value="BScDS">BSc Honours Specialization in Data Science</option>
-              <option value="BScIM">BSc Honours Specialization in Interactive Media</option>
+            <select 
+              name="degree" 
+              value={formData.degree} 
+              onChange={handleChange} 
+              required 
+              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200 text-white placeholder-white/60"
+            >
+              <option value="" className="bg-gray-800">Select Degree</option>
+              <option value="BScIT" className="bg-gray-800">BSc Honours Specialization in Information Technology</option>
+              <option value="BScSE" className="bg-gray-800">BSc Honours Specialization in Software Engineering</option>
+              <option value="BScDS" className="bg-gray-800">BSc Honours Specialization in Data Science</option>
+              <option value="BScIM" className="bg-gray-800">BSc Honours Specialization in Interactive Media</option>
             </select>
           </div>
 
@@ -238,9 +256,9 @@ const Register = () => {
               placeholder="Password"
               onChange={handleChange}
               required
-              className={inputClassName}
+              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200 text-white placeholder-white/60"
             />
-            {errors.password && <p className={errorClassName}>{errors.password}</p>}
+            {errors.password && <p className="text-red-300 text-sm mt-1">{errors.password}</p>}
           </div>
 
           <div>
@@ -251,9 +269,9 @@ const Register = () => {
               placeholder="Confirm Password"
               onChange={handleChange}
               required
-              className={inputClassName}
+              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200 text-white placeholder-white/60"
             />
-            {errors.confirmPassword && <p className={errorClassName}>{errors.confirmPassword}</p>}
+            {errors.confirmPassword && <p className="text-red-300 text-sm mt-1">{errors.confirmPassword}</p>}
           </div>
 
           <div className="flex items-center">
@@ -263,24 +281,24 @@ const Register = () => {
               checked={formData.termsAccepted}
               onChange={handleChange}
               required
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              className="h-4 w-4 bg-white/10 border-white/20 rounded focus:ring-blue-400 text-blue-600"
             />
-            <label className="ml-2 block text-sm text-gray-900">
+            <label className="ml-2 block text-sm text-white/80">
               I agree to the terms and conditions
             </label>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white rounded-lg py-3 font-semibold hover:bg-blue-700 transition-colors duration-200"
+            className="w-full bg-white-600 text-blue rounded-lg py-3 font-semibold hover:bg-blue-700 transition-colors duration-200"
           >
             Register
           </button>
         </form>
 
-        <p className="mt-6 text-center text-gray-600">
+        <p className="mt-6 text-center text-white/80">
           Already have an account?{" "}
-          <Link to="/login" className="text-blue-600 hover:text-blue-800 font-semibold">
+          <Link to="/login" className="text-blue-400 hover:text-blue-300 font-semibold">
             Login
           </Link>
         </p>
