@@ -1,9 +1,10 @@
-import { Route, Routes, useLocation } from "react-router-dom";
-
-// Admin management system
-import Test from "./components/AdminManagement/test"; // Capitalized
+import React from 'react';
+import { Route, Routes } from "react-router-dom";
+import LandingPage from "./components/UserManagement/landingPage";
 import UserLog from "./components/UserManagement/UserLog";
 import Register from "./components/UserManagement/Register";
+
+// Admin management system
 
 // User management system
 
@@ -12,20 +13,16 @@ import Register from "./components/UserManagement/Register";
 // Notification management system
 
 function App() {
-  const location = useLocation();
-
   return (
+    <div className="app">
       <Routes>
-        {/* Admin Routes */}
-        <Route path="/" element={<Register/>} />
-        
-        {/* User Routes */}
-
-        {/* Notification Routes */}
-
-        {/* Attendance Routes */}
-      </Routes>  
-      
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<UserLog />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/get-started" element={<UserLog />} />
+        <Route path="*" element={<div>Page not found</div>} />
+      </Routes>
+    </div>
   );
 }
 

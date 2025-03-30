@@ -1,0 +1,162 @@
+/* Import Poppins font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* Reset default styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Landing page container */
+.landing-container {
+  background-color: #3B82F6;
+  min-height: 100vh;
+  width: 100%;
+  padding: 2rem 4rem;
+  font-family: 'Poppins', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Navigation buttons */
+.nav-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.nav-button {
+  background-color: #1E293B;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 9999px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.nav-button:hover {
+  transform: translateY(-2px);
+}
+
+/* Main content */
+.main-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: calc(100vh - 120px);
+}
+
+/* Text content */
+.text-content {
+  flex: 1;
+  padding-right: 2rem;
+}
+
+.main-title {
+  color: #1E293B;
+  font-size: 4.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+.description {
+  color: white;
+  font-size: 1.5rem;
+  line-height: 1.6;
+  margin: 2rem 0;
+}
+
+.get-start-btn {
+  background-color: #1E293B;
+  color: white;
+  border: none;
+  padding: 1rem 4rem;
+  border-radius: 9999px;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 300px;
+}
+
+.get-start-btn:hover {
+  transform: translateY(-2px);
+  background-color: #2d3748;
+}
+
+/* Image container */
+.image-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.landing-image {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .main-title {
+    font-size: 3.5rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .landing-container {
+    padding: 2rem;
+  }
+
+  .main-content {
+    flex-direction: column;
+    text-align: center;
+    height: auto;
+  }
+
+  .text-content {
+    padding-right: 0;
+    margin-bottom: 2rem;
+  }
+
+  .main-title {
+    font-size: 3rem;
+  }
+
+  .description {
+    font-size: 1.25rem;
+  }
+
+  .image-container {
+    margin-top: 2rem;
+  }
+
+  .landing-image {
+    max-width: 80%;
+  }
+}
+
+@media (max-width: 640px) {
+  .landing-container {
+    padding: 1rem;
+  }
+
+  .main-title {
+    font-size: 2.5rem;
+  }
+
+  .nav-button {
+    padding: 0.5rem 1.5rem;
+  }
+
+  .get-start-btn {
+    width: 100%;
+    padding: 0.75rem 2rem;
+  }
+}

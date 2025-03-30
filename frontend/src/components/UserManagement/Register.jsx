@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "./Register.css";
 import { Link } from "react-router-dom";
 
 const Register = () => {
@@ -121,124 +120,169 @@ const Register = () => {
     }
   };
 
+  const inputClassName = "w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200";
+  const selectClassName = "w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition-all duration-200";
+  const errorClassName = "text-red-500 text-sm mt-1";
+
   return (
-    <div className="register-container">
-      <div className="register-card">
-        <h2>BatchBuddy</h2>
-        <p>Create your account</p>
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            placeholder="Full Name"
-            onChange={handleChange}
-            required
-          />
-          {errors.name && <span className="error">{errors.name}</span>}
+    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-blue-600 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">BatchBuddy</h2>
+          <p className="text-gray-600">Create your account</p>
+        </div>
 
-          <input
-            type="text"
-            name="itNumber"
-            value={formData.itNumber}
-            placeholder="IT Number"
-            onChange={handleChange}
-            required
-            maxLength="10"
-          />
-          {errors.itNumber && <span className="error">{errors.itNumber}</span>}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              placeholder="Full Name"
+              onChange={handleChange}
+              required
+              className={inputClassName}
+            />
+            {errors.name && <p className={errorClassName}>{errors.name}</p>}
+          </div>
 
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            placeholder="Email Address"
-            onChange={handleChange}
-            required
-          />
-          {errors.email && <span className="error">{errors.email}</span>}
+          <div>
+            <input
+              type="text"
+              name="itNumber"
+              value={formData.itNumber}
+              placeholder="IT Number"
+              onChange={handleChange}
+              required
+              maxLength="10"
+              className={inputClassName}
+            />
+            {errors.itNumber && <p className={errorClassName}>{errors.itNumber}</p>}
+          </div>
 
-          <input
-            type="tel"
-            name="phoneNumber"
-            value={formData.phoneNumber}
-            placeholder="Phone Number"
-            onChange={handleChange}
-            required
-            maxLength="10"
-          />
-          {errors.phoneNumber && <span className="error">{errors.phoneNumber}</span>}
+          <div>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              placeholder="Email Address"
+              onChange={handleChange}
+              required
+              className={inputClassName}
+            />
+            {errors.email && <p className={errorClassName}>{errors.email}</p>}
+          </div>
 
-          <input
-            type="text"
-            name="year"
-            value={formData.year}
-            readOnly
-            disabled
-          />
+          <div>
+            <input
+              type="tel"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              placeholder="Phone Number"
+              onChange={handleChange}
+              required
+              maxLength="10"
+              className={inputClassName}
+            />
+            {errors.phoneNumber && <p className={errorClassName}>{errors.phoneNumber}</p>}
+          </div>
 
-          <select name="batch" value={formData.batch} onChange={handleChange} required>
-            <option value="">Select Batch</option>
-            <option value="Y1S1">Y1S1</option>
-            <option value="Y1S2">Y1S2</option>
-            <option value="Y2S1">Y2S1</option>
-            <option value="Y2S2">Y2S2</option>
-            <option value="Y3S1">Y3S1</option>
-            <option value="Y3S2">Y3S2</option>
-            <option value="Y4S1">Y4S1</option>
-            <option value="Y4S2">Y4S2</option>
-          </select>
+          <div>
+            <input
+              type="text"
+              name="year"
+              value={formData.year}
+              readOnly
+              disabled
+              className={`${inputClassName} bg-gray-100`}
+            />
+          </div>
 
-          <select name="weekType" value={formData.weekType} onChange={handleChange} required>
-            <option value="">Select Week Type</option>
-            <option value="WE">Weekend</option>
-            <option value="WD">Weekday</option>
-          </select>
+          <div>
+            <select name="batch" value={formData.batch} onChange={handleChange} required className={selectClassName}>
+              <option value="">Select Batch</option>
+              <option value="Y1S1">Y1S1</option>
+              <option value="Y1S2">Y1S2</option>
+              <option value="Y2S1">Y2S1</option>
+              <option value="Y2S2">Y2S2</option>
+              <option value="Y3S1">Y3S1</option>
+              <option value="Y3S2">Y3S2</option>
+              <option value="Y4S1">Y4S1</option>
+              <option value="Y4S2">Y4S2</option>
+            </select>
+          </div>
 
-          <select name="degree" value={formData.degree} onChange={handleChange} required>
-            <option value="">Select Degree</option>
-            <option value="BScIT">BSc Honours Specialization in Information Technology</option>
-            <option value="BScSE">BSc Honours Specialization in Software Engineering</option>
-            <option value="BScDS">BSc Honours Specialization in Data Science</option>
-            <option value="BScIM">BSc Honours Specialization in Interactive Media</option>
-          </select>
+          <div>
+            <select name="weekType" value={formData.weekType} onChange={handleChange} required className={selectClassName}>
+              <option value="">Select Week Type</option>
+              <option value="WE">Weekend</option>
+              <option value="WD">Weekday</option>
+            </select>
+          </div>
 
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            placeholder="Password"
-            onChange={handleChange}
-            required
-          />
-          {errors.password && <span className="error">{errors.password}</span>}
+          <div>
+            <select name="degree" value={formData.degree} onChange={handleChange} required className={selectClassName}>
+              <option value="">Select Degree</option>
+              <option value="BScIT">BSc Honours Specialization in Information Technology</option>
+              <option value="BScSE">BSc Honours Specialization in Software Engineering</option>
+              <option value="BScDS">BSc Honours Specialization in Data Science</option>
+              <option value="BScIM">BSc Honours Specialization in Interactive Media</option>
+            </select>
+          </div>
 
-          <input
-            type="password"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            placeholder="Confirm Password"
-            onChange={handleChange}
-            required
-          />
-          {errors.confirmPassword && <span className="error">{errors.confirmPassword}</span>}
+          <div>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              placeholder="Password"
+              onChange={handleChange}
+              required
+              className={inputClassName}
+            />
+            {errors.password && <p className={errorClassName}>{errors.password}</p>}
+          </div>
 
-          <label className="terms">
+          <div>
+            <input
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              placeholder="Confirm Password"
+              onChange={handleChange}
+              required
+              className={inputClassName}
+            />
+            {errors.confirmPassword && <p className={errorClassName}>{errors.confirmPassword}</p>}
+          </div>
+
+          <div className="flex items-center">
             <input
               type="checkbox"
               name="termsAccepted"
               checked={formData.termsAccepted}
               onChange={handleChange}
               required
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
-            I agree to the terms and conditions
-          </label>
+            <label className="ml-2 block text-sm text-gray-900">
+              I agree to the terms and conditions
+            </label>
+          </div>
 
-          <button type="submit" className="register-btn">Register</button>
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white rounded-lg py-3 font-semibold hover:bg-blue-700 transition-colors duration-200"
+          >
+            Register
+          </button>
         </form>
 
-        <p className="login-link">
-          Already have an account? <Link to="/">Login</Link>
+        <p className="mt-6 text-center text-gray-600">
+          Already have an account?{" "}
+          <Link to="/login" className="text-blue-600 hover:text-blue-800 font-semibold">
+            Login
+          </Link>
         </p>
       </div>
     </div>
