@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { FcGoogle } from 'react-icons/fc';
@@ -159,6 +159,15 @@ const UserLog = () => {
               >
                 {loading.user ? 'Signing in...' : 'Sign in'}
               </button>
+            </div>
+
+            <div className="flex items-center justify-end">
+              <Link
+                to="/reset-password"
+                className="text-sm text-white/80 hover:text-white transition-colors duration-200"
+              >
+                Forgot your password?
+              </Link>
             </div>
 
             <div className="relative">
