@@ -12,6 +12,7 @@ import TimeTable from "./components/Attendance&Productivity/TimeTable";
 import AttendanceView from "./components/Attendance&Productivity/AttendanceView";
 import MarkAttendance from "./components/Attendance&Productivity/MarkAttendance";
 import Contact from "./components/Attendance&Productivity/Contact";
+import AboutUs from './components/Attendance&Productivity/AboutUs';
 
 // Notification management system
 
@@ -26,6 +27,7 @@ function App() {
         <Route path="/attendance" element={<AttendanceView />} />
         <Route path="/mark-attendance" element={<MarkAttendance />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/about" element={<AboutUs />} />
         
         {/* User Routes */}
 
