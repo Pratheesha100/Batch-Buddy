@@ -1,0 +1,13 @@
+@import './shared.css';
+
+/* Reschedule-specific styles */
+.admin-reschedule-form {
+    padding-bottom: 50px;
+}
+
+/* Reschedule-specific responsive adjustments */
+@media (max-width: 640px) {
+    .admin-reschedule-form {
+        padding-bottom: 30px;
+    }
+}

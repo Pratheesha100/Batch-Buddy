@@ -1,0 +1,302 @@
+@import './shared.css';
+
+/* Event component specific styles */
+.admin-dashboard-container {
+  display: flex;
+}
+
+/* Ensure content takes up remaining space */
+.admin-content {
+  flex-grow: 1;
+  padding: 20px;
+  margin-left: 250px;
+  transition: margin-left 0.3s ease-in-out;
+}
+
+.admin-content.collapsed {
+  margin-left: 60px;
+}
+
+.admin-main-content-container {
+  padding: 25px;
+  background-color: #f8f9fa;
+  display: flex;
+  flex-direction: column;
+  height:100%;
+}
+
+.admin-page-namee {
+  margin-top: 10px;
+  margin-left: 9px;
+  padding: 7px;
+  font-weight: 600;
+  font-size: 20px;
+}
+
+.admin-main-top-container {
+  margin-top:25px;
+  padding: 1px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.admin-section-title {
+  font-size: 18px;
+  font-weight: 575;
+  margin-left: 18px;
+  color: #2b2c2c;
+}
+
+.admin-events-container {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items:flex-start;
+  justify-content: space-between;
+  padding: 5px;
+  background-color: #f8f9fa;
+  width: 100%;
+  margin-top: 18px;
+}
+
+.admin-events-card-container {
+  background-color: #f8f9fa;
+  padding: 3px;
+  display: flex;
+  gap: 30px;
+  width: 70%;
+}
+
+/* Event Card Styling */
+.admin-event-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  width: 269px;
+  overflow: visible !important;
+}
+
+.admin-event-card:hover {
+  transform: scale(1.01); 
+  box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth hover effect */
+}
+
+.admin-event-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: bold;
+}
+
+.admin-event-date {
+  font-size: 14px;
+  color: gray;
+}
+
+.admin-event-description {
+  font-size: 14px;
+  margin: 10px 0;
+}
+
+.admin-event-details {
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  color: #333;
+  margin-top: 15px;
+}
+
+.admin-event-details img {
+  width: 14px;
+  margin-right: 5px;
+  margin-bottom: 3px;
+}
+
+.admin-event-actions {
+  position:relative;
+  top: 20px;
+  left:30%;
+  display: flex;
+  gap: 25px;
+  align-content: center;
+}
+
+.admin-action-icon1 {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  background-color: #d2fed2;
+  padding: 6px;
+  border-radius: 50%;
+}
+
+.admin-action-icon2 {
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  background-color: #f9cccf;
+  padding: 6px;
+  border-radius: 50%;
+}
+
+.admin-action-icon1:hover{
+  transform: scale(1.3); 
+}
+
+.admin-action-icon2:hover{
+  transform: scale(1.3); 
+}
+
+.admin-add-button-container {
+  padding: 10px;
+  margin-left: 20px;
+  background-color: #f8f9fa;
+}
+
+.admin-add-event-button {
+  background-color: #1E64F0;
+  color: white;
+  font-weight:550;
+  font-size: 14px;
+  padding: 6px 16px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: none;
+  cursor: pointer;
+}
+
+.admin-add-event-button:hover{
+  background-color: #1c5fe4e1; 
+  transform: scale(1.06);
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2); 
+  transition: all 0.2s ease-in-out;
+}
+
+.admin-add-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.admin-main-bottom-container {
+  margin-top: 40px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.admin-bottom-top-container{
+  padding: 1px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.admin-section-name-container{
+  padding: 5px;
+  background-color:white;
+}
+
+.admin-section-title2 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 1px;
+}
+
+.admin-add-edit-button-container{
+  padding:5px;
+  background-color:white;
+}
+
+.admin-table-container {
+  position: relative;
+  background-color: #ffffff;
+}
+
+.admin-add-schedule-btn {
+  background-color: #16a34a;
+  color: white;
+  font-weight: 550;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+}
+
+.admin-add-schedule-btn img {
+  width: 14px;
+  height: 14px;
+}
+
+.admin-add-schedule-btn:hover {
+  background-color: #159544;
+  transform: scale(1.06);
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease-in-out;
+}
+
+.admin-reschedule-table {
+  position: relative;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 43px;
+  overflow: visible !important;
+}
+
+.admin-reschedule-table th,
+.admin-reschedule-table td {
+  padding: 14px;
+  font-size: 14px;
+  color: #666;
+  text-align: left;
+  overflow: visible !important;
+}
+
+.admin-reschedule-table th {
+  color: #666666f5;
+  font-weight: bold;
+}
+
+.admin-reschedule-table tbody tr {
+  border-top: 1px solid #ddd;
+}
+
+.admin-reschedule-table tbody tr:last-child {
+  border-bottom: 1px solid #ddd;
+}
+
+.admin-table-actions{
+  flex:1;
+  display:flex;
+  flex-direction: row;
+  gap: 12px;
+ 
+}
+
+.admin-edit-icon,
+.admin-delete-icon {
+  margin-top: 2px;
+  cursor: pointer;
+  width: 16.5px;
+  height: 16.5px;
+}
+
+.admin-edit-icon:hover{
+    transform: scale(1.16);
+}
+
+.admin-delete-icon:hover{
+    transform: scale(1.16);
+}

@@ -1,0 +1,150 @@
+.admin-sidebar-container {
+    display: flex;
+    height: 150vh;
+    /*font-family: "Inter", sans-serif;*/
+    font-family: Arial, sans-serif
+  }
+  
+  /* Sidebar */
+  .admin-sidebar {
+    width: 240px;
+    height: 100vh;
+    position: fixed;
+    background-color: #DBEAFE;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    transition: width 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px;
+    z-index: 1000;
+  }
+  
+  .admin-sidebar.collapsed {
+    width: 75px;
+  }
+  
+  .admin-toggle-icon {
+    transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+  }
+  
+  /* Top section */
+  .admin-top-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+  }
+  
+  .admin-logo {
+    font-size: 20px;
+    font-weight: bold;
+    transition: opacity 0.3s ease-in-out; 
+  }
+  .admin-logo-img {
+    width: 40px; 
+    height: 40px;
+  }
+  .admin-logo.hidden {
+    opacity: 0;
+    display: none;
+  }
+  
+  .admin-menu-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+  }
+  
+  /* Navigation */
+  .admin-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .admin-nav a {
+    text-decoration: none; /* Removes the underline */
+    color: inherit; /* Keeps the text color */
+  }
+  
+  .admin-nav-link.active .admin-nav-item {
+    background-color: rgb(255, 255, 255); /* Highlight color */
+    color:black;
+    border-radius: 10px;
+  }
+  
+  .admin-nav-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    position: relative;
+    z-index: 10;
+    transition: background 0.2s;
+    gap: 20px;
+  }
+  
+  .admin-nav-item:hover {
+    background-color: #ffffff;
+    border-radius: 10px;
+    transform: scale(1.05);
+  }
+  
+  .admin-icon {
+    font-size:20px;
+  }
+  
+  .admin-icon-img {
+    width: 24px;
+    height: 24px;
+    margin-left: 5px;
+    object-fit: contain;
+  }
+  
+  /* Hide text when collapsed */
+  .admin-sidebar.collapsed .admin-text {
+    display: none;
+  }
+  
+  /* Tooltip for collapsed items */
+  .admin-tooltip {
+    position: absolute;
+    left: 70px;
+    background: #4338ca;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  
+  .admin-nav-item:hover .admin-tooltip {
+    opacity: 1;
+  }
+  
+  /* Profile section */
+  .admin-profile {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    gap: 15px;
+  }
+  
+  .admin-profile-img {
+    width: 37px;
+    height: 37px;
+    border-radius: 50%;
+    border: 2px solid rgb(10, 10, 10);
+    cursor: pointer;
+  }
+  
+  .admin-username {
+    font-size: 14px;
+    font-weight: semi-bold;
+    transition:  0.2s ease-in-out;
+    cursor: pointer;
+  }
+  

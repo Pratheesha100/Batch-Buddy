@@ -1,7 +1,9 @@
 import { Route, Routes, useLocation } from "react-router-dom";
 
 // Admin management system
-import Test from "./components/AdminManagement/test"; // Capitalized
+import AdminDash from './components/AdminManagement/AdminDashboard.jsx';
+import Timetable from './components/AdminManagement/Timetable.jsx';
+import Event from './components/AdminManagement/Event.jsx'
 
 // User management system
 
@@ -15,7 +17,11 @@ function App() {
   return (
       <Routes>
         {/* Admin Routes */}
-        <Route path="/" element={<Test />} />
+        <Route path="" element={<AdminDash/>} />
+        <Route path="/dashboard" element={<AdminDash />}/>
+        <Route path="/timetable" element={<Timetable />}/>
+        <Route path="/events" element={<Event />}/>
+
         
         {/* User Routes */}
 

@@ -1,0 +1,218 @@
+/*@import './shared.css';*/
+
+/* AddEvent specific styles */
+.admin-event-form {
+    padding-bottom: 50px;
+}
+
+/* Override any specific styles if needed */
+.admin-modal-content-container {
+    background: #f8f9fa;
+}
+
+.admin-form-name-container {
+    background-color: #f8f9fa;
+}
+
+.admin-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent dark background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px; 
+    z-index: 9999; 
+    backdrop-filter: blur(5px); /* Adds a subtle blur effect to the background */
+}
+
+.admin-modal-content-container {
+    font-family: Arial, sans-serif;
+    padding: 15px;
+    zoom: 90%;
+    width: 600px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2); /* Enhanced shadow for better depth */
+    max-height: 90vh;
+    z-index: 1000;
+    overflow-y: auto; 
+    overflow-x: hidden;
+    animation: modalSlideIn 0.3s ease-out; /* Add smooth animation */
+}
+
+/* Add animation for modal appearance */
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+@keyframes modalSlideOut {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+}
+
+.admin-form-name-container h2 {
+    margin-bottom: 0px;
+}
+
+.admin-form-name-container p {
+    font-size: 14px;
+    color: gray;
+}
+
+.admin-form-grid {
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 15px;
+    background-color: #f8f9fa;
+    text-align: left;
+}
+
+.admin-form-grid div {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 96.5%;
+}
+
+.admin-label {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    text-align: left;
+}
+
+/* Required field indicator */
+.admin-label:has(+ input:required)::after,
+.admin-label:has(+ select:required)::after,
+.admin-label:has(+ textarea:required)::after {
+    content: " *";
+    color: #ef4444;
+}
+
+.admin-note-container {
+    padding: 10px;
+    text-align: left;
+}
+
+.admin-note-container .admin-label {
+    margin-bottom: 8px;
+    font-size: 14px;
+    display: block;
+}
+
+.admin-note-container .admin-textarea {
+    font-family: Arial, sans-serif;
+    resize: vertical;
+    min-height: 80px;
+    max-height: 200px;
+    position: relative;
+    width: 96%;
+    height: 80px;
+}
+
+.admin-select, .admin-input, .admin-textarea {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    transition: border-color 0.3s ease;
+}
+
+/* Input focus state */
+.admin-select:focus, .admin-input:focus, .admin-textarea:focus {
+    outline: none;
+    border-color: #4F46E5;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+/* Error state */
+.admin-error {
+    border-color: #ef4444 !important;
+}
+
+.admin-error:focus {
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1) !important;
+}
+
+.admin-error-message {
+    color: #ef4444;
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
+}
+
+.admin-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 15px;
+    text-align: right;
+}
+
+.admin-cancel-btn {
+    background-color: #e2dbdb;
+    color: black;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.admin-cancel-btn:hover {
+    background-color: #d1c7c7;
+}
+
+.admin-save-btn {
+    background-color: #4F46E5;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.admin-save-btn:hover:not(:disabled) {
+    background-color: #4338ca;
+}
+
+.admin-save-btn:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* Custom scrollbar for the modal */
+.admin-modal-content-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.admin-modal-content-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.admin-modal-content-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.admin-modal-content-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
