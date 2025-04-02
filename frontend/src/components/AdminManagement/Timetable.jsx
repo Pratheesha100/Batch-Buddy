@@ -2,16 +2,11 @@ import React, { useState } from "react";
 import Nav from "./Navigation/Navbar";
 import Header from "./Navigation/Header";
 import Footer from "./Navigation/Footer";
-import addIcon from "../../assets/add.png";
-import deleteIcon from "../../assets/delete.png";
-import calenderIcon from "../../assets/calender.png";
-import editIcon from "../../assets/edit.png";
-import uploadIcon from "../../assets/upload.png";
-import searchIcon from "../../assets/search.png";
 import AddTimetable from "./AddTimetable";
 import UpdateTimetable from "./updateTimetable";
 import "./timetable.css";
 import { motion } from "framer-motion";
+import { CalendarDays, PlusCircle, Trash2, FileText, Pencil, Upload, Search } from "lucide-react";
 
 function Timetable() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -121,7 +116,7 @@ function Timetable() {
                   <div className="admin-card-value">245</div>
                 </div>
                 <div className="admin-card-icon">
-                  <img src={calenderIcon} alt="Calendar Icon" />
+                <CalendarDays size={29} />
                 </div>
               </div>
               <div className="admin-card">
@@ -130,7 +125,7 @@ function Timetable() {
                   <div className="admin-card-value">12</div>
                 </div>
                 <div className="admin-card-icon">
-                  <img src={addIcon} alt="Add Icon" />
+                  <PlusCircle size={28}  />
                 </div>
               </div>
               <div className="admin-card">
@@ -139,7 +134,7 @@ function Timetable() {
                   <div className="admin-card-value">8</div>
                 </div>
                 <div className="admin-card-icon">
-                  <img src={editIcon} alt="Edit Icon" />
+                  <Pencil size={27} />
                 </div>
               </div>
               <div className="admin-card">
@@ -148,7 +143,7 @@ function Timetable() {
                   <div className="admin-card-value">3</div>
                 </div>
                 <div className="admin-card-icon">
-                  <img src={deleteIcon} alt="Delete Icon" />
+                  <Trash2 size={27} />
                 </div>
               </div>
             </div>
@@ -159,23 +154,23 @@ function Timetable() {
               <motion.button
                 className="admin-btnn admin-add-btn"
                 onClick={handleAddTimetable}
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.9 }}
               >
-                <img src={addIcon} alt="Add" className="admin-icon" /> Add New
+                <PlusCircle size={21} /> Add New
                 Timetable
               </motion.button>
               <motion.button
                 className="admin-btnn admin-upload-btn"
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.9 }}
               >
-                <img src={uploadIcon} alt="Upload" className="admin-icon" />{" "}
+                <Upload size={21} />{" "}
                 Upload PDF
               </motion.button>
             </div>
             <div className="admin-search-container">
-              <img src={searchIcon} alt="search" className="admin-icon" />
+              <Search size={20}  />
               <input type="text" placeholder="Search timetables" />
             </div>
           </div>
@@ -211,24 +206,16 @@ function Timetable() {
                       <td>{timetable.start}</td>
                       <td>{timetable.end}</td>
                       <td>
-                        <span
-                          className={`admin-session admin-${timetable.type.toLowerCase()}`}
-                        >
+                        <span className={`admin-session admin-${timetable.type.toLowerCase()}`}>
                           {timetable.type}
                         </span>
                       </td>
                       <td className="admin-actions">
-                        <button
-                          className="admin-edit-btn"
-                          onClick={() => handleEditTimetable(timetable)}
-                        >
-                          <img src={editIcon} alt="Edit" />
+                        <button onClick={() => handleEditTimetable(timetable)} >
+                          <Pencil className="adminbtn" color="#121c14" size={18} />
                         </button>
-                        <button
-                          className="admin-delete-btn"
-                          onClick={() => handleDeleteClick(timetable)}
-                        >
-                          <img src={deleteIcon} alt="Delete" />
+                        <button onClick={() => handleDeleteClick(timetable)}>
+                          <Trash2  className="adminbtn"  color="#d12929" size={18}/>
                         </button>
                       </td>
                     </tr>

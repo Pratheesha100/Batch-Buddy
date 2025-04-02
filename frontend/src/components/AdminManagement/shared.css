@@ -15,13 +15,13 @@
 }
 
 .admin-modal-content-container {
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', sans-serif;
     background: #ffffff;
     padding: 15px;
     width: 600px;
     border-radius: 10px;
     box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
-    max-height: 90vh;
+    max-height: 95vh;
     z-index: 1000;
     overflow-y: auto;
     overflow-x: hidden;
@@ -106,7 +106,27 @@
     outline: none;
     border-color: #4a90e2;
     box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    /*border-color: #4F46E5;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);*/
 }
+
+/*note container
+.admin-note-container label{
+    margin-bottom: 8px;
+    font-size: 14px;
+    display: block;
+}
+.admin-note-container{
+padding: 10px;
+text-align: left;
+}
+
+.admin-note-container textarea{
+    font-family: Arial, sans-serif;
+    resize: vertical;
+    min-height: 80px;
+    max-height: 200px;
+}*/
 
 /* Error States */
 .admin-error {
@@ -138,37 +158,43 @@
     justify-content: flex-end;
     gap: 15px;
     margin-top: 20px;
+    /*text-align: right;*/
 }
 
 .admin-btn {
-    padding: 8px 16px;
+    padding: 8px 14px;
     border: none;
     border-radius: 4px;
     font-size: 14px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s ease;
 }
 
 .admin-cancel-btn {
     background-color: #f0f0f0;
+    /*background-color: #e2dbdb;*/
     color: #333;
 }
 
 .admin-cancel-btn:hover {
     background-color: #e0e0e0;
+   /* background-color: #d1c7c7*/
 }
 
 .admin-save-btn {
     background-color: #4a90e2;
+    /*background-color: #4338ca;*/
     color: white;
 }
 
 .admin-save-btn:hover:not(:disabled) {
     background-color: #357abd;
+   /* background-color: #3730a3;*/
 }
 
 .admin-save-btn:disabled {
     background-color: #ccc;
+    /*background-color: #9ca3af;*/
     cursor: not-allowed;
 }
 

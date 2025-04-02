@@ -3,11 +3,8 @@ import "./navbar.css";
 import { Link, useLocation } from "react-router-dom";
 import toggleIconOpen from "../../../assets/baropen.png";
 import toggleIconClose from "../../../assets/barclose.png"; 
-import logoImage from "../../../assets/logo.png"; 
-import dashboardIcon from "../../../assets/dashLine.png";
-import timetableIcon from "../../../assets/timetableLine.png";
-import eventsIcon from "../../../assets/eventLine.png";
-import settingsIcon from "../../../assets/settingLine.png";
+import logoImage from "../../../assets/logoAdmin.png"; 
+import {CalendarClock, Settings, CalendarPlus2,LayoutDashboard } from "lucide-react";
 
 
 function Navbar({ isCollapsed, setIsCollapsed }) {
@@ -30,10 +27,10 @@ function Navbar({ isCollapsed, setIsCollapsed }) {
   
           {/* Navigation Items */}
           <nav className="admin-nav">
-            <NavItem to="/dashboard" icon={dashboardIcon} text="Dashboard" isCollapsed={isCollapsed} />
-            <NavItem to="/timetable" icon={timetableIcon} text="Timetable" isCollapsed={isCollapsed} />
-            <NavItem to="/events" icon={eventsIcon} text="Events" isCollapsed={isCollapsed} />
-            <NavItem icon={settingsIcon} text="Settings" isCollapsed={isCollapsed} />
+            <NavItem to="/dashboard" icon={<LayoutDashboard  />} text="Dashboard" isCollapsed={isCollapsed} />
+            <NavItem to="/timetable" icon={<CalendarClock  />} text="Timetable" isCollapsed={isCollapsed} />
+            <NavItem to="/events"  icon={<CalendarPlus2 />} text="Events" isCollapsed={isCollapsed} />
+            <NavItem  icon={<Settings  />} text="Settings" isCollapsed={isCollapsed} />
           </nav>
   
           <div className="admin-profile">
@@ -56,7 +53,7 @@ function Navbar({ isCollapsed, setIsCollapsed }) {
     return (
       <Link to={to} className={`admin-nav-link ${isActive ? "active" : ""}`}>
         <div className="admin-nav-item">
-          <img src={icon} alt={text} className="admin-icon-img" />
+        <span className="adminicon">{icon}</span> 
           {!isCollapsed && <span className="admin-text">{text}</span>}
           {isCollapsed && <span className="admin-tooltip">{text}</span>}
         </div>

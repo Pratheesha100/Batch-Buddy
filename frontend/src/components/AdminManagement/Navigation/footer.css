@@ -1,14 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
 .admin-footer {
     position: fixed;
     bottom: 0;
     width: 100%;
     height:5.5%;
     background-color: white;
-    text-align:center;
+    text-align: center;
     margin-left: 1.5px;
     padding: 10px 0;
     box-shadow: 6px 0px 1px 2px rgba(0, 0, 0, 0.1);
-    transition: width 0.3s ease-in-out;;
+    transition: width 0.3s ease-in-out;
+    font-family: 'Inter', sans-serif;
 }
 
 .admin-sidebar-open .footer {
@@ -16,7 +19,7 @@
 }
 
 .admin-sidebar-collapsed .footer {
-    width: calc(100% - 69px);
+    width: calc(100% - 75px);
 }
 .admin-footer p{
     margin: 0;

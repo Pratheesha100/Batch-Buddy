@@ -1,6 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
 .admin-dashboard-container {
     display: flex;
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', sans-serif;
 }
 
 /* Ensure content takes up remaining space */
@@ -24,6 +27,7 @@
     height:100%;
 }
 .admin-page-name{
+    font-family: 'Inter', sans-serif;
     margin-top: 18px;
     margin-left: 9px;
     padding: 15px;
@@ -58,12 +62,13 @@
 
 }
 .admin-card:hover {
-    transform: scale(1.05); /* Slightly increase size */
-    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2); /* Darker and larger shadow */
-    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth hover effect */
+    transform: scale(1.05);
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2); 
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .admin-card-title {
+    font-family: 'Roboto', sans-serif;
     font-size: 14px;
     color: #6c757d;
     margin-bottom: 8px;
@@ -76,7 +81,6 @@
 }
 
 .admin-card-icon {
-    font-size: 10px;
     margin-top: 10px;
     padding: 8px;
     border-radius: 50%;
@@ -86,14 +90,10 @@
     
 }
 
-.admin-card-icon img {
-    width: 24px;
-    height: 24px;
-}
-
 .admin-card:nth-child(1) .admin-card-icon {
     /*background-color: #e3e9ff;*/
-    background-color: #92c3fc;
+    background-color: #a5abfa;
+    
 }
 
 .admin-card:nth-child(2) .admin-card-icon {
@@ -114,7 +114,7 @@
 
 /*Main-Middle-Content*/
 .admin-main-middle-content{
-   
+    font-family: 'Inter', sans-serif;
     padding: 13px 20px;
     background-color: #fff;
     border-radius: 8px;
@@ -129,11 +129,7 @@
     align-items: center;
     gap: 10px;
 }
-.admin-icon {
-    width: 16px;
-    height: 16px;
-    margin-right: 8px;
-}
+
 .admin-btnn {
     display: flex;
     align-items: center;
@@ -197,6 +193,7 @@
     font-size: 18px;
     font-weight: bold;
     margin-bottom: 12px;
+    font-family: 'Inter', sans-serif;
 }
 
 /* Table Styling */
@@ -215,6 +212,7 @@
 
 .admin-timetable th,
 .admin-timetable td {
+    font-family: 'Roboto', sans-serif;
     padding: 12px;
     text-align: left;
     border-bottom: 1px solid #e5e7eb;
@@ -230,25 +228,14 @@
     gap: 10px;
 }
 .admin-actions button {
-    background: none;
-    border: none;
+    background:rgb(228, 228, 228);
+    border-radius: 40%;
     cursor: pointer;
     padding: 4px;
 }
 
-.admin-actions img {
-    width: 16px;
-    height: 16px;
-}
-
-/* Hover Effects */
-.admin-edit-btn:hover img {
+.adminbtn:hover {
     filter: brightness(0.6);
-    transform: scale(1.2);
-}
-
-.admin-delete-btn:hover img {
-    filter: brightness(0.3);
     transform: scale(1.2);
 }
 

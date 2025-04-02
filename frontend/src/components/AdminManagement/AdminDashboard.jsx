@@ -6,7 +6,7 @@ import studentIcon from "../../assets/students.png";
 import activeIcon from "../../assets/active.png";
 import growthIcon from "../../assets/growth.png";
 import attendanceIcon from "../../assets/participate.png";
-import brainIcon from "../../assets/analyticsBold.png";
+import { ChartNoAxesCombined} from "lucide-react";
 import "./adminDash.css";
 import {
   LineChart,
@@ -39,7 +39,7 @@ function AdminDashboard() {
                 whileTap={{ scale: 0.9 }} // Animates on click
                 /*transition={{ type: "spring", stiffness: 300 }}*/
               >
-                <img src={brainIcon} alt="Analytics Icon" /> Smart Analytics
+                <ChartNoAxesCombined size={23} /> Smart Analytics
               </motion.button>
             </div>
           </div>
@@ -140,13 +140,13 @@ const ChartCard = ({ title }) => (
         <LineChart data={dummyData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
-          <YAxis />
+          <YAxis  dataKey="students"/>
           <Tooltip />
           <Line
             type="monotone"
             dataKey="students"
             stroke="#1E64F0"
-            strokeWidth={2}
+            strokeWidth={1.5}
           />
         </LineChart>
       </ResponsiveContainer>
