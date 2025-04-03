@@ -5,7 +5,6 @@ import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, Title, Toolti
 import { Pie } from 'react-chartjs-2';
 import CalendarHeatmap from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
-import './TaskCorner.css';
 
 // Register ChartJS components
 ChartJS.register(ArcElement, CategoryScale, LinearScale, Title, Tooltip, Legend);
@@ -185,223 +184,224 @@ const TaskCorner = () => {
   };
 
   return (
-    <div className="task-corner">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-6">
       {/* Welcome Section */}
-      <div className="welcome-section">
-        <div className="welcome-content">
-          <h1>{getGreeting()}, User!</h1>
-          <p>Here's your task overview for today</p>
-          <div className="quick-stats">
-            <div className="stat-card">
-              <div className="stat-icon completed">
-                <FaCheckCircle />
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">{getGreeting()}, User!</h1>
+          <p className="text-gray-600 mb-6">Here's your task overview for today</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-green-50 rounded-xl p-6 flex items-center gap-4">
+              <div className="bg-green-100 p-4 rounded-full">
+                <FaCheckCircle className="text-green-600 text-2xl" />
               </div>
-              <div className="stat-info">
-                <span className="stat-value">{getTaskStats().completed}</span>
-                <span className="stat-label">Completed Tasks</span>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon in-progress">
-                <FaClock />
-              </div>
-              <div className="stat-info">
-                <span className="stat-value">{getTaskStats().inProgress}</span>
-                <span className="stat-label">In Progress</span>
+              <div>
+                <span className="text-3xl font-bold text-gray-800 block">{getTaskStats().completed}</span>
+                <span className="text-gray-600">Completed Tasks</span>
               </div>
             </div>
-            <div className="stat-card">
-              <div className="stat-icon pending">
-                <FaExclamationTriangle />
+            <div className="bg-yellow-50 rounded-xl p-6 flex items-center gap-4">
+              <div className="bg-yellow-100 p-4 rounded-full">
+                <FaClock className="text-yellow-600 text-2xl" />
               </div>
-              <div className="stat-info">
-                <span className="stat-value">{getTaskStats().pending}</span>
-                <span className="stat-label">Pending Tasks</span>
+              <div>
+                <span className="text-3xl font-bold text-gray-800 block">{getTaskStats().inProgress}</span>
+                <span className="text-gray-600">In Progress</span>
               </div>
             </div>
+            <div className="bg-red-50 rounded-xl p-6 flex items-center gap-4">
+              <div className="bg-red-100 p-4 rounded-full">
+                <FaExclamationTriangle className="text-red-600 text-2xl" />
+              </div>
+              <div>
+                <span className="text-3xl font-bold text-gray-800 block">{getTaskStats().pending}</span>
+                <span className="text-gray-600">Pending Tasks</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Upcoming Tasks */}
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-800">Upcoming Tasks</h3>
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setShowAddTask(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                >
+                  <FaPlus /> Add Task
+                </button>
+                <button 
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                >
+                  <FaFilter /> Filter
+                </button>
+              </div>
+            </div>
+
+            {showFilters && (
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <select
+                    value={filters.priority}
+                    onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">All Priorities</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                  </select>
+                  <select
+                    value={filters.category}
+                    onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">All Categories</option>
+                    <option value="Study">Study</option>
+                    <option value="Project">Project</option>
+                    <option value="Personal">Personal</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            <DragDropContext onDragEnd={onDragEnd}>
+              <Droppable droppableId="tasks">
+                {(provided) => (
+                  <div
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className="space-y-4"
+                  >
+                    {filteredTasks.map((task, index) => (
+                      <Draggable key={task.id} draggableId={task.id} index={index}>
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="font-semibold text-gray-800">{task.title}</h4>
+                                <p className="text-gray-600 text-sm mt-1">{task.description}</p>
+                                <div className="flex items-center gap-2 mt-2">
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    task.priority === 'High' ? 'bg-red-100 text-red-800' :
+                                    task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-green-100 text-green-800'
+                                  }`}>
+                                    {task.priority}
+                                  </span>
+                                  <span className="text-gray-500 text-sm">
+                                    Due: {new Date(task.dueTime).toLocaleString()}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => handleEditTask(task)}
+                                  className="p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                                >
+                                  <FaEdit />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteTask(task.id)}
+                                  className="p-2 text-gray-600 hover:text-red-600 transition-colors duration-200"
+                                >
+                                  <FaTrash />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+          </div>
+
+          {/* Dashboard Section */}
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-800">Task Dashboard</h3>
+              <button
+                onClick={() => setShowDashboard(!showDashboard)}
+                className="p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+              >
+                <FaChartBar />
+              </button>
+            </div>
+
+            {showDashboard && (
+              <div className="space-y-6">
+                <div className="h-64">
+                  <Pie
+                    data={pieChartData}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'bottom'
+                        }
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-800 mb-2">Task Completion Rate</h4>
+                  <div className="w-full bg-gray-200 rounded-full h-4">
+                    <div
+                      className="bg-blue-600 h-4 rounded-full"
+                      style={{ width: `${getTaskStats().completionRate}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-gray-600 text-sm mt-2">
+                    {getTaskStats().completionRate.toFixed(1)}% completed
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-800 mb-2">Activity Heatmap</h4>
+                  <CalendarHeatmap
+                    values={[
+                      { date: '2024-03-01', count: 2 },
+                      { date: '2024-03-02', count: 5 },
+                      { date: '2024-03-03', count: 1 },
+                    ]}
+                    classForValue={(value) => {
+                      if (!value) return 'color-empty';
+                      return `color-github-${Math.min(4, value.count)}`;
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="main-content">
-        {/* Upcoming Tasks */}
-        <div className="upcoming-tasks">
-          <h3>Upcoming Tasks</h3>
-          <div className="upcoming-list">
-            {getUpcomingTasks().map(task => (
-              <div key={task.id} className="upcoming-task">
-                <div className="upcoming-task-info">
-                  <h4>{task.title}</h4>
-                  <p>Due: {new Date(task.dueTime).toLocaleString()}</p>
-                </div>
-                <span className={`priority-badge ${task.priority.toLowerCase()}`}>
-                  {task.priority}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Overdue Warning */}
-        {getOverdueTasks().length > 0 && (
-          <div className="overdue-warning">
-            <FaExclamationTriangle />
-            You have {getOverdueTasks().length} overdue task(s)
-          </div>
-        )}
-
-        {/* Task Header */}
-        <div className="task-header">
-          <h2>My Tasks</h2>
-          <div className="task-actions">
-            <button className="filter-btn" onClick={() => setShowFilters(!showFilters)}>
-              <FaFilter /> Filters
-            </button>
-            <button className="dashboard-btn" onClick={() => setShowDashboard(!showDashboard)}>
-              <FaChartBar /> Dashboard
-            </button>
-            <button className="add-task-btn" onClick={() => setShowAddTask(true)}>
-              <FaPlus /> Add Task
-            </button>
-          </div>
-        </div>
-
-        {/* Progress Section */}
-        <div className="progress-section">
-          <div className="progress-header">
-            <h3>Overall Progress</h3>
-            <span className="progress-percentage">
-              {Math.round(getTaskStats().completionRate)}%
-            </span>
-          </div>
-          <div className="progress-bar">
-            <div 
-              className="progress-fill"
-              style={{ width: `${getTaskStats().completionRate}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Filters Panel */}
-        {showFilters && (
-          <div className="filters-panel">
-            <select
-              value={filters.priority}
-              onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
-            >
-              <option value="all">All Priorities</option>
-              <option value="High">High Priority</option>
-              <option value="Medium">Medium Priority</option>
-              <option value="Low">Low Priority</option>
-            </select>
-            <select
-              value={filters.category}
-              onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-            >
-              <option value="all">All Categories</option>
-              <option value="Study">Study</option>
-              <option value="Project">Project</option>
-              <option value="Personal">Personal</option>
-            </select>
-          </div>
-        )}
-
-        {/* Dashboard */}
-        {showDashboard && (
-          <div className="dashboard">
-            <div className="chart-container">
-              <h3>Task Distribution</h3>
-              <Pie data={pieChartData} />
-            </div>
-            <div className="heatmap-container">
-              <h3>Activity Heatmap</h3>
-              <CalendarHeatmap
-                values={[
-                  { date: '2024-03-01', count: 2 },
-                  { date: '2024-03-02', count: 1 },
-                  { date: '2024-03-03', count: 3 },
-                ]}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Task List */}
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="tasks">
-            {(provided) => (
-              <div
-                className="task-list"
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-              >
-                {filteredTasks.length === 0 ? (
-                  <div className="empty-state">
-                    <h3>No tasks found</h3>
-                    <p>Add some tasks to get started!</p>
-                    <button onClick={() => setShowAddTask(true)}>Add Task</button>
-                  </div>
-                ) : (
-                  filteredTasks.map((task, index) => (
-                    <Draggable key={task.id} draggableId={task.id} index={index}>
-                      {(provided) => (
-                        <div
-                          className={`task-card ${task.priority.toLowerCase()}`}
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                        >
-                          <div className="task-header">
-                            <h3>{task.title}</h3>
-                            <div className="task-actions">
-                              <button 
-                                className="update-btn"
-                                onClick={() => handleEditTask(task)}
-                              >
-                                <FaEdit /> Edit
-                              </button>
-                              <button
-                                className="delete-btn"
-                                onClick={() => handleDeleteTask(task.id)}
-                              >
-                                <FaTrash /> Delete
-                              </button>
-                            </div>
-                          </div>
-                          <p className="task-description">{task.description}</p>
-                          <div className="task-meta">
-                            <span className="task-category">{task.category}</span>
-                            <span>Due: {new Date(task.dueTime).toLocaleString()}</span>
-                          </div>
-                          <div className="task-actions">
-                            <select
-                              value={task.status}
-                              onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                            >
-                              <option value="Pending">Pending</option>
-                              <option value="In Progress">In Progress</option>
-                              <option value="Completed">Completed</option>
-                            </select>
-                          </div>
-                        </div>
-                      )}
-                    </Draggable>
-                  ))
-                )}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
-
-        {/* Add/Edit Task Modal */}
-        {(showAddTask || editingTask) && (
-          <div className="modal">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h2>{editingTask ? 'Edit Task' : 'Add New Task'}</h2>
-                <button className="close-btn" onClick={() => {
+      {/* Add/Edit Task Modal */}
+      {(showAddTask || editingTask) && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-800">
+                {editingTask ? 'Edit Task' : 'Add New Task'}
+              </h3>
+              <button
+                onClick={() => {
                   setShowAddTask(false);
                   setEditingTask(null);
                   setNewTask({
@@ -412,87 +412,82 @@ const TaskCorner = () => {
                     status: 'Pending',
                     category: 'Study'
                   });
-                }}>
-                  <FaTimesCircle />
-                </button>
-              </div>
-              <div className="form-group">
-                <label>Title</label>
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <FaTimesCircle />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-700 mb-2">Title</label>
                 <input
                   type="text"
                   value={newTask.title}
                   onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                  placeholder="Enter task title"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <div className="form-group">
-                <label>Description</label>
+
+              <div>
+                <label className="block text-gray-700 mb-2">Description</label>
                 <textarea
                   value={newTask.description}
                   onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                  placeholder="Enter task description"
-                  rows="4"
-                />
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows="3"
+                ></textarea>
               </div>
-              <div className="form-group">
-                <label>Priority</label>
-                <select
-                  value={newTask.priority}
-                  onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-                >
-                  <option value="High">High</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Low">Low</option>
-                </select>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-700 mb-2">Priority</label>
+                  <select
+                    value={newTask.priority}
+                    onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 mb-2">Category</label>
+                  <select
+                    value={newTask.category}
+                    onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="Study">Study</option>
+                    <option value="Project">Project</option>
+                    <option value="Personal">Personal</option>
+                  </select>
+                </div>
               </div>
-              <div className="form-group">
-                <label>Category</label>
-                <select
-                  value={newTask.category}
-                  onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
-                >
-                  <option value="Study">Study</option>
-                  <option value="Project">Project</option>
-                  <option value="Personal">Personal</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Due Time</label>
+
+              <div>
+                <label className="block text-gray-700 mb-2">Due Date & Time</label>
                 <input
                   type="datetime-local"
                   value={newTask.dueTime}
                   onChange={(e) => setNewTask({ ...newTask, dueTime: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <div className="modal-actions">
-                <button 
-                  className="cancel-btn"
-                  onClick={() => {
-                    setShowAddTask(false);
-                    setEditingTask(null);
-                    setNewTask({
-                      title: '',
-                      description: '',
-                      priority: 'Medium',
-                      dueTime: '',
-                      status: 'Pending',
-                      category: 'Study'
-                    });
-                  }}
-                >
-                  Cancel
-                </button>
-                <button 
-                  className="save-btn"
-                  onClick={editingTask ? handleUpdateTask : handleAddTask}
-                >
-                  {editingTask ? 'Update Task' : 'Add Task'}
-                </button>
-              </div>
+
+              <button
+                onClick={editingTask ? handleUpdateTask : handleAddTask}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+              >
+                {editingTask ? 'Update Task' : 'Add Task'}
+              </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -10,7 +10,7 @@ import UserLog from "./components/UserManagement/UserLog";
 import Register from "./components/UserManagement/Register";
 import ResetPassword from "./components/UserManagement/ResetPassword";
 import UserProfile from "./components/UserManagement/UserProfile";
-
+import TaskCorner from "./components/UserManagement/TaskCorner";
 function App() {
   return (
     <div className="app">
@@ -18,7 +18,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<UserLog />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/get-started" element={<UserProfile />} />
+        <Route path="/get-started" element={<TaskCorner />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="*" element={<div>Page not found</div>} />
       </Routes>
