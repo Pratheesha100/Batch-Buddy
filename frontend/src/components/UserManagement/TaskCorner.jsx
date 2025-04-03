@@ -5,17 +5,23 @@ import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, Title, Toolti
 import { Pie } from 'react-chartjs-2';
 import CalendarHeatmap from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
+import axios from 'axios';
+import Swal from 'sweetalert2';
 
 // Register ChartJS components
 ChartJS.register(ArcElement, CategoryScale, LinearScale, Title, Tooltip, Legend);
 
 const TaskCorner = () => {
-  // State management
   const [tasks, setTasks] = useState([]);
+  const [filteredTasks, setFilteredTasks] = useState([]);
   const [showAddTask, setShowAddTask] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [filters, setFilters] = useState({
+    priority: 'all',
+    category: 'all'
+  });
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
@@ -24,163 +30,214 @@ const TaskCorner = () => {
     status: 'Pending',
     category: 'Study'
   });
-  const [filters, setFilters] = useState({
-    priority: 'all',
-    category: 'all'
+  const [taskStats, setTaskStats] = useState({
+    completed: 0,
+    inProgress: 0,
+    pending: 0,
+    completionRate: 0
   });
 
-  // Mock data for demonstration
+  // Fetch tasks and stats on component mount
   useEffect(() => {
-    const mockTasks = [
-      {
-        id: '1',
-        title: 'Complete Project Report',
-        description: 'Write the final report for the ITPM project',
-        priority: 'High',
-        dueTime: '2024-03-20T14:00',
-        status: 'Pending',
-        category: 'Project'
-      },
-      {
-        id: '2',
-        title: 'Study for Exam',
-        description: 'Review chapters 5-7 for upcoming exam',
-        priority: 'High',
-        dueTime: '2024-03-21T10:00',
-        status: 'In Progress',
-        category: 'Study'
-      }
-    ];
-    setTasks(mockTasks);
+    fetchTasks();
+    fetchTaskStats();
   }, []);
 
-  // Get greeting based on time of day
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+  // Update filtered tasks when filters change
+  useEffect(() => {
+    fetchFilteredTasks();
+  }, [filters]);
+
+  const fetchTasks = async () => {
+    try {
+      const response = await axios.get('/api/tasks');
+      setTasks(response.data);
+      setFilteredTasks(response.data);
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to fetch tasks'
+      });
+    }
   };
 
-  // Get upcoming tasks
-  const getUpcomingTasks = () => {
-    const today = new Date();
-    const threeDaysFromNow = new Date();
-    threeDaysFromNow.setDate(today.getDate() + 3);
-    return tasks.filter(task => {
-      const dueDate = new Date(task.dueTime);
-      return dueDate >= today && dueDate <= threeDaysFromNow && task.status !== 'Completed';
+  const fetchTaskStats = async () => {
+    try {
+      const response = await axios.get('/api/tasks/stats');
+      setTaskStats(response.data);
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to fetch task statistics'
+      });
+    }
+  };
+
+  const fetchFilteredTasks = async () => {
+    try {
+      const response = await axios.get('/api/tasks/filter', {
+        params: filters
+      });
+      setFilteredTasks(response.data);
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to fetch filtered tasks'
+      });
+    }
+  };
+
+  const handleAddTask = async () => {
+    try {
+      const response = await axios.post('/api/tasks', newTask);
+      setTasks([...tasks, response.data]);
+      setShowAddTask(false);
+      setNewTask({
+        title: '',
+        description: '',
+        priority: 'Medium',
+        dueTime: '',
+        status: 'Pending',
+        category: 'Study'
+      });
+      fetchTaskStats();
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Task added successfully'
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to add task'
+      });
+    }
+  };
+
+  const handleUpdateTask = async () => {
+    try {
+      const response = await axios.put(`/api/tasks/${editingTask.id}`, newTask);
+      setTasks(tasks.map(task => 
+        task._id === editingTask.id ? response.data : task
+      ));
+      setEditingTask(null);
+      setShowAddTask(false);
+      setNewTask({
+        title: '',
+        description: '',
+        priority: 'Medium',
+        dueTime: '',
+        status: 'Pending',
+        category: 'Study'
+      });
+      fetchTaskStats();
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Task updated successfully'
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to update task'
+      });
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    try {
+      await Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          await axios.delete(`/api/tasks/${taskId}`);
+          setTasks(tasks.filter(task => task._id !== taskId));
+          fetchTaskStats();
+          Swal.fire(
+            'Deleted!',
+            'Your task has been deleted.',
+            'success'
+          );
+        }
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to delete task'
+      });
+    }
+  };
+
+  const handleEditTask = (task) => {
+    setEditingTask(task);
+    setNewTask({
+      title: task.title,
+      description: task.description,
+      priority: task.priority,
+      dueTime: task.dueTime,
+      status: task.status,
+      category: task.category
     });
+    setShowAddTask(true);
   };
 
-  // Get overdue tasks
-  const getOverdueTasks = () => {
-    const today = new Date();
-    return tasks.filter(task => {
-      const dueDate = new Date(task.dueTime);
-      return dueDate < today && task.status !== 'Completed';
-    });
+  const handleStatusChange = async (taskId, newStatus) => {
+    try {
+      const response = await axios.patch(`/api/tasks/${taskId}/status`, {
+        status: newStatus
+      });
+      setTasks(tasks.map(task => 
+        task._id === taskId ? response.data : task
+      ));
+      fetchTaskStats();
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to update task status'
+      });
+    }
   };
 
-  // Calculate task statistics
-  const getTaskStats = () => {
-    const total = tasks.length;
-    const completed = tasks.filter(task => task.status === 'Completed').length;
-    const inProgress = tasks.filter(task => task.status === 'In Progress').length;
-    const pending = tasks.filter(task => task.status === 'Pending').length;
-
-    return {
-      total,
-      completed,
-      inProgress,
-      pending,
-      completionRate: total ? (completed / total) * 100 : 0
-    };
-  };
-
-  // Handle drag and drop
-  const onDragEnd = (result) => {
+  const onDragEnd = async (result) => {
     if (!result.destination) return;
 
-    const items = Array.from(tasks);
+    const items = Array.from(filteredTasks);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    setTasks(items);
+    setFilteredTasks(items);
   };
 
-  // Handle task addition
-  const handleAddTask = () => {
-    if (!newTask.title) return;
-
-    const task = {
-      id: Date.now().toString(),
-      ...newTask,
-      createdAt: new Date().toISOString()
-    };
-
-    setTasks([...tasks, task]);
-    setNewTask({
-      title: '',
-      description: '',
-      priority: 'Medium',
-      dueTime: '',
-      status: 'Pending',
-      category: 'Study'
-    });
-    setShowAddTask(false);
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
   };
 
-  // Handle task editing
-  const handleEditTask = (task) => {
-    setEditingTask(task);
-    setNewTask(task);
-  };
-
-  // Handle task update
-  const handleUpdateTask = () => {
-    if (!editingTask) return;
-
-    setTasks(tasks.map(task =>
-      task.id === editingTask.id ? { ...newTask, id: task.id } : task
-    ));
-    setEditingTask(null);
-    setNewTask({
-      title: '',
-      description: '',
-      priority: 'Medium',
-      dueTime: '',
-      status: 'Pending',
-      category: 'Study'
-    });
-  };
-
-  // Handle task status change
-  const handleStatusChange = (taskId, newStatus) => {
-    setTasks(tasks.map(task =>
-      task.id === taskId ? { ...task, status: newStatus } : task
-    ));
-  };
-
-  // Handle task deletion
-  const handleDeleteTask = (taskId) => {
-    setTasks(tasks.filter(task => task.id !== taskId));
-  };
-
-  // Filter tasks based on current filters
-  const filteredTasks = tasks.filter(task => {
-    if (filters.priority !== 'all' && task.priority !== filters.priority) return false;
-    if (filters.category !== 'all' && task.category !== filters.category) return false;
-    return true;
-  });
-
-  // Chart data
   const pieChartData = {
     labels: ['Completed', 'In Progress', 'Pending'],
-    datasets: [{
-      data: [getTaskStats().completed, getTaskStats().inProgress, getTaskStats().pending],
-      backgroundColor: ['#34a853', '#fbbc05', '#ea4335']
-    }]
+    datasets: [
+      {
+        data: [taskStats.completed, taskStats.inProgress, taskStats.pending],
+        backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
+        borderColor: ['#059669', '#D97706', '#DC2626'],
+        borderWidth: 1
+      }
+    ]
   };
 
   return (
@@ -196,7 +253,7 @@ const TaskCorner = () => {
                 <FaCheckCircle className="text-green-600 text-2xl" />
               </div>
               <div>
-                <span className="text-3xl font-bold text-gray-800 block">{getTaskStats().completed}</span>
+                <span className="text-3xl font-bold text-gray-800 block">{taskStats.completed}</span>
                 <span className="text-gray-600">Completed Tasks</span>
               </div>
             </div>
@@ -205,7 +262,7 @@ const TaskCorner = () => {
                 <FaClock className="text-yellow-600 text-2xl" />
               </div>
               <div>
-                <span className="text-3xl font-bold text-gray-800 block">{getTaskStats().inProgress}</span>
+                <span className="text-3xl font-bold text-gray-800 block">{taskStats.inProgress}</span>
                 <span className="text-gray-600">In Progress</span>
               </div>
             </div>
@@ -214,7 +271,7 @@ const TaskCorner = () => {
                 <FaExclamationTriangle className="text-red-600 text-2xl" />
               </div>
               <div>
-                <span className="text-3xl font-bold text-gray-800 block">{getTaskStats().pending}</span>
+                <span className="text-3xl font-bold text-gray-800 block">{taskStats.pending}</span>
                 <span className="text-gray-600">Pending Tasks</span>
               </div>
             </div>
@@ -279,7 +336,7 @@ const TaskCorner = () => {
                     className="space-y-4"
                   >
                     {filteredTasks.map((task, index) => (
-                      <Draggable key={task.id} draggableId={task.id} index={index}>
+                      <Draggable key={task._id} draggableId={task._id} index={index}>
                         {(provided) => (
                           <div
                             ref={provided.innerRef}
@@ -312,7 +369,7 @@ const TaskCorner = () => {
                                   <FaEdit />
                                 </button>
                                 <button
-                                  onClick={() => handleDeleteTask(task.id)}
+                                  onClick={() => handleDeleteTask(task._id)}
                                   className="p-2 text-gray-600 hover:text-red-600 transition-colors duration-200"
                                 >
                                   <FaTrash />
@@ -364,11 +421,11 @@ const TaskCorner = () => {
                   <div className="w-full bg-gray-200 rounded-full h-4">
                     <div
                       className="bg-blue-600 h-4 rounded-full"
-                      style={{ width: `${getTaskStats().completionRate}%` }}
+                      style={{ width: `${taskStats.completionRate}%` }}
                     ></div>
                   </div>
                   <p className="text-gray-600 text-sm mt-2">
-                    {getTaskStats().completionRate.toFixed(1)}% completed
+                    {taskStats.completionRate.toFixed(1)}% completed
                   </p>
                 </div>
 
