@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./updateTimetable.css";
+import "./shared.css";
 
 function UpdateTimetable({ timetable, onClose, onUpdate }) {
   const [formData, setFormData] = useState({
@@ -221,15 +221,15 @@ function UpdateTimetable({ timetable, onClose, onUpdate }) {
           <h2>Update Timetable Details</h2>
           <p>Modify the details to update the timetable entry</p>
         </div>
-        <form className="admin-timetable-form" onSubmit={handleSubmit}>
+        <form className="admin-form" onSubmit={handleSubmit}>
           <div className="admin-form-grid">
             <div>
-              <label>Faculty</label>
+              <label className="admin-label">Faculty</label>
               <select 
                 name="faculty"
                 value={formData.faculty}
                 onChange={handleChange}
-                className={errors.faculty ? 'admin-error' : ''}
+                className={errors.faculty ? 'admin-select admin-error' : 'admin-select'}
                 required
               >
                 <option value="">Select Faculty</option>
@@ -241,12 +241,12 @@ function UpdateTimetable({ timetable, onClose, onUpdate }) {
               {errors.faculty && <span className="admin-error-message">{errors.faculty}</span>}
             </div>
             <div>
-              <label>Batch </label>
+              <label className="admin-label">Batch </label>
               <select 
                 name="batch"
                 value={formData.batch}
                 onChange={handleChange}
-                className={errors.batch ? 'admin-error' : ''}
+                className={errors.batch ? 'admin-select admin-error' : 'admin-select'}
                 required
               >
                 <option value="">Select Batch</option>
@@ -256,12 +256,12 @@ function UpdateTimetable({ timetable, onClose, onUpdate }) {
               {errors.batch && <span className="admin-error-message">{errors.batch}</span>}
             </div>
             <div>
-              <label>Year </label>
+              <label className="admin-label">Year </label>
               <select 
                 name="year"
                 value={formData.year}
                 onChange={handleChange}
-                className={errors.year ? 'admin-error' : ''}
+                className={errors.year ? 'admin-select admin-error' : 'admin-select'}
                 required
               >
                 <option value="">Select Year</option>
@@ -273,12 +273,12 @@ function UpdateTimetable({ timetable, onClose, onUpdate }) {
               {errors.year && <span className="admin-error-message">{errors.year}</span>}
             </div>
             <div>
-              <label>Group</label>
+              <label className="admin-label">Group</label>
               <select 
                 name="group"
                 value={formData.group}
                 onChange={handleChange}
-                className={errors.group ? 'admin-error' : ''}
+                className={errors.group ? 'admin-select admin-error' : 'admin-select'}
                 required
               >
                 <option value="">Select Group</option>
@@ -289,12 +289,12 @@ function UpdateTimetable({ timetable, onClose, onUpdate }) {
               {errors.group && <span className="admin-error-message">{errors.group}</span>}
             </div>
             <div>
-              <label>Course </label>
+              <label className="admin-label">Course </label>
               <select 
                 name="course"
                 value={formData.course}
                 onChange={handleChange}
-                className={errors.course ? 'admin-error' : ''}
+                className={errors.course ? 'admin-select admin-error' : 'admin-select'}
                 required
               >
                 <option value="">Select Course</option>
@@ -305,12 +305,12 @@ function UpdateTimetable({ timetable, onClose, onUpdate }) {
               {errors.course && <span className="admin-error-message">{errors.course}</span>}
             </div>
             <div>
-              <label>Lecturer</label>
+              <label className="admin-label">Lecturer</label>
               <select 
                 name="lecturer"
                 value={formData.lecturer}
                 onChange={handleChange}
-                className={errors.lecturer ? 'admin-error' : ''}
+                className={errors.lecturer ?'admin-select admin-error' : 'admin-select'}
                 required
               >
                 <option value="">Select Lecturer</option>
@@ -321,12 +321,12 @@ function UpdateTimetable({ timetable, onClose, onUpdate }) {
               {errors.lecturer && <span className="admin-error-message">{errors.lecturer}</span>}
             </div>
             <div>
-              <label>Session</label>
+              <label className="admin-label">Session</label>
               <select 
                 name="session"
                 value={formData.session}
                 onChange={handleChange}
-                className={errors.session ? 'admin-error' : ''}
+                className={errors.session ?'admin-select admin-error' : 'admin-select'}
                 required
               >
                 <option value="">Select Session</option>
@@ -337,12 +337,12 @@ function UpdateTimetable({ timetable, onClose, onUpdate }) {
               {errors.session && <span className="admin-error-message">{errors.session}</span>}
             </div>
             <div>
-              <label>Day of Week</label>
+              <label className="admin-label">Day of Week</label>
               <select 
                 name="dayOfWeek"
                 value={formData.dayOfWeek}
                 onChange={handleChange}
-                className={errors.dayOfWeek ? 'admin-error' : ''}
+                className={errors.dayOfWeek ? 'admin-select admin-error' : 'admin-select'}
                 required
               >
                 <option value="">Select Day</option>
@@ -357,36 +357,36 @@ function UpdateTimetable({ timetable, onClose, onUpdate }) {
               {errors.dayOfWeek && <span className="admin-error-message">{errors.dayOfWeek}</span>}
             </div>
             <div>
-              <label>Start Time</label>
+              <label className="admin-label">Start Time</label>
               <input 
                 type="time" 
                 name="startTime"
                 value={formData.startTime}
                 onChange={handleChange}
-                className={errors.startTime ? 'admin-error' : ''}
+                className={errors.startTime ? 'admin-input admin-error' : 'admin-input'}
                 required
               />
               {errors.startTime && <span className="admin-error-message">{errors.startTime}</span>}
             </div>
             <div>
-              <label>End Time</label>
+              <label className="admin-label">End Time</label>
               <input 
                 type="time" 
                 name="endTime"
                 value={formData.endTime}
                 onChange={handleChange}
-                className={errors.endTime ? 'admin-error' : ''}
+                className={errors.endTime ? 'admin-input admin-error' : 'admin-input'}
                 required
               />
               {errors.endTime && <span className="admin-error-message">{errors.endTime}</span>}
             </div>
     <div>
-              <label>Room Number</label>
+              <label className="admin-label">Room Number</label>
               <select 
                 name="roomNumber"
                 value={formData.roomNumber}
                 onChange={handleChange}
-                className={errors.roomNumber ? 'admin-error' : ''}
+                className={errors.roomNumber ? 'admin-select admin-error' : 'admin-select' }
                 required
               >
                 <option value="">Select Room</option>
@@ -398,13 +398,13 @@ function UpdateTimetable({ timetable, onClose, onUpdate }) {
             </div>
           </div>
           <div className="admin-note-container">
-            <label>Additional Notes</label>
+            <label className="admin-label">Additional Notes</label>
             <textarea 
               name="notes"
               value={formData.notes}
               onChange={handleChange}
               placeholder="Enter any additional notes or requirements"
-              className={errors.notes ? 'admin-error' : ''}
+              className={errors.notes ? 'admin-textarea admin-error' : 'admin-textarea'}
             ></textarea>
             {errors.notes && <span className="admin-error-message">{errors.notes}</span>}
           </div>

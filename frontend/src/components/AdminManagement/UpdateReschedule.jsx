@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import "./updateReschedule.css";
+import "./shared.css";
 
 function UpdateReschedule({ schedule, onClose, onUpdate }) {
     const [formData, setFormData] = useState({
@@ -173,7 +173,7 @@ function UpdateReschedule({ schedule, onClose, onUpdate }) {
                     <h2>Update Reschedule Details</h2>
                     <p>Update the details for the rescheduled lecture</p>
                 </div>
-                <form className="admin-reschedule-form" onSubmit={handleSubmit}>
+                <form className="admin-form" onSubmit={handleSubmit}>
                     <div className="admin-form-grid">
                         <div>
                             <label className="admin-label">Faculty</label>

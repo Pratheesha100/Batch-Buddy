@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import "./shared.css";
-import "./updateEvent.css";
 
 function UpdateEvent({ event, onClose, onUpdate }) {
     const [formData, setFormData] = useState({
@@ -152,7 +151,7 @@ function UpdateEvent({ event, onClose, onUpdate }) {
                     <h2>Update Event Details</h2>
                     <p>Modify the details of the selected event</p>
                 </div>
-                <form className="admin-event-form" onSubmit={handleSubmit}>
+                <form className="admin-form" onSubmit={handleSubmit}>
                     <div className="admin-form-grid">
                         <div>
                             <label className="admin-label">Event Name</label>
@@ -235,17 +234,17 @@ function UpdateEvent({ event, onClose, onUpdate }) {
                         ></textarea>
                         {errors.notes && <span className="error-message">{errors.notes}</span>}
                     </div>
-                    <div className="form-actions">
+                    <div className="admin-form-actions">
                         <button
                             type="button"
-                            className="btn cancel-btn"
+                            className="admin-btn admin-cancel-btn"
                             onClick={onClose}
                         >
                             Cancel
                         </button>
                         <button 
                             type="submit" 
-                            className="btn save-btn"
+                            className="admin-btn admin-save-btn"
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? 'Saving...' : 'Update Event'}
