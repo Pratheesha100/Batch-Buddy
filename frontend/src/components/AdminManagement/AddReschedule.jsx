@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import "./addReschedule.css";
+import "./shared.css";
 
 function AddReschedule({ onClose }) {
     const [formData, setFormData] = useState({
@@ -154,7 +154,7 @@ function AddReschedule({ onClose }) {
                     <h2>Add Reschedule Details</h2>
                     <p>Fill in the details to create a new reschedule entry</p>
                 </div>
-                <form className="admin-reschedule-form" onSubmit={handleSubmit}>
+                <form className="admin-form" onSubmit={handleSubmit}>
                     <div className="admin-form-grid">
                         <div>
                             <label className="admin-label">Faculty</label>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./AddTimetable.css";
+import "./shared.css";
 
 function AddTimetable({ onClose }) {
   const [formData, setFormData] = useState({
@@ -153,7 +153,7 @@ function AddTimetable({ onClose }) {
           <h2>Add Timetable Details</h2>
           <p>Fill in the details to create a new timetable entry</p>
         </div>
-        <form className="admin-timetable-form" onSubmit={handleSubmit}>
+        <form className="admin-form" onSubmit={handleSubmit}>
           <div className="admin-form-grid">
             <div>
               <label className="admin-label">Faculty</label>
@@ -161,7 +161,7 @@ function AddTimetable({ onClose }) {
                 name="faculty"
                 value={formData.faculty}
                 onChange={handleChange}
-                className={errors.faculty ? 'admin-error' : ''}
+                className={errors.faculty ? 'admin-select admin-error' : 'admin-select'}
                 required
               >
                 <option value="">Select Faculty</option>
@@ -178,7 +178,7 @@ function AddTimetable({ onClose }) {
                 name="batch"
                 value={formData.batch}
                 onChange={handleChange}
-                className={errors.batch ? 'admin-error' : ''}
+                className={errors.batch ? 'admin-select admin-error' : 'admin-select'}
                 required
               >
                 <option value="">Select Batch</option>
@@ -193,7 +193,7 @@ function AddTimetable({ onClose }) {
                 name="year"
                 value={formData.year}
                 onChange={handleChange}
-                className={errors.year ? 'admin-error' : ''}
+                className={errors.year ? 'admin-select admin-error' : 'admin-select'}
                 required
               >
                 <option value="">Select Year</option>
@@ -210,7 +210,7 @@ function AddTimetable({ onClose }) {
                 name="group"
                 value={formData.group}
                 onChange={handleChange}
-                className={errors.group ? 'admin-error' : ''}
+                className={errors.group ? 'admin-select admin-error' : 'admin-select'}
                 required
               >
                 <option value="">Select Group</option>
@@ -226,7 +226,7 @@ function AddTimetable({ onClose }) {
                 name="course"
                 value={formData.course}
                 onChange={handleChange}
-                className={errors.course ? 'admin-error' : ''}
+                className={errors.course ? 'admin-select admin-error' : 'admin-select'}
                 required
               >
                 <option value="">Select Course</option>
@@ -242,7 +242,7 @@ function AddTimetable({ onClose }) {
                 name="lecturer"
                 value={formData.lecturer}
                 onChange={handleChange}
-                className={errors.lecturer ? 'admin-error' : ''}
+                className={errors.lecturer ? 'admin-select admin-error' : 'admin-select'}
                 required
               >
                 <option value="">Select Lecturer</option>
@@ -258,7 +258,7 @@ function AddTimetable({ onClose }) {
                 name="session"
                 value={formData.session}
                 onChange={handleChange}
-                className={errors.session ? 'admin-error' : ''}
+                className={errors.session ?'admin-select admin-error' : 'admin-select'}
                 required
               >
                 <option value="">Select Session</option>
@@ -274,7 +274,7 @@ function AddTimetable({ onClose }) {
                 name="dayOfWeek"
                 value={formData.dayOfWeek}
                 onChange={handleChange}
-                className={errors.dayOfWeek ? 'admin-error' : ''}
+                className={errors.dayOfWeek ? 'admin-select admin-error' : 'admin-select'}
                 required
               >
                 <option value="">Select Day</option>
@@ -295,7 +295,7 @@ function AddTimetable({ onClose }) {
                 name="startTime"
                 value={formData.startTime}
                 onChange={handleChange}
-                className={errors.startTime ? 'admin-error' : ''}
+                className={errors.startTime ?'admin-input admin-error' : 'admin-input'}
                 required
               />
               {errors.startTime && <span className="admin-error-message">{errors.startTime}</span>}
@@ -307,7 +307,7 @@ function AddTimetable({ onClose }) {
                 name="endTime"
                 value={formData.endTime}
                 onChange={handleChange}
-                className={errors.endTime ? 'admin-error' : ''}
+                className={errors.endTime ? 'admin-input admin-error' : 'admin-input'}
                 required
               />
               {errors.endTime && <span className="admin-error-message">{errors.endTime}</span>}
@@ -318,7 +318,7 @@ function AddTimetable({ onClose }) {
                 name="roomNumber"
                 value={formData.roomNumber}
                 onChange={handleChange}
-                className={errors.roomNumber ? 'admin-error' : ''}
+                className={errors.roomNumber ? 'admin-select admin-error' : 'admin-select'}
                 required
               >
                 <option value="">Select Room</option>
@@ -336,7 +336,7 @@ function AddTimetable({ onClose }) {
               value={formData.notes}
               onChange={handleChange}
               placeholder="Enter any additional notes or requirements"
-              className={errors.notes ? 'admin-error' : ''}
+              className={errors.notes ? 'admin-textarea admin-error' : 'admin-textarea'}
             ></textarea>
             {errors.notes && <span className="admin-error-message">{errors.notes}</span>}
           </div>

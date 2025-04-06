@@ -296,6 +296,7 @@ function Event() {
       </div>
 
       {showForm && <AddReschedule onClose={handleCloseForm} />}
+      
       {showUpdateForm && selectedSchedule && (
         <UpdateReschedule
           schedule={selectedSchedule}

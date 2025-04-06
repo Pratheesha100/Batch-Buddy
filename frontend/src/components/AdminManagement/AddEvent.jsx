@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-//import "./shared.css";
-import "./AddEvent.css";
+import "./shared.css";
 
 function AddEvent({ onClose }) {
     const [formData, setFormData] = useState({

@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
 /* Modal Styles */
 .admin-modal-overlay {
     position: fixed;
@@ -11,17 +14,17 @@
     align-items: center;
     padding: 10px;
     z-index: 9999;
-    backdrop-filter: blur(5px);
+    backdrop-filter:blur(6px);
 }
 
 .admin-modal-content-container {
     font-family: 'Inter', sans-serif;
     background: #ffffff;
     padding: 15px;
-    width: 600px;
+    width: 650px;
     border-radius: 10px;
     box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
-    max-height: 95vh;
+    max-height: 90vh;
     z-index: 1000;
     overflow-y: auto;
     overflow-x: hidden;
@@ -55,19 +58,22 @@
 .admin-form-name-container {
     text-align: center;
     margin-bottom: 20px;
-    background-color: #f8f9fa;
+    background-color: #ffffff;
 }
 
 .admin-form-name-container h2 {
-    color: #333;
+    color: #100e1d;
+    font-size: 19px;
     margin-bottom: 5px;
 }
 
 .admin-form-name-container p {
     color: #666;
-    font-size: 14px;
+    font-size: 15px;
 }
-
+.admin-form {
+    padding-bottom: 50px;
+}
 /* Form Grid */
 .admin-form-grid {
     display: grid;
@@ -106,27 +112,14 @@
     outline: none;
     border-color: #4a90e2;
     box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
-    /*border-color: #4F46E5;
-    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);*/
+   
 }
-
-/*note container
-.admin-note-container label{
-    margin-bottom: 8px;
-    font-size: 14px;
-    display: block;
+.admin-note-container {
+    display : flex;
+    flex-direction: column;
+    padding: 10px;
+    text-align: left;
 }
-.admin-note-container{
-padding: 10px;
-text-align: left;
-}
-
-.admin-note-container textarea{
-    font-family: Arial, sans-serif;
-    resize: vertical;
-    min-height: 80px;
-    max-height: 200px;
-}*/
 
 /* Error States */
 .admin-error {
@@ -171,25 +164,22 @@ text-align: left;
 }
 
 .admin-cancel-btn {
-    background-color: #f0f0f0;
-    /*background-color: #e2dbdb;*/
-    color: #333;
+    background-color: #d6d6d6;
+    color: #ee3636;
 }
 
 .admin-cancel-btn:hover {
-    background-color: #e0e0e0;
-   /* background-color: #d1c7c7*/
+    background-color: #bcbcbc;
 }
 
 .admin-save-btn {
-    background-color: #4a90e2;
-    /*background-color: #4338ca;*/
+    background-color:#2563eb;
     color: white;
 }
 
 .admin-save-btn:hover:not(:disabled) {
-    background-color: #357abd;
-   /* background-color: #3730a3;*/
+    background-color: #4f46e5;
+   
 }
 
 .admin-save-btn:disabled {
@@ -204,7 +194,7 @@ text-align: left;
 }
 
 .admin-modal-content-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: #b0b0b0;
     border-radius: 4px;
 }
 
@@ -214,11 +204,11 @@ text-align: left;
 }
 
 .admin-modal-content-container::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: #686868;
 }
 
 /* Responsive */
-@media (max-width: 640px) {
+@media (max-width: 750px) {
     .admin-modal-content-container {
         width: 95%;
         max-width: 500px;
