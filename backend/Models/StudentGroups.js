@@ -4,18 +4,16 @@ import moment from "moment";
 const studentGroupSchema = new mongoose.Schema({
   studentId: { type: mongoose.Schema.Types.ObjectId, ref: "Student", required: true },
   groupNum: { type: mongoose.Schema.Types.ObjectId, ref: "Group", required: true },
-  currentYear: { type: Number, required: true },
-  currentSemester: { type: Number, required: true },
 },
 { timestamps: true }
 );
 
 // Enforce uniqueness on studentId and groupNum combination
-studentGroupSchema.index({ studentId: 1, groupNum: 1, currentYear: 1, currentSemester: 1 }, { unique: true });
+studentGroupSchema.index({ studentId: 1, groupNum: 1 }, { unique: true });
 
 
 // Middleware to modify the timestamp fields
-studentSchema.set("toJSON",{
+studentGroupSchema.set("toJSON",{
   virtuals: true,
   transform: (ret) => {
     ret.createdAt = moment(ret.createdAt).format("YYYY-MM-DD hh:mm A"); // Example format: 2025-04-06 02:30 PM

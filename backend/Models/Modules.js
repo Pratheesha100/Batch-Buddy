@@ -7,6 +7,7 @@ const moduleScema = new mongoose.Schema({
   year: { type: Number, required: true },
   credits: { type: Number, required: true },
   faculty: { type: mongoose.Schema.Types.ObjectId, ref: "Faculty", required: true },
+  lecturerInCharge: { type: mongoose.Schema.Types.ObjectId, ref: "Lecturer", required: true },
 });
 
 export default mongoose.model("Modules", moduleScema);

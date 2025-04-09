@@ -5,7 +5,7 @@ const groupSchema = new mongoose.Schema({
   groupNum: { type: String, required: true }, 
   degree: { type: mongoose.Schema.Types.ObjectId, ref: "Degree", required: true },
   faculty: { type: mongoose.Schema.Types.ObjectId, ref: "Faculty", required: true },
-  batchId: { type: mongoose.Schema.Types.ObjectId, ref: "Batch", required: true },
+  batch: { type: mongoose.Schema.Types.ObjectId, ref: "Batch", required: true },
   year: { type: Number, required: true },
   semester: { type: Number, required: true },
   studentsCount: { type: Number, default: 0 }

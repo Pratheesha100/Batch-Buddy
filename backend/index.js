@@ -2,6 +2,7 @@ import express from "express";
 import { connectDB } from "./DB/connectDB.js"; // Import the connectDB function
 import dotenv from "dotenv";
 import cors from "cors";
+import router from "./Routes/AdminRoutes.js"; // Import your routes
 
 dotenv.config(); // Load environment variables
 
@@ -16,10 +17,8 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 // function calling for database connection
 connectDB();
 
-// Sample route
-app.get("/", (req, res) => {
-    res.send("Hello, Node.js is working!");
-});
+// mounting admin route
+app.use("/admin", router);
 
 // Start the server
 app.listen(PORT, () => {

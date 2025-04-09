@@ -5,7 +5,6 @@ const lecturerModuleSchema = new mongoose.Schema(
   {
     lecturerCode: { type: mongoose.Schema.Types.ObjectId, ref: 'Lecturers', required: true },
     moduleCode: { type: mongoose.Schema.Types.ObjectId, ref: 'Modules', required: true },
-    duration: { type: String, required: true },
   },
   {
     timestamps: true, // Automatically add createdAt and updatedAt fields

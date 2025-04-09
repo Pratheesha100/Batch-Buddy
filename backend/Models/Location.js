@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const locationSchema = new mongoose.Schema({
-  locationName: { type: String, required: true, unique: true },
+  locationName: { type: String, required: true, },
   locationCode: { type: String, required: true, unique: true },
   faculty: { type: mongoose.Schema.Types.ObjectId, ref: "Faculty", required: true },
   locationType: {
@@ -15,4 +15,4 @@ const locationSchema = new mongoose.Schema({
     enum: ["Lecture Hall", "Laboratory", "Auditorium"],
   },
 });
-export default mongoose.model("Locations", locationSchema);
+export default mongoose.model("Location", locationSchema);

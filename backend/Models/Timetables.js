@@ -3,7 +3,7 @@ import moment from "moment";
 
 const timetableSchema = new mongoose.Schema({
 
-  moduleCode: {type:mongoose.Schema.Types.ObjectId, ref: "Modules", required: true,},
+  module: {type:mongoose.Schema.Types.ObjectId, ref: "Modules", required: true,},
   day: {type: String, required: true, set: (value) => {
     const formatted = value.toLowerCase();
     if (formatted === "monday") return "Monday";
