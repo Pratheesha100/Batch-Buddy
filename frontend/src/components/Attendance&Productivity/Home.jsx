@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mic, Calendar, Clock, ChevronRight, BookOpen, Beaker, Users } from "lucide-react";
+import { Mic, Calendar, Clock, ChevronRight, BookOpen, Beaker, Users, Check } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 const BatchBuddy = () => {
@@ -229,14 +229,6 @@ const BatchBuddy = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
-              <button 
-                onClick={startListening}
-                className={`text-gray-500 hover:text-blue-600 hover:scale-110 transition-all ${
-                  isListening ? 'animate-pulse bg-green-400/40' : ''
-                }`}
-              >
-                <Mic className={`w-5 h-5 ${isListening ? 'text-green-400' : 'text-white'}`} />
-              </button>
               <Link to="/signin" className="text-gray-500 hover:text-blue-600 text-sm font-medium">Sign In</Link>
               <Link to="/register" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-6 py-2 rounded-full text-sm font-medium transition-all hover:shadow-lg hover:scale-105">
                 Register
@@ -246,28 +238,85 @@ const BatchBuddy = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:16px_16px]"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/[0.05] to-transparent"></div>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-          <h1 className="text-5xl font-bold mb-6 animate-fade-in">Welcome to Batch Buddy</h1>
-          <p className="text-xl opacity-90 mb-12 max-w-2xl mx-auto animate-fade-in-delay">
-            Your intelligent companion for managing academic schedules, attendance, and reminders
-          </p>
-          <button 
-            onClick={startListening}
-            className={`bg-white/20 hover:bg-white/30 w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 mx-auto backdrop-blur-sm hover:shadow-2xl ${
-              isListening ? 'animate-pulse bg-green-400/40' : 'animate-bounce-slow'
-            }`}
-          >
-            <Mic className={`w-10 h-10 ${isListening ? 'text-green-400' : 'text-white'}`} />
-          </button>
-          {transcript && (
-            <p className="mt-4 text-sm text-white/80">
-              You said: "{transcript}"
+      {/* Hero Section - Smaller Version */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 min-h-[60vh] flex items-center">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0wIDBoNjB2NjBIMHoiLz48cGF0aCBkPSJNMzAgMzBoMXYxaC0xeiIgZmlsbD0iI2ZmZiIgZmlsbC1vcGFjaXR5PSIuMSIvPjwvZz48L3N2Zz4=')] opacity-20"></div>
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-black/10 to-transparent"></div>
+          {/* Animated Grid Lines */}
+          <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+        </div>
+
+        {/* Floating Orbs with Enhanced Animation */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/30 rounded-full blur-3xl animate-pulse-slow mix-blend-screen"></div>
+        <div className="absolute bottom-20 right-10 w-72 h-72 bg-purple-400/30 rounded-full blur-3xl animate-pulse-slow delay-1000 mix-blend-screen"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-indigo-400/20 rounded-full blur-3xl animate-pulse-slow delay-2000 mix-blend-screen"></div>
+
+        {/* Main Content - Compact Structure */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
+          <div className="flex flex-col items-center text-center">
+            {/* AI Voice Assistant Badge */}
+            <div className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 mb-4 animate-fade-in hover:bg-white/20 transition-all duration-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 mr-2 animate-pulse"></span>
+              Now with AI Voice Assistant
+            </div>
+            
+            {/* Main Heading */}
+            <h1 className="text-5xl font-bold leading-tight animate-fade-in max-w-2xl">
+              Your Intelligent <br />
+              <span className="bg-gradient-to-r from-blue-200 via-indigo-200 to-purple-200 bg-clip-text text-transparent animate-gradient">Academic Companion</span>
+            </h1>
+            
+            {/* Description */}
+            <p className="text-lg opacity-90 max-w-lg animate-fade-in-delay leading-relaxed mt-4">
+              Streamline your academic life with smart scheduling, attendance tracking, and productivity tools designed for modern students.
             </p>
-          )}
+            
+            {/* Central Mic Button */}
+            <div className="mt-8 mb-4 relative">
+              <button 
+                onClick={startListening}
+                className={`group relative flex items-center justify-center w-24 h-24 rounded-full transition-all duration-300 ${
+                  isListening 
+                    ? 'bg-green-500 shadow-lg shadow-green-500/50 animate-pulse' 
+                    : 'bg-white/20 hover:bg-white/30 hover:scale-105'
+                }`}
+              >
+                <div className={`absolute inset-0 rounded-full ${
+                  isListening ? 'animate-ping bg-green-400/30' : ''
+                }`}></div>
+                <div className={`absolute inset-0 rounded-full ${
+                  isListening ? 'animate-ping bg-green-400/20 delay-300' : ''
+                }`}></div>
+                <Mic className={`w-12 h-12 ${isListening ? 'text-white' : 'text-white/90 group-hover:text-white'}`} />
+          </button>
+              
+              {/* Voice Command Instructions */}
+              <div className="mt-2 text-white/80 text-sm">
+                {isListening ? (
+                  <p className="animate-pulse">Listening...</p>
+                ) : (
+                  <p>Click to speak</p>
+                )}
+              </div>
+            </div>
+            
+            {/* Voice Command Display */}
+            {transcript && (
+              <div className="mt-2 p-3 bg-white/10 backdrop-blur-sm rounded-lg text-white/90 text-center animate-fade-in max-w-md">
+                <p className="text-sm font-medium">You said:</p>
+                <p className="mt-1">{transcript}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Enhanced Scroll Indicator */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 animate-bounce">
+          <div className="w-5 h-8 border-2 border-white/30 rounded-full flex items-start p-1 hover:border-white/50 transition-colors">
+            <div className="w-1.5 h-1.5 bg-white rounded-full animate-scroll"></div>
+          </div>
         </div>
       </div>
 
