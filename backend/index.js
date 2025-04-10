@@ -1,33 +1,27 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import connectDB from './DB/connectDB.js';
-import userRoutes from './Routes/UserLogRoutes.js';
-import taskRoutes from './Routes/TaskCornerRoutes.js';
+import express from "express";
+import { connectDB } from "./DB/connectDB.js"; // Import the connectDB function
+import dotenv from "dotenv";
+import cors from "cors";
 
-dotenv.config();
+dotenv.config(); // Load environment variables
 
-const app = express();
-
-// Connect to MongoDB
-connectDB();
+const app = express();   
+const PORT = 5000;
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors()); // Enable CORS for all routes
+app.use(express.json()); // Parse JSON bodies
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
-// Routes
-app.use('/api/user', userRoutes);
-app.use('/api/tasks', taskRoutes);
+// function calling for database connection
+connectDB();
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+// Sample route
+app.get("/", (req, res) => {
+    res.send("Hello, Node.js is working!");
 });
 
-const PORT = process.env.PORT || 5000;
-
+// Start the server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    console.log("Server is running on http://localhost:${PORT}");
 });
