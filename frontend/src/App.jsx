@@ -18,7 +18,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<UserLog />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/get-started" element={<TaskCorner />} />
+        <Route path="/get-started" element={<Register/>} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="*" element={<div>Page not found</div>} />
       </Routes>
