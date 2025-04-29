@@ -148,3 +148,4 @@ export const getFilteredTasks = asyncHandler(async (req, res) => {
   const tasks = await Task.find(filter).sort({ dueTime: 1 });
   res.status(200).json(tasks);
 });
+

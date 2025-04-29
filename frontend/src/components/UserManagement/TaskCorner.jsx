@@ -95,14 +95,14 @@ const TaskCorner = () => {
       const response = await axios.post('/api/tasks', newTask);
       setTasks([...tasks, response.data]);
       setShowAddTask(false);
-      setNewTask({
-        title: '',
-        description: '',
-        priority: 'Medium',
-        dueTime: '',
-        status: 'Pending',
-        category: 'Study'
-      });
+    setNewTask({
+      title: '',
+      description: '',
+      priority: 'Medium',
+      dueTime: '',
+      status: 'Pending',
+      category: 'Study'
+    });
       fetchTaskStats();
       Swal.fire({
         icon: 'success',
@@ -121,19 +121,19 @@ const TaskCorner = () => {
   const handleUpdateTask = async () => {
     try {
       const response = await axios.put(`/api/tasks/${editingTask.id}`, newTask);
-      setTasks(tasks.map(task => 
+    setTasks(tasks.map(task =>
         task._id === editingTask.id ? response.data : task
-      ));
-      setEditingTask(null);
+    ));
+    setEditingTask(null);
       setShowAddTask(false);
-      setNewTask({
-        title: '',
-        description: '',
-        priority: 'Medium',
-        dueTime: '',
-        status: 'Pending',
-        category: 'Study'
-      });
+    setNewTask({
+      title: '',
+      description: '',
+      priority: 'Medium',
+      dueTime: '',
+      status: 'Pending',
+      category: 'Study'
+    });
       fetchTaskStats();
       Swal.fire({
         icon: 'success',
@@ -198,7 +198,7 @@ const TaskCorner = () => {
       const response = await axios.patch(`/api/tasks/${taskId}/status`, {
         status: newStatus
       });
-      setTasks(tasks.map(task => 
+    setTasks(tasks.map(task =>
         task._id === taskId ? response.data : task
       ));
       fetchTaskStats();
@@ -273,14 +273,14 @@ const TaskCorner = () => {
               <div>
                 <span className="text-3xl font-bold text-gray-800 block">{taskStats.pending}</span>
                 <span className="text-gray-600">Pending Tasks</span>
-              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Main Content */}
+      {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Upcoming Tasks */}
+        {/* Upcoming Tasks */}
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-semibold text-gray-800">Upcoming Tasks</h3>
@@ -297,51 +297,51 @@ const TaskCorner = () => {
                 >
                   <FaFilter /> Filter
                 </button>
-              </div>
-            </div>
+          </div>
+        </div>
 
-            {showFilters && (
+        {showFilters && (
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <select
-                    value={filters.priority}
-                    onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
+            <select
+              value={filters.priority}
+              onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="all">All Priorities</option>
+            >
+              <option value="all">All Priorities</option>
                     <option value="High">High</option>
                     <option value="Medium">Medium</option>
                     <option value="Low">Low</option>
-                  </select>
-                  <select
-                    value={filters.category}
-                    onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+            </select>
+            <select
+              value={filters.category}
+              onChange={(e) => setFilters({ ...filters, category: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="all">All Categories</option>
-                    <option value="Study">Study</option>
-                    <option value="Project">Project</option>
-                    <option value="Personal">Personal</option>
-                  </select>
-                </div>
-              </div>
-            )}
+            >
+              <option value="all">All Categories</option>
+              <option value="Study">Study</option>
+              <option value="Project">Project</option>
+              <option value="Personal">Personal</option>
+            </select>
+            </div>
+          </div>
+        )}
 
-            <DragDropContext onDragEnd={onDragEnd}>
-              <Droppable droppableId="tasks">
-                {(provided) => (
-                  <div
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="tasks">
+            {(provided) => (
+              <div
+                {...provided.droppableProps}
+                ref={provided.innerRef}
                     className="space-y-4"
                   >
                     {filteredTasks.map((task, index) => (
                       <Draggable key={task._id} draggableId={task._id} index={index}>
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
                             className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
                           >
                             <div className="flex justify-between items-start">
@@ -362,29 +362,29 @@ const TaskCorner = () => {
                                 </div>
                               </div>
                               <div className="flex gap-2">
-                                <button
-                                  onClick={() => handleEditTask(task)}
+                              <button 
+                                onClick={() => handleEditTask(task)}
                                   className="p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                                >
+                              >
                                   <FaEdit />
-                                </button>
-                                <button
+                              </button>
+                              <button
                                   onClick={() => handleDeleteTask(task._id)}
                                   className="p-2 text-gray-600 hover:text-red-600 transition-colors duration-200"
-                                >
+                              >
                                   <FaTrash />
-                                </button>
+                              </button>
                               </div>
-                            </div>
                           </div>
-                        )}
-                      </Draggable>
+                        </div>
+                      )}
+                    </Draggable>
                     ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
           </div>
 
           {/* Dashboard Section */}
@@ -449,8 +449,8 @@ const TaskCorner = () => {
         </div>
       </div>
 
-      {/* Add/Edit Task Modal */}
-      {(showAddTask || editingTask) && (
+        {/* Add/Edit Task Modal */}
+        {(showAddTask || editingTask) && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
             <div className="flex justify-between items-center mb-6">
@@ -472,9 +472,9 @@ const TaskCorner = () => {
                 }}
                 className="text-gray-500 hover:text-gray-700"
               >
-                <FaTimesCircle />
-              </button>
-            </div>
+                  <FaTimesCircle />
+                </button>
+              </div>
 
             <div className="space-y-4">
               <div>
@@ -500,29 +500,29 @@ const TaskCorner = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-gray-700 mb-2">Priority</label>
-                  <select
-                    value={newTask.priority}
-                    onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+                <select
+                  value={newTask.priority}
+                  onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
-                  </select>
-                </div>
+                >
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
+                </select>
+              </div>
 
                 <div>
                   <label className="block text-gray-700 mb-2">Category</label>
-                  <select
-                    value={newTask.category}
-                    onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
+                <select
+                  value={newTask.category}
+                  onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="Study">Study</option>
-                    <option value="Project">Project</option>
-                    <option value="Personal">Personal</option>
-                  </select>
-                </div>
+                >
+                  <option value="Study">Study</option>
+                  <option value="Project">Project</option>
+                  <option value="Personal">Personal</option>
+                </select>
+              </div>
               </div>
 
               <div>
@@ -535,16 +535,16 @@ const TaskCorner = () => {
                 />
               </div>
 
-              <button
-                onClick={editingTask ? handleUpdateTask : handleAddTask}
+                <button 
+                  onClick={editingTask ? handleUpdateTask : handleAddTask}
                 className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-              >
-                {editingTask ? 'Update Task' : 'Add Task'}
-              </button>
+                >
+                  {editingTask ? 'Update Task' : 'Add Task'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 };
