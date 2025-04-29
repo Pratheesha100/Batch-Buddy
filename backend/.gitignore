@@ -1,0 +1,17 @@
+# Node.js dependencies
+node_modules
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+
+# Compiled files (if any)
+dist/
+build/
+
+# Cache and temp files
+.cache/
+.DS_Store

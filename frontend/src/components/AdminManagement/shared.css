@@ -1,0 +1,259 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+/* Modal Styles */
+.admin-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    z-index: 9999;
+    backdrop-filter:blur(6px);
+}
+
+.admin-modal-content-container {
+    font-family: 'Inter', sans-serif;
+    background: #ffffff;
+    padding: 15px;
+    width: 650px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
+    max-height: 90vh;
+    z-index: 1000;
+    overflow-y: auto;
+    overflow-x: hidden;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+/* Animations */
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes modalSlideOut {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+}
+
+/* Form Styles */
+.admin-form-name-container {
+    text-align: center;
+    margin-bottom: 20px;
+    background-color: #ffffff;
+}
+
+.admin-form-name-container h2 {
+    color: #100e1d;
+    font-size: 19px;
+    margin-bottom: 5px;
+}
+
+.admin-form-name-container p {
+    color: #666;
+    font-size: 15px;
+}
+.admin-form {
+    padding-bottom: 50px;
+}
+/* Form Grid */
+.admin-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.admin-form-grid > div {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* Form Elements */
+.admin-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 5px;
+    text-align: left;
+}
+
+.admin-select, .admin-input, .admin-textarea {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.admin-select:focus, .admin-input:focus, .admin-textarea:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+   
+}
+.admin-note-container {
+    display : flex;
+    flex-direction: column;
+    padding: 10px;
+    text-align: left;
+}
+
+/* Error States */
+.admin-error {
+    border-color: #ef4444 !important;
+}
+
+.admin-error:focus {
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1) !important;
+}
+
+.admin-error-message {
+    color: #ef4444;
+    font-size: 12px;
+    margin-top: 4px;
+    display: block;
+}
+
+/* Required Field Indicator */
+.admin-label:has(+ input:required)::after,
+.admin-label:has(+ select:required)::after,
+.admin-label:has(+ textarea:required)::after {
+    content: " *";
+    color: #ef4444;
+}
+
+/* Buttons */
+.admin-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 20px;
+    /*text-align: right;*/
+}
+
+.admin-btn {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.admin-cancel-btn {
+    background-color: #d6d6d6;
+    color: #ee3636;
+}
+
+.admin-cancel-btn:hover {
+    background-color: #bcbcbc;
+}
+
+.admin-save-btn {
+    background-color:#2563eb;
+    color: white;
+}
+
+.admin-save-btn:hover:not(:disabled) {
+    background-color: #4f46e5;
+   
+}
+
+.admin-save-btn:disabled {
+    background-color: #ccc;
+    /*background-color: #9ca3af;*/
+    cursor: not-allowed;
+}
+
+/* Scrollbar */
+.admin-modal-content-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.admin-modal-content-container::-webkit-scrollbar-track {
+    background: #b0b0b0;
+    border-radius: 4px;
+}
+
+.admin-modal-content-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.admin-modal-content-container::-webkit-scrollbar-thumb:hover {
+    background: #686868;
+}
+
+/* Responsive */
+@media (max-width: 750px) {
+    .admin-modal-content-container {
+        width: 95%;
+        max-width: 500px;
+    }
+    
+    .admin-form-grid {
+        grid-template-columns: 1fr;
+        padding: 15px;
+    }
+}
+
+/* Delete Confirmation Modal Styles */
+.admin-delete-confirmation {
+    width: 400px;
+    text-align: center;
+}
+
+.admin-confirmation-details {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.admin-confirmation-details p {
+    margin: 10px 0;
+    color: #4b5563;
+}
+
+.admin-confirmation-details strong {
+    color: #1f2937;
+    margin-right: 8px;
+}
+
+.admin-delete-confirm-btn {
+    background-color: #ef4444;
+    color: white;
+}
+
+.admin-delete-confirm-btn:hover {
+    background-color: #dc2626;
+}
+
+.admin-delete-confirm-btn:disabled {
+    background-color: #fca5a5;
+    cursor: not-allowed;
+} 
