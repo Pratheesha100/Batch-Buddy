@@ -48,23 +48,49 @@ const UserLog = () => {
       });
       console.log('Login response:', response.data);
       
-      if (response.data.token) {
+      if (response.data && response.data.token) {
+        // Store token and user data in localStorage
         localStorage.setItem('token', response.data.token);
-        localStorage.setItem('userType', response.data.isAdmin ? 'admin' : 'user');
+        localStorage.setItem('userData', JSON.stringify({
+          _id: response.data._id,
+          studentId: response.data.studentId,
+          isAdmin: response.data.isAdmin
+        }));
+        
+        // Show success message
         Swal.fire({
           icon: 'success',
           title: 'Login Successful!',
+          text: 'Welcome to Batch Buddy',
           showConfirmButton: false,
-          timer: 1500,
+          timer: 1500
+        }).then(() => {
+          try {
+            console.log('Attempting to navigate to /home with user data:', response.data);
+            navigate('/home', { 
+              state: { 
+                user: {
+                  _id: response.data._id,
+                  studentId: response.data.studentId,
+                  isAdmin: response.data.isAdmin
+                }
+              } 
+            });
+          } catch (navError) {
+            console.error('Navigation error:', navError);
+            // Fallback to window.location if navigation fails
+            window.location.href = '/home';
+          }
         });
-        navigate('/dashboard');
+      } else {
+        throw new Error(response.data?.message || 'Invalid response from server');
       }
     } catch (error) {
       console.error('Login error:', error);
       Swal.fire({
         icon: 'error',
         title: 'Login Failed',
-        text: error.response?.data?.message || 'Something went wrong. Please try again.',
+        text: error.response?.data?.message || error.message || 'An error occurred during login',
       });
     } finally {
       setLoading({ ...loading, user: false });
