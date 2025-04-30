@@ -3,7 +3,10 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
-require('dotenv').config();
+const dotenv = require('dotenv');
+const http = require('http');
+
+dotenv.config();
 
 const app = express();
 
@@ -12,13 +15,17 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// MongoDB Connection
+// MongoDB Connection (use connection string from .env)
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log('MongoDB Connection Error:', err));
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000,
+  family: 4,
+}).then(() => {
+  console.log('Connected to MongoDB Atlas');
+}).catch((error) => {
+  console.error('MongoDB connection error:', error);
+});
 
 // Routes
 const reminderRoutes = require('./routes/reminders');
@@ -35,7 +42,20 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
+// Set port dynamically or to 5000
+const PORT = process.env.PORT || 5000;
+
+// Create HTTP server and handle errors
+const server = http.createServer(app);
+
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+}).on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.log(`Port ${PORT} is in use, trying another port...`);
+    server.listen(0); // 0 means "choose an available port"
+  } else {
+    console.error('Server error:', err);
+  }
 });
+

@@ -6,28 +6,32 @@ const reminderSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  description: {
+    type: String,
+    trim: true
+  },
   date: {
-    type: Date,
+    type: String,
     required: true
   },
   time: {
     type: String,
     required: true
   },
-  type: {
+  priority: {
     type: String,
-    required: true,
-    enum: ['Academic', 'Work', 'Personal', 'Medical']
+    enum: ['Low', 'Medium', 'High'],
+    default: 'Medium'
+  },
+  category: {
+    type: String,
+    enum: ['Work', 'Health', 'Personal', 'Shopping', 'Other', ''],
+    default: ''
   },
   status: {
     type: String,
-    required: true,
-    enum: ['active', 'snoozed', 'dismissed'],
-    default: 'active'
-  },
-  description: {
-    type: String,
-    trim: true
+    enum: ['pending', 'completed'],
+    default: 'pending'
   },
   createdAt: {
     type: Date,
