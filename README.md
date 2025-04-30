@@ -82,11 +82,13 @@ Tailwind CSS
 - Maven
 
 **2. Clone the Repository**
-- [git clone https://github.com/your-username/aspira.git](https://github.com/Pratheesha100/Aspira-Skill-Sharing-and-Learning-Platform-.git)
+ ```bash
+  git clone https://github.com/Pratheesha100/Aspira-Skill-Sharing-and-Learning-Platform-.git
+  ```
   
 **3. Configure the Database**
-- MONGO_URI=mongodb+srv://<username>:<password>@<cluster>/<database>?<options>
-- PORT=Any port number
+- MONGO_URI=`mongodb+srv://<username>:<password>@<cluster>/<database>?<options>`
+- PORT=`Any port number`
   
 **4. Run the Backend**
 
