@@ -245,11 +245,11 @@ const Profile = () => {
         <div className="flex flex-col md:flex-row items-center justify-between mb-8">
           <div className="relative group cursor-pointer mb-4 md:mb-0" onClick={isEditing ? handleProfilePictureClick : null}>
             <div className={`w-32 h-32 rounded-full ${currentTheme.colors.secondary} flex items-center justify-center overflow-hidden`}>
-              {profileImage ? (
+            {profileImage ? (
                 <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
+            ) : (
                 <FaUser className={`w-16 h-16 ${currentTheme.colors.textSecondary}`} />
-              )}
+            )}
             </div>
             {isEditing && (
               <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -302,55 +302,55 @@ const Profile = () => {
             <div className="space-y-4">
               <div>
                 <label className={`block ${currentTheme.colors.textSecondary} mb-2`}>Full Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={profile.name}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
+              <input
+                type="text"
+                name="name"
+                value={profile.name}
+                onChange={handleInputChange}
+                disabled={!isEditing}
                   className={`w-full px-4 py-2 ${currentTheme.colors.input} border ${currentTheme.colors.border} rounded-lg ${currentTheme.colors.text} placeholder-${currentTheme.colors.textSecondary} focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50`}
-                />
+              />
                 {errors.name && <p className="mt-1 text-red-400 text-sm">{errors.name}</p>}
-              </div>
+            </div>
 
               <div>
                 <label className={`block ${currentTheme.colors.textSecondary} mb-2`}>IT Number</label>
-                <input
-                  type="text"
-                  name="itNumber"
-                  value={profile.itNumber}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
-                  maxLength="10"
+              <input
+                type="text"
+                name="itNumber"
+                value={profile.itNumber}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+                maxLength="10"
                   className={`w-full px-4 py-2 ${currentTheme.colors.input} border ${currentTheme.colors.border} rounded-lg ${currentTheme.colors.text} placeholder-${currentTheme.colors.textSecondary} focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50`}
-                />
+              />
                 {errors.itNumber && <p className="mt-1 text-red-400 text-sm">{errors.itNumber}</p>}
-              </div>
+            </div>
 
               <div>
                 <label className={`block ${currentTheme.colors.textSecondary} mb-2`}>Email Address</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={profile.email}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
+              <input
+                type="email"
+                name="email"
+                value={profile.email}
+                onChange={handleInputChange}
+                disabled={!isEditing}
                   className={`w-full px-4 py-2 ${currentTheme.colors.input} border ${currentTheme.colors.border} rounded-lg ${currentTheme.colors.text} placeholder-${currentTheme.colors.textSecondary} focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50`}
-                />
+              />
                 {errors.email && <p className="mt-1 text-red-400 text-sm">{errors.email}</p>}
-              </div>
+            </div>
 
               <div>
                 <label className={`block ${currentTheme.colors.textSecondary} mb-2`}>Phone Number</label>
-                <input
-                  type="tel"
-                  name="phoneNumber"
-                  value={profile.phoneNumber}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
-                  maxLength="10"
+              <input
+                type="tel"
+                name="phoneNumber"
+                value={profile.phoneNumber}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+                maxLength="10"
                   className={`w-full px-4 py-2 ${currentTheme.colors.input} border ${currentTheme.colors.border} rounded-lg ${currentTheme.colors.text} placeholder-${currentTheme.colors.textSecondary} focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50`}
-                />
+              />
                 {errors.phoneNumber && <p className="mt-1 text-red-400 text-sm">{errors.phoneNumber}</p>}
               </div>
             </div>
@@ -361,63 +361,63 @@ const Profile = () => {
             <div className="space-y-4">
               <div>
                 <label className={`block ${currentTheme.colors.textSecondary} mb-2`}>Year</label>
-                <input
-                  type="text"
-                  name="year"
-                  value={profile.year}
-                  disabled
+              <input
+                type="text"
+                name="year"
+                value={profile.year}
+                disabled
                   className={`w-full px-4 py-2 ${currentTheme.colors.textSecondary} cursor-not-allowed`}
-                />
-              </div>
+              />
+            </div>
 
               <div>
                 <label className={`block ${currentTheme.colors.textSecondary} mb-2`}>Batch</label>
-                <select
-                  name="batch"
-                  value={profile.batch}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
+              <select
+                name="batch"
+                value={profile.batch}
+                onChange={handleInputChange}
+                disabled={!isEditing}
                   className={`w-full px-4 py-2 ${currentTheme.colors.input} border ${currentTheme.colors.border} rounded-lg ${currentTheme.colors.text} focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50`}
-                >
-                  <option value="Y1S1">Y1S1</option>
-                  <option value="Y1S2">Y1S2</option>
-                  <option value="Y2S1">Y2S1</option>
-                  <option value="Y2S2">Y2S2</option>
-                  <option value="Y3S1">Y3S1</option>
-                  <option value="Y3S2">Y3S2</option>
-                  <option value="Y4S1">Y4S1</option>
-                  <option value="Y4S2">Y4S2</option>
-                </select>
-              </div>
+              >
+                <option value="Y1S1">Y1S1</option>
+                <option value="Y1S2">Y1S2</option>
+                <option value="Y2S1">Y2S1</option>
+                <option value="Y2S2">Y2S2</option>
+                <option value="Y3S1">Y3S1</option>
+                <option value="Y3S2">Y3S2</option>
+                <option value="Y4S1">Y4S1</option>
+                <option value="Y4S2">Y4S2</option>
+              </select>
+            </div>
 
               <div>
                 <label className={`block ${currentTheme.colors.textSecondary} mb-2`}>Week Type</label>
-                <select
-                  name="weekType"
-                  value={profile.weekType}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
+              <select
+                name="weekType"
+                value={profile.weekType}
+                onChange={handleInputChange}
+                disabled={!isEditing}
                   className={`w-full px-4 py-2 ${currentTheme.colors.input} border ${currentTheme.colors.border} rounded-lg ${currentTheme.colors.text} focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50`}
-                >
-                  <option value="WE">Weekend</option>
-                  <option value="WD">Weekday</option>
-                </select>
-              </div>
+              >
+                <option value="WE">Weekend</option>
+                <option value="WD">Weekday</option>
+              </select>
+            </div>
 
               <div>
                 <label className={`block ${currentTheme.colors.textSecondary} mb-2`}>Degree</label>
-                <select
-                  name="degree"
-                  value={profile.degree}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
+              <select
+                name="degree"
+                value={profile.degree}
+                onChange={handleInputChange}
+                disabled={!isEditing}
                   className={`w-full px-4 py-2 ${currentTheme.colors.input} border ${currentTheme.colors.border} rounded-lg ${currentTheme.colors.text} focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50`}
-                >
-                  <option value="BScIT">BSc Honours Specialization in Information Technology</option>
-                  <option value="BScSE">BSc Honours Specialization in Software Engineering</option>
-                  <option value="BScDS">BSc Honours Specialization in Data Science</option>
-                  <option value="BScIM">BSc Honours Specialization in Interactive Media</option>
-                </select>
+              >
+                <option value="BScIT">BSc Honours Specialization in Information Technology</option>
+                <option value="BScSE">BSc Honours Specialization in Software Engineering</option>
+                <option value="BScDS">BSc Honours Specialization in Data Science</option>
+                <option value="BScIM">BSc Honours Specialization in Interactive Media</option>
+              </select>
               </div>
             </div>
           </div>
@@ -432,22 +432,22 @@ const Profile = () => {
                   onClick={() => setShowSettings(false)}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  <FaTimes />
-                </button>
-              </div>
+                <FaTimes />
+              </button>
+            </div>
               <div className="space-y-4">
                 <button
                   onClick={() => setShowThemeModal(true)}
                   className="w-full flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
                 >
-                  <FaPalette /> Change Theme
-                </button>
+                <FaPalette /> Change Theme
+              </button>
                 <button
                   onClick={() => setShowPasswordModal(true)}
                   className="w-full flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
                 >
-                  <FaLock /> Change Password
-                </button>
+                <FaLock /> Change Password
+              </button>
               </div>
             </div>
           </div>
@@ -511,14 +511,14 @@ const Profile = () => {
                     type="password"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                </div>
+              </div>
                 <div>
                   <label className="block text-gray-700 mb-2">Confirm New Password</label>
                   <input
                     type="password"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                </div>
+              </div>
                 <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
                   Update Password
                 </button>

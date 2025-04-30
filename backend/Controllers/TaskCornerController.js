@@ -1,4 +1,4 @@
-import Task from '../models/TaskCornerModel.js';
+import Task from '../Models/TaskCornerModel.js';
 import asyncHandler from 'express-async-handler';
 
 // @desc    Get all tasks for a user

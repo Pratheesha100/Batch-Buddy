@@ -2,18 +2,20 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { FcGoogle } from 'react-icons/fc';
-import { FaEnvelope, FaLock, FaUser, FaUserShield } from 'react-icons/fa';
+import { FaUser, FaLock, FaUserShield } from 'react-icons/fa';
 import Swal from 'sweetalert2';
+
+// Configure axios defaults
+axios.defaults.withCredentials = true;
 
 const UserLog = () => {
   const navigate = useNavigate();
   const [userFormData, setUserFormData] = useState({
-    email: '',
+    studentId: '',
     password: '',
   });
   const [adminFormData, setAdminFormData] = useState({
-    email: '',
+    studentId: '',
     password: '',
   });
   const [loading, setLoading] = useState({
@@ -39,10 +41,16 @@ const UserLog = () => {
     e.preventDefault();
     setLoading({ ...loading, user: true });
     try {
-      const response = await axios.post('http://localhost:5000/api/user/login', userFormData);
+      console.log('Sending login request:', userFormData);
+      const response = await axios.post('http://localhost:5000/api/user/login', {
+        ...userFormData,
+        isAdmin: false
+      });
+      console.log('Login response:', response.data);
+      
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
-        localStorage.setItem('userType', 'user');
+        localStorage.setItem('userType', response.data.isAdmin ? 'admin' : 'user');
         Swal.fire({
           icon: 'success',
           title: 'Login Successful!',
@@ -52,10 +60,11 @@ const UserLog = () => {
         navigate('/dashboard');
       }
     } catch (error) {
+      console.error('Login error:', error);
       Swal.fire({
         icon: 'error',
         title: 'Login Failed',
-        text: error.response?.data?.message || 'Something went wrong',
+        text: error.response?.data?.message || 'Something went wrong. Please try again.',
       });
     } finally {
       setLoading({ ...loading, user: false });
@@ -66,10 +75,16 @@ const UserLog = () => {
     e.preventDefault();
     setLoading({ ...loading, admin: true });
     try {
-      const response = await axios.post('http://localhost:5000/api/admin/login', adminFormData);
+      console.log('Sending admin login request:', adminFormData);
+      const response = await axios.post('http://localhost:5000/api/user/login', {
+        ...adminFormData,
+        isAdmin: true
+      });
+      console.log('Admin login response:', response.data);
+      
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
-        localStorage.setItem('userType', 'admin');
+        localStorage.setItem('userType', response.data.isAdmin ? 'admin' : 'user');
         Swal.fire({
           icon: 'success',
           title: 'Admin Login Successful!',
@@ -79,25 +94,14 @@ const UserLog = () => {
         navigate('/admin/dashboard');
       }
     } catch (error) {
+      console.error('Admin login error:', error);
       Swal.fire({
         icon: 'error',
         title: 'Admin Login Failed',
-        text: error.response?.data?.message || 'Something went wrong',
+        text: error.response?.data?.message || 'Something went wrong. Please try again.',
       });
     } finally {
       setLoading({ ...loading, admin: false });
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      window.location.href = 'http://localhost:5000/api/user/google';
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Google Login Failed',
-        text: 'Failed to initiate Google login',
-      });
     }
   };
 
@@ -121,16 +125,16 @@ const UserLog = () => {
             <div className="rounded-md shadow-sm -space-y-px">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaEnvelope className="h-5 w-5 text-white/60" />
+                  <FaUser className="h-5 w-5 text-white/60" />
                 </div>
                 <input
-                  id="user-email"
-                  name="email"
-                  type="email"
+                  id="studentId"
+                  name="studentId"
+                  type="text"
                   required
                   className="appearance-none rounded-none relative block w-full px-3 py-3 pl-10 border border-white/20 bg-white/10 placeholder-white/60 text-white rounded-t-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
-                  placeholder="Email address"
-                  value={userFormData.email}
+                  placeholder="Student ID"
+                  value={userFormData.studentId}
                   onChange={handleUserChange}
                 />
               </div>
@@ -139,7 +143,7 @@ const UserLog = () => {
                   <FaLock className="h-5 w-5 text-white/60" />
                 </div>
                 <input
-                  id="user-password"
+                  id="password"
                   name="password"
                   type="password"
                   required
@@ -161,33 +165,19 @@ const UserLog = () => {
               </button>
             </div>
 
-            <div className="flex items-center justify-end">
+            <div className="flex items-center justify-between">
               <Link
                 to="/reset-password"
                 className="text-sm text-white/80 hover:text-white transition-colors duration-200"
               >
                 Forgot your password?
               </Link>
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/20" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-transparent text-white/60">Or continue with</span>
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="button"
-                onClick={handleGoogleLogin}
-                className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5"
+              <Link
+                to="/register"
+                className="text-sm text-white/80 hover:text-white transition-colors duration-200"
               >
-                <FcGoogle className="h-5 w-5 mr-2" />
-                Sign in with Google
-              </button>
+                Don't have an account? Register
+              </Link>
             </div>
           </form>
         </motion.div>
@@ -209,16 +199,16 @@ const UserLog = () => {
             <div className="rounded-md shadow-sm -space-y-px">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaEnvelope className="h-5 w-5 text-white/60" />
+                  <FaUser className="h-5 w-5 text-white/60" />
                 </div>
                 <input
-                  id="admin-email"
-                  name="email"
-                  type="email"
+                  id="admin-studentId"
+                  name="studentId"
+                  type="text"
                   required
                   className="appearance-none rounded-none relative block w-full px-3 py-3 pl-10 border border-white/20 bg-white/10 placeholder-white/60 text-white rounded-t-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
-                  placeholder="Admin Email"
-                  value={adminFormData.email}
+                  placeholder="Admin ID"
+                  value={adminFormData.studentId}
                   onChange={handleAdminChange}
                 />
               </div>

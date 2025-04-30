@@ -200,7 +200,7 @@ const TaskCorner = () => {
       });
     setTasks(tasks.map(task =>
         task._id === taskId ? response.data : task
-      ));
+    ));
       fetchTaskStats();
     } catch (error) {
       Swal.fire({
@@ -289,8 +289,8 @@ const TaskCorner = () => {
                   onClick={() => setShowAddTask(true)}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
                 >
-                  <FaPlus /> Add Task
-                </button>
+              <FaPlus /> Add Task
+            </button>
                 <button 
                   onClick={() => setShowFilters(!showFilters)}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
@@ -343,7 +343,7 @@ const TaskCorner = () => {
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                             className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
-                          >
+                        >
                             <div className="flex justify-between items-start">
                               <div>
                                 <h4 className="font-semibold text-gray-800">{task.title}</h4>
@@ -374,7 +374,7 @@ const TaskCorner = () => {
                               >
                                   <FaTrash />
                               </button>
-                              </div>
+                            </div>
                           </div>
                         </div>
                       )}
