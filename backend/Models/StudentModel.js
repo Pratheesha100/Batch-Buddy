@@ -6,8 +6,38 @@ const studentSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  // Add other fields as needed
-}, { collection: 'students' });
+  studentName: {
+    type: String,
+    required: true
+  },
+  contactNumber: {
+    type: String
+  },
+  address: {
+    type: String
+  },
+  birthday: {
+    type: Date
+  },
+  email: {
+    type: String
+  },
+  degree: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Degree'
+  },
+  faculty: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Faculty'
+  },
+  batch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Batch'
+  }
+}, {
+  timestamps: true
+});
 
-const Student = mongoose.model('Student', studentSchema);
+const Student = mongoose.model('students', studentSchema);
+
 export default Student; 

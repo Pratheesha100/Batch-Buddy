@@ -30,6 +30,26 @@ const Register = () => {
     return "";
   };
 
+  const checkStudentExists = async (studentId) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/user/check-student/${studentId}`);
+      return response.data.exists;
+    } catch (error) {
+      console.error('Error checking student:', error);
+      throw new Error('Failed to verify student ID');
+    }
+  };
+
+  const checkUserLoginExists = async (studentId) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/user/check-login/${studentId}`);
+      return response.data.exists;
+    } catch (error) {
+      console.error('Error checking user login:', error);
+      throw new Error('Failed to verify user login');
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -60,33 +80,57 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     
-    // Validate all fields before submission
-    const newErrors = {};
-    Object.keys(formData).forEach(key => {
-      if (key !== "confirmPassword") {
-        let error = "";
-        switch (key) {
-          case "studentId":
-            error = validateStudentId(formData[key]);
-            break;
-          case "password":
-            error = validatePassword(formData[key]);
-            break;
-          default:
-            break;
-        }
-        if (error) newErrors[key] = error;
+    try {
+      // First check if student exists in students collection
+      const studentExists = await checkStudentExists(formData.studentId);
+      if (!studentExists) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Registration Failed',
+          text: 'Student ID not found in the system. Please contact your administrator.',
+        });
+        setLoading(false);
+        return;
       }
-    });
 
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
+      // Then check if user already has a login
+      const userLoginExists = await checkUserLoginExists(formData.studentId);
+      if (userLoginExists) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Registration Failed',
+          text: 'An account already exists for this Student ID.',
+        });
+        setLoading(false);
+        return;
+      }
 
-    setErrors(newErrors);
+      // Validate all fields before submission
+      const newErrors = {};
+      Object.keys(formData).forEach(key => {
+        if (key !== "confirmPassword") {
+          let error = "";
+          switch (key) {
+            case "studentId":
+              error = validateStudentId(formData[key]);
+              break;
+            case "password":
+              error = validatePassword(formData[key]);
+              break;
+            default:
+              break;
+          }
+          if (error) newErrors[key] = error;
+        }
+      });
 
-    if (Object.keys(newErrors).length === 0) {
-      try {
+      if (formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = "Passwords do not match";
+      }
+
+      setErrors(newErrors);
+
+      if (Object.keys(newErrors).length === 0) {
         const { confirmPassword, ...dataToSend } = formData;
         console.log('Sending registration request:', dataToSend);
         
@@ -98,21 +142,23 @@ const Register = () => {
           Swal.fire({
             icon: 'success',
             title: 'Registration Successful!',
+            text: 'Welcome to Batch Buddy',
             showConfirmButton: false,
             timer: 1500,
           });
-          navigate('/dashboard');
+          navigate('/login');
         }
-      } catch (error) {
-        console.error('Registration error:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Registration Failed',
-          text: error.response?.data?.message || 'Something went wrong. Please try again.',
-        });
       }
+    } catch (error) {
+      console.error('Registration error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Registration Failed',
+        text: error.message || 'Something went wrong. Please try again.',
+      });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

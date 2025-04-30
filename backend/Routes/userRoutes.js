@@ -6,8 +6,7 @@ import {
   getUserProfile,
   updateUserProfile,
   checkStudent,
-  checkUserLogin,
-  getStudentDetails
+  checkUserLogin
 } from '../Controllers/UserLogController.js';
 import { protect } from '../Middleware/authMiddleware.js';
 
@@ -19,13 +18,10 @@ router.post('/login', loginUser);
 router.post('/logout', logoutUser);
 router.get('/check-student/:studentId', checkStudent);
 router.get('/check-login/:studentId', checkUserLogin);
-router.get('/student/:studentId', getStudentDetails);
 
 // Protected routes
 router.route('/profile')
   .get(protect, getUserProfile)
   .put(protect, updateUserProfile);
 
-export default router;
-
-
+export default router; 

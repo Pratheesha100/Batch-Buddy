@@ -6,28 +6,67 @@ import jwt from 'jsonwebtoken';
 // Check if student exists in students collection
 export const checkStudent = async (req, res) => {
   try {
+    console.log('Checking student existence for:', req.params.studentId);
     const { studentId } = req.params;
-    const student = await Student.findOne({ studentId });
-    if (!student) {
-      return res.status(404).json({ exists: false, message: 'Student not found' });
+    
+    if (!studentId) {
+      return res.status(400).json({ 
+        exists: false, 
+        message: 'Student ID is required' 
+      });
     }
-    res.json({ exists: true });
+
+    const student = await Student.findOne({ studentId: studentId });
+    console.log('Student search result:', student ? 'Found' : 'Not found');
+
+    if (!student) {
+      return res.status(200).json({ 
+        exists: false, 
+        message: 'Student not found' 
+      });
+    }
+
+    res.status(200).json({ 
+      exists: true,
+      message: 'Student found'
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error in checkStudent:', error);
+    res.status(500).json({ 
+      exists: false, 
+      message: 'Server error while checking student',
+      error: error.message 
+    });
   }
 };
 
 // Check if userlogin exists for studentId
 export const checkUserLogin = async (req, res) => {
   try {
+    console.log('Checking user login existence for:', req.params.studentId);
     const { studentId } = req.params;
-    const user = await UserLog.findOne({ studentId });
-    if (!user) {
-      return res.json({ exists: false });
+    
+    if (!studentId) {
+      return res.status(400).json({ 
+        exists: false, 
+        message: 'Student ID is required' 
+      });
     }
-    res.json({ exists: true });
+
+    const user = await UserLog.findOne({ studentId: studentId });
+    console.log('User login search result:', user ? 'Found' : 'Not found');
+
+    res.status(200).json({ 
+      exists: !!user,
+      message: user ? 'User login exists' : 'User login not found'
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error in checkUserLogin:', error);
+    res.status(500).json({ 
+      exists: false, 
+      message: 'Server error while checking user login',
+      error: error.message 
+    });
   }
 };
 
@@ -187,6 +226,39 @@ export const updateUserProfile = async (req, res) => {
   } catch (error) {
     console.error('Update profile error:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Get student details
+// @route   GET /api/user/student/:studentId
+// @access  Public
+export const getStudentDetails = async (req, res) => {
+  try {
+    console.log('Fetching student details for:', req.params.studentId);
+    const { studentId } = req.params;
+    
+    if (!studentId) {
+      return res.status(400).json({ 
+        message: 'Student ID is required' 
+      });
+    }
+
+    const student = await Student.findOne({ studentId })
+      .select('studentId studentName email department');
+    
+    if (!student) {
+      return res.status(404).json({ 
+        message: 'Student not found' 
+      });
+    }
+
+    res.status(200).json(student);
+  } catch (error) {
+    console.error('Error fetching student details:', error);
+    res.status(500).json({ 
+      message: 'Server error while fetching student details',
+      error: error.message 
+    });
   }
 };
 
