@@ -14,6 +14,7 @@ import AttendanceView from "./components/Attendance&Productivity/AttendanceView"
 import MarkAttendance from "./components/Attendance&Productivity/MarkAttendance";
 import Contact from "./components/Attendance&Productivity/Contact";
 import AboutUs from "./components/Attendance&Productivity/AboutUs";
+import UserProfile from "./components/Attendance&Productivity/UserProfile";
 
 // Optional: NotFound component
 const NotFound = () => <div>404 - Page not found</div>;
@@ -36,6 +37,7 @@ function App() {
         <Route path="/mark-attendance" element={<MarkAttendance />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<AboutUs />} />
+        <Route path="/user-profile" element={<UserProfile />} />
 
         {/* Fallback route */}
         <Route path="*" element={<NotFound />} />

@@ -1,14 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, Target, Clock, Shield } from 'lucide-react';
-import Navbar from '../nav_and_Footer/Navbar';
+import NavigationBar from './NavigationBar';
 import Footer from '../nav_and_Footer/Footer';
 
-
 const AboutUs = () => {
+  const [isListening, setIsListening] = useState(false);
+  const [studentDetails, setStudentDetails] = useState(null);
+
+  const startListening = () => {
+    setIsListening(true);
+    // Add your voice command logic here
+    setTimeout(() => setIsListening(false), 3000); // Temporary simulation
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      <Navbar isListening={false} startListening={() => {}} />
+      <NavigationBar 
+        studentDetails={studentDetails}
+        isListening={isListening}
+        startListening={startListening}
+      />
       
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-24 relative overflow-hidden">

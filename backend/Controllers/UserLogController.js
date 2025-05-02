@@ -1,5 +1,8 @@
 import { UserLog } from '../Models/UserLogModel.js';
-import Student from '../Models/StudentModel.js';
+import Student from '../Models/UPStudentModel.js';
+import Degree from '../Models/UPDegreeModel.js';
+import Faculty from '../Models/UPFacultyModel.js';
+import Batch from '../Models/UPBatchModel.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -244,7 +247,9 @@ export const getStudentDetails = async (req, res) => {
     }
 
     const student = await Student.findOne({ studentId })
-      .select('studentId studentName email department');
+      .populate('degree')
+      .populate('faculty')
+      .populate('batch');
     
     if (!student) {
       return res.status(404).json({ 
