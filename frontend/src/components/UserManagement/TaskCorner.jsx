@@ -580,7 +580,7 @@ const TaskCorner = () => {
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
-                                className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+                                className="bg-gray-50 rounded-lg p-4 border-2 border-blue-400 shadow-sm hover:shadow-lg hover:border-blue-600 transition-all duration-200"
                               >
                                 <div className="flex justify-between items-start">
                                   <div>

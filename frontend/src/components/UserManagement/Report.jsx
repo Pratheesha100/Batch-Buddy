@@ -146,7 +146,7 @@ const Report = () => {
           task.description || ''
         ]),
         styles: { fontSize: 10, cellWidth: 'wrap' },
-        headStyles: { fillColor: [14, 165, 233] }, // sky-500
+        headStyles: { fillColor: [67, 56, 202] }, // indigo-700
         margin: { left: 14, right: 14 }
       });
       doc.save('batch-buddy-report.pdf');
@@ -157,57 +157,57 @@ const Report = () => {
   };
 
   return (
-    <div className={`min-h-screen p-4 md:p-8 transition-colors duration-300 ${darkMode ? 'bg-gradient-to-br from-gray-900 via-blue-900 to-gray-800 text-white' : 'bg-gradient-to-br from-blue-50 via-white to-blue-100 text-gray-900'}`}>
+    <div className={`min-h-screen p-4 md:p-8 transition-colors duration-300 ${darkMode ? 'bg-gradient-to-br from-gray-900 via-indigo-900 to-gray-800 text-white' : 'bg-gradient-to-br from-sky-200 via-blue-200 to-indigo-200 text-gray-900'}`}>
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 pb-4 border-b border-gray-200 dark:border-gray-700 gap-4">
-        <h1 className="text-3xl font-extrabold tracking-tight ${darkMode ? 'text-blue-300' : 'text-sky-600'}">Batch Buddy</h1>
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8 pb-4 border-b border-indigo-200 dark:border-indigo-700 gap-4">
+        <h1 className={`text-3xl font-extrabold tracking-tight ${darkMode ? 'text-indigo-200' : 'text-sky-700'}`}>Batch Buddy</h1>
         <div className="flex gap-2 items-center">
           <button
             onClick={handleDownloadPDF}
-            className="flex items-center gap-2 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg shadow transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg transition-colors"
           >
             <FaDownload /> Download report
           </button>
-          <button 
+              <button 
             onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            className="p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors"
             aria-label="Toggle dark mode"
           >
-            {darkMode ? <FaSun className="text-yellow-400" /> : <FaMoon className="text-gray-600" />}
-          </button>
-        </div>
-      </div>
+            {darkMode ? <FaSun className="text-yellow-400" /> : <FaMoon className="text-indigo-600" />}
+              </button>
+            </div>
+          </div>
       {pdfError && <div className="mb-4 text-red-600 font-semibold text-center">{pdfError}</div>}
 
       {/* Progress Summary */}
       <div className="mb-8">
-        <div className={`rounded-2xl shadow-lg p-8 flex flex-col md:flex-row items-center gap-8 ${darkMode ? 'bg-blue-900/90' : 'bg-sky-100/90'}`}>
+        <div className={`rounded-2xl shadow-2xl p-8 flex flex-col md:flex-row items-center gap-8 ${darkMode ? 'bg-indigo-900/90' : 'bg-white/90 border border-indigo-100'}`}>
           <div className="text-green-500 text-6xl mb-4 md:mb-0">
             <FaCheckCircle />
           </div>
           <div className="flex-1 w-full">
-            <h2 className="text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-sky-600'}">Task Progress</h2>
+            <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-indigo-100' : 'text-indigo-700'}`}>Task Progress</h2>
             <div className="flex flex-wrap gap-8 mb-4">
               <div>
-                <span className="text-4xl font-extrabold ${darkMode ? 'text-blue-200' : 'text-sky-600'}">{taskStats.completionRate}%</span>
+                <span className={`text-4xl font-extrabold ${darkMode ? 'text-indigo-200' : 'text-indigo-700'}`}>{taskStats.completionRate}%</span>
                 <span className="block text-base text-gray-600 dark:text-gray-300">Completion Rate</span>
               </div>
               <div>
-                <span className="text-4xl font-extrabold ${darkMode ? 'text-blue-200' : 'text-sky-600'}">{taskStats.completed}</span>
+                <span className={`text-4xl font-extrabold ${darkMode ? 'text-indigo-200' : 'text-indigo-700'}`}>{taskStats.completed}</span>
                 <span className="block text-base text-gray-600 dark:text-gray-300">Completed Tasks</span>
               </div>
               <div>
-                <span className="text-4xl font-extrabold ${darkMode ? 'text-blue-200' : 'text-sky-600'}">{taskStats.total}</span>
+                <span className={`text-4xl font-extrabold ${darkMode ? 'text-indigo-200' : 'text-indigo-700'}`}>{taskStats.total}</span>
                 <span className="block text-base text-gray-600 dark:text-gray-300">Total Tasks</span>
               </div>
             </div>
-            <div className="flex gap-8 pt-4 mt-4 border-t border-gray-300 dark:border-gray-700">
+            <div className="flex gap-8 pt-4 mt-4 border-t border-indigo-200 dark:border-indigo-700">
               <div className="text-center">
-                <span className="text-2xl font-bold ${darkMode ? 'text-blue-200' : 'text-sky-600'}">{taskStats.upcoming}</span>
+                <span className={`text-2xl font-bold ${darkMode ? 'text-indigo-200' : 'text-indigo-700'}`}>{taskStats.upcoming}</span>
                 <span className="block text-xs uppercase tracking-wider text-gray-600 dark:text-gray-400">Upcoming</span>
               </div>
               <div className="text-center">
-                <span className="text-2xl font-bold ${darkMode ? 'text-blue-200' : 'text-sky-600'}">{taskStats.ongoing}</span>
+                <span className={`text-2xl font-bold ${darkMode ? 'text-indigo-200' : 'text-indigo-700'}`}>{taskStats.ongoing}</span>
                 <span className="block text-xs uppercase tracking-wider text-gray-600 dark:text-gray-400">Ongoing</span>
               </div>
             </div>
@@ -216,18 +216,18 @@ const Report = () => {
       </div>
 
       {/* Completed Tasks Section */}
-      <div className={`rounded-2xl shadow-lg p-8 ${darkMode ? 'bg-blue-900/90' : 'bg-sky-100/90'}`}>
+      <div className={`rounded-2xl shadow-2xl p-8 ${darkMode ? 'bg-indigo-900/90' : 'bg-white/90 border border-indigo-100'}`}>
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-          <h2 className="text-2xl font-bold ${darkMode ? 'text-white' : 'text-sky-600'}">Completed Tasks</h2>
-          <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-lg">
-            <FaCalendar className="text-gray-600 dark:text-gray-400" />
+          <h2 className={`text-2xl font-bold ${darkMode ? 'text-indigo-100' : 'text-indigo-700'}`}>Completed Tasks</h2>
+          <div className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-800 px-4 py-2 rounded-lg">
+            <FaCalendar className="text-indigo-600 dark:text-indigo-300" />
             <input
               type="date"
               value={dateRange.start.toISOString().split('T')[0]}
               onChange={(e) => setDateRange(prev => ({ ...prev, start: new Date(e.target.value) }))}
               className="bg-transparent border-none focus:outline-none text-sm text-gray-900 dark:text-white"
             />
-            <span className="text-gray-600 dark:text-gray-400">to</span>
+            <span className="text-indigo-600 dark:text-indigo-300">to</span>
             <input
               type="date"
               value={dateRange.end.toISOString().split('T')[0]}
@@ -239,16 +239,16 @@ const Report = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {completedTasks.length === 0 && (
-            <div className="col-span-full text-center text-gray-500 dark:text-gray-300 py-8 text-lg">No completed tasks in this range.</div>
+            <div className="col-span-full text-center text-indigo-400 dark:text-indigo-200 py-8 text-lg">No completed tasks in this range.</div>
           )}
           {completedTasks.map(task => (
             <div 
               key={task._id} 
               onClick={() => handleTaskClick(task)}
-              className="bg-white/80 dark:bg-gray-800/80 rounded-xl p-6 cursor-pointer hover:shadow-2xl transition-shadow border border-gray-200 dark:border-gray-700"
+              className="bg-white/90 dark:bg-indigo-800/80 rounded-xl p-6 cursor-pointer hover:shadow-2xl hover:-translate-y-1 transition-all border border-indigo-100 dark:border-indigo-700"
             >
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">{task.title}</h3>
+                <h3 className="text-lg font-bold text-indigo-700 dark:text-indigo-100 truncate">{task.title}</h3>
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                   task.priority.toLowerCase() === 'high' 
                     ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
@@ -261,17 +261,17 @@ const Report = () => {
               </div>
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <span className="block text-xs text-gray-500 dark:text-gray-400">Category</span>
-                  <span className="text-gray-900 dark:text-white font-medium">{task.category}</span>
+                  <span className="block text-xs text-indigo-400 dark:text-indigo-200">Category</span>
+                  <span className="text-indigo-700 dark:text-indigo-100 font-medium">{task.category}</span>
                 </div>
                 <div>
-                  <span className="block text-xs text-gray-500 dark:text-gray-400">Completed</span>
-                  <span className="text-gray-900 dark:text-white font-medium">{formatDate(task.completedAt || task.updatedAt)}</span>
-                </div>
-              </div>
-              <div className="text-sm text-gray-700 dark:text-gray-300 pt-4 border-t border-gray-200 dark:border-gray-700 min-h-[48px]">
+                  <span className="block text-xs text-indigo-400 dark:text-indigo-200">Completed</span>
+                  <span className="text-indigo-700 dark:text-indigo-100 font-medium">{formatDate(task.completedAt || task.updatedAt)}</span>
+          </div>
+            </div>
+              <div className="text-sm text-indigo-700 dark:text-indigo-200 pt-4 border-t border-indigo-100 dark:border-indigo-700 min-h-[48px]">
                 {task.description}
-              </div>
+            </div>
             </div>
           ))}
         </div>
@@ -280,23 +280,23 @@ const Report = () => {
       {/* Task Details Modal */}
       {showTaskModal && selectedTask && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-2xl w-full mx-4 shadow-2xl">
-            <h2 className="text-2xl font-bold mb-6 text-center ${darkMode ? 'text-blue-200' : 'text-sky-600'}">Task Details</h2>
+          <div className="bg-white dark:bg-indigo-900 rounded-2xl p-8 max-w-2xl w-full mx-4 shadow-2xl">
+            <h2 className={`text-2xl font-bold mb-6 text-center ${darkMode ? 'text-indigo-200' : 'text-indigo-700'}`}>Task Details</h2>
             <div className="space-y-4">
-              <div className="flex gap-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-semibold min-w-[120px] text-gray-600 dark:text-gray-400">Title:</span>
-                <span className="text-gray-900 dark:text-white">{selectedTask.title}</span>
+              <div className="flex gap-4 py-2 border-b border-indigo-100 dark:border-indigo-700">
+                <span className="font-semibold min-w-[120px] text-indigo-400 dark:text-indigo-200">Title:</span>
+                <span className="text-indigo-700 dark:text-indigo-100">{selectedTask.title}</span>
               </div>
-              <div className="flex gap-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-semibold min-w-[120px] text-gray-600 dark:text-gray-400">Description:</span>
-                <span className="text-gray-900 dark:text-white">{selectedTask.description}</span>
+              <div className="flex gap-4 py-2 border-b border-indigo-100 dark:border-indigo-700">
+                <span className="font-semibold min-w-[120px] text-indigo-400 dark:text-indigo-200">Description:</span>
+                <span className="text-indigo-700 dark:text-indigo-100">{selectedTask.description}</span>
               </div>
-              <div className="flex gap-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-semibold min-w-[120px] text-gray-600 dark:text-gray-400">Category:</span>
-                <span className="text-gray-900 dark:text-white">{selectedTask.category}</span>
+              <div className="flex gap-4 py-2 border-b border-indigo-100 dark:border-indigo-700">
+                <span className="font-semibold min-w-[120px] text-indigo-400 dark:text-indigo-200">Category:</span>
+                <span className="text-indigo-700 dark:text-indigo-100">{selectedTask.category}</span>
               </div>
-              <div className="flex gap-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-semibold min-w-[120px] text-gray-600 dark:text-gray-400">Priority:</span>
+              <div className="flex gap-4 py-2 border-b border-indigo-100 dark:border-indigo-700">
+                <span className="font-semibold min-w-[120px] text-indigo-400 dark:text-indigo-200">Priority:</span>
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                   selectedTask.priority.toLowerCase() === 'high' 
                     ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
@@ -307,24 +307,24 @@ const Report = () => {
                   {selectedTask.priority}
                 </span>
               </div>
-              <div className="flex gap-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-semibold min-w-[120px] text-gray-600 dark:text-gray-400">Completion Date:</span>
-                <span className="text-gray-900 dark:text-white">{formatDate(selectedTask.completedAt || selectedTask.updatedAt)}</span>
+              <div className="flex gap-4 py-2 border-b border-indigo-100 dark:border-indigo-700">
+                <span className="font-semibold min-w-[120px] text-indigo-400 dark:text-indigo-200">Completion Date:</span>
+                <span className="text-indigo-700 dark:text-indigo-100">{formatDate(selectedTask.completedAt || selectedTask.updatedAt)}</span>
               </div>
               {selectedTask.notes && (
-                <div className="flex gap-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                  <span className="font-semibold min-w-[120px] text-gray-600 dark:text-gray-400">Notes:</span>
-                  <span className="text-gray-900 dark:text-white">{selectedTask.notes}</span>
+                <div className="flex gap-4 py-2 border-b border-indigo-100 dark:border-indigo-700">
+                  <span className="font-semibold min-w-[120px] text-indigo-400 dark:text-indigo-200">Notes:</span>
+                  <span className="text-indigo-700 dark:text-indigo-100">{selectedTask.notes}</span>
                 </div>
               )}
             </div>
             <div className="flex justify-end mt-6">
               <button 
                 onClick={() => setShowTaskModal(false)}
-                className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"
+                className="px-4 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 text-white rounded-lg hover:from-sky-600 hover:to-indigo-700 transition-colors"
               >
                 Close
-              </button>
+            </button>
             </div>
           </div>
         </div>
