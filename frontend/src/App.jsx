@@ -1,11 +1,13 @@
 import React from 'react';
 import { Route, Routes } from "react-router-dom";
+import jsPDF from "jspdf";
 
 // User management system
 import LandingPage from "./components/UserManagement/landingPage";
 import UserLog from "./components/UserManagement/UserLog";
 import Register from "./components/UserManagement/Register";
 import ResetPassword from "./components/UserManagement/ResetPassword";
+import Report from "./components/UserManagement/Report";
 
 // Attendance & Productivity management system
 import BatchBuddy from "./components/Attendance&Productivity/Home";
@@ -15,6 +17,7 @@ import MarkAttendance from "./components/Attendance&Productivity/MarkAttendance"
 import Contact from "./components/Attendance&Productivity/Contact";
 import AboutUs from "./components/Attendance&Productivity/AboutUs";
 import UserProfile from "./components/Attendance&Productivity/UserProfile";
+import TaskCorner from "./components/UserManagement/TaskCorner";
 
 // Optional: NotFound component
 const NotFound = () => <div>404 - Page not found</div>;
@@ -38,6 +41,8 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/user-profile" element={<UserProfile />} />
+        <Route path="/task-corner" element={<TaskCorner />} />
+        <Route path="/report" element={<Report />} />
 
         {/* Fallback route */}
         <Route path="*" element={<NotFound />} />

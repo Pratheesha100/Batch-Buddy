@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import { connectDB } from './DB/connectDB.js';
 import userLogRoutes from './Routes/UserLogRoutes.js';
 import taskCornerRoutes from './Routes/TaskCornerRoutes.js';
+import ongoingTaskRoutes from './Routes/OngoingTaskRoutes.js';
 
 dotenv.config();
 
@@ -20,7 +21,7 @@ connectDB().catch(err => {
 app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:5174'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
@@ -29,6 +30,7 @@ app.use(cookieParser());
 // Routes
 app.use('/api/user', userLogRoutes);
 app.use('/api/tasks', taskCornerRoutes);
+app.use('/api/ongoing-tasks', ongoingTaskRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
