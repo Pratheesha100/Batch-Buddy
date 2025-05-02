@@ -453,7 +453,7 @@ const TaskCorner = () => {
         </div>
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            {getGreeting()}, {user.studentName}!
+            {getGreeting()} {(user.studentName || user.name || user.studentId || 'User')} !!
           </h1>
           <p className="text-gray-600 mb-6">Here's your task overview for today</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
