@@ -8,6 +8,7 @@ import taskCornerRoutes from './Routes/TaskCornerRoutes.js';
 import simulateAdminRoutes from './Routes/SimulateAdminRoutes.js';
 import timetableRoutes from './Routes/TimetableRoutes.js';
 import timetableAssignmentRoutes from './Routes/timetableAssignmentRoutes.js';
+import attendanceRoutes from './Routes/AttendanceRoutes.js';
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.use('/api/tasks', taskCornerRoutes);
 app.use('/api/simulate', simulateAdminRoutes);
 app.use('/api/timetable', timetableRoutes);
 app.use('/api/timetable-assignments', timetableAssignmentRoutes);
+app.use('/api/attendance', attendanceRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

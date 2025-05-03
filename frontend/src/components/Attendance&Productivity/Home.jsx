@@ -90,8 +90,9 @@ const BatchBuddy = () => {
 
   // Initialize audio objects
   useEffect(() => {
-    const startAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-    const stopAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    // Use reliable sound files
+    const startAudio = new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3');
+    const stopAudio = new Audio('https://www.soundjay.com/buttons/sounds/button-4.mp3');
     
     startAudio.volume = 0.3;
     stopAudio.volume = 0.3;
@@ -189,53 +190,92 @@ const BatchBuddy = () => {
     window.speechSynthesis.speak(utterance);
   };
 
+  // Move these outside the component for reuse
+  const getCurrentDay = () => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[new Date().getDay()];
+  };
+
+  const getAdjacentDays = () => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const today = new Date().getDay();
+    const yesterday = days[(today + 6) % 7];
+    const tomorrow = days[(today + 1) % 7];
+    return { yesterday, tomorrow };
+  };
+
+  const { yesterday, tomorrow } = getAdjacentDays();
+  const today = getCurrentDay();
+  // Debug: log the day values being used
+  console.log('Today:', today, 'Yesterday:', yesterday, 'Tomorrow:', tomorrow);
+
   const handleVoiceCommand = (command) => {
     console.log('Processing command:', command);
-    
-    // Create a command map for faster lookup
+    // Check if timetable is loaded
+    if (!timetable || !timetable.days) {
+      speak("Sorry, your timetable is still loading. Please try again in a moment.");
+      return;
+    }
+    console.log('timetable in voice command:', timetable);
+    // Normalize the command
+    const normalizedCommand = command.trim().toLowerCase().replace(/\s+/g, ' ');
+
+    // Use the same today, yesterday, tomorrow as the UI
+    // Command map for voice queries
     const commandMap = {
       'today': getScheduleForDay(today),
       'tomorrow': getScheduleForDay(tomorrow),
       'yesterday': getScheduleForDay(yesterday)
     };
 
-    // Quick check for timetable queries with more flexible matching
-    const timeTableMatch = command.match(/(?:what(?:'s| is)|show|tell me|read).*(?:time ?table|schedule|timetable).*(today|tomorrow|yesterday)?/i);
-    
-    if (timeTableMatch) {
-      const day = (timeTableMatch[1] || 'today').toLowerCase();
+    // Flexible regex for timetable/schedule queries
+    const timeTableMatch = normalizedCommand.match(/(what('| i)?s|show|tell me|read|give me|display|say|speak).*(timetable|time table|schedule).*(today|tomorrow|yesterday)?/i);
+    let day = 'today';
+    if (timeTableMatch && timeTableMatch[3]) {
+      day = timeTableMatch[3].toLowerCase();
+    } else if (normalizedCommand.includes('tomorrow')) {
+      day = 'tomorrow';
+    } else if (normalizedCommand.includes('yesterday')) {
+      day = 'yesterday';
+    }
+
+    // Try to match timetable/schedule queries
+    if (
+      timeTableMatch ||
+      normalizedCommand.includes('timetable') ||
+      normalizedCommand.includes('time table') ||
+      normalizedCommand.includes('schedule')
+    ) {
       const schedule = commandMap[day];
-      // Debug: log the schedule array for the requested day
       console.log('Voice command schedule for', day, ':', schedule);
       if (schedule && schedule.length > 0) {
-        const response = `${day}'s schedule is: ` + 
+        const response = `${day}'s schedule is: ` +
           schedule.map((item, index) => {
             const isLast = index === schedule.length - 1;
             return `${item.subject} from ${item.time}, which is a ${item.type}${isLast ? '.' : '. Then, '}`;
           }).join('');
-        
         console.log('Speaking response:', response);
         speak(response);
+        return;
+      } else {
+        speak(`You have no scheduled classes for ${day}.`);
         return;
       }
     }
 
     // Handle attendance marking commands with more flexible matching
-    const attendanceMatch = command.match(/(?:mark|record|take).*(?:attendance|present).*(?:for|on)?\s*(today|tomorrow|yesterday)?/i);
-    
+    const attendanceMatch = normalizedCommand.match(/(mark|record|take).*(attendance|present).*(for|on)?\s*(today|tomorrow|yesterday)?/i);
     if (attendanceMatch) {
-      const day = (attendanceMatch[1] || 'today').toLowerCase();
+      const attDay = (attendanceMatch[4] || 'today').toLowerCase();
       const dayMap = {
         'today': 'Today',
         'tomorrow': 'Tomorrow',
         'yesterday': 'Yesterday'
       };
-      
-      const selectedDay = dayMap[day];
+      const selectedDay = dayMap[attDay];
       if (selectedDay) {
         console.log('Navigating to mark attendance for:', selectedDay);
-        speak(`Taking you to mark ${day}'s attendance.`);
-        // Use the handleMarkAttendance function instead of direct navigation
+        speak(`Taking you to mark ${attDay}'s attendance.`);
         setTimeout(() => {
           handleMarkAttendance(selectedDay);
         }, 1500);
@@ -247,7 +287,7 @@ const BatchBuddy = () => {
     }
 
     // Default response
-    speak("I didn't quite catch that. You can ask me about your schedule by saying 'What is my time table today?' or mark your attendance by saying 'Mark my attendance for today'");
+    speak("Sorry, I didn't understand. Try saying 'what is my timetable today' or 'show my schedule for tomorrow'.");
   };
 
   // Function to get schedule for a specific day
@@ -263,26 +303,6 @@ const BatchBuddy = () => {
       location: slot.location
     }));
   };
-
-  // Get current day name
-  const getCurrentDay = () => {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return days[new Date().getDay()];
-  };
-
-  // Get yesterday and tomorrow
-  const getAdjacentDays = () => {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const today = new Date().getDay();
-    const yesterday = days[(today + 6) % 7];
-    const tomorrow = days[(today + 1) % 7];
-    return { yesterday, tomorrow };
-  };
-
-  const { yesterday, tomorrow } = getAdjacentDays();
-  const today = getCurrentDay();
-  // Debug: log the day values being used
-  console.log('Today:', today, 'Yesterday:', yesterday, 'Tomorrow:', tomorrow);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">

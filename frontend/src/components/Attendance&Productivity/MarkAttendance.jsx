@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Circle, Clock, Users, BookOpen, Beaker, Calendar, Mic, Check, X, User } from 'lucide-react';
+import axios from 'axios';
 
 import { Link } from 'react-router-dom';
 
@@ -13,11 +14,9 @@ const MarkAttendance = () => {
   const [recognition, setRecognition] = useState(null);
   const [startSound, setStartSound] = useState(null);
   const [stopSound, setStopSound] = useState(null);
-  const [subjects, setSubjects] = useState([
-    { id: 1, name: 'Advanced Mathematics', time: '09:00 AM - 10:30 AM', type: 'Lecture', attended: false },
-    { id: 2, name: 'Database Systems', time: '11:00 AM - 12:30 PM', type: 'Lab', attended: false },
-    { id: 3, name: 'Software Engineering', time: '02:00 PM - 03:30 PM', type: 'Tutorial', attended: false },
-  ]);
+  const [subjects, setSubjects] = useState([]);
+  const [timetable, setTimetable] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Initialize audio objects
   useEffect(() => {
@@ -241,13 +240,117 @@ const MarkAttendance = () => {
     ));
   };
 
-  const handleSubmit = () => {
-    // Here you would typically send the attendance data to your backend
-    console.log('Submitting attendance:', subjects);
-    
-    // Navigate to AttendanceView page
-    navigate('/attendance');
+  const handleSubmit = async () => {
+    try {
+      const userData = JSON.parse(localStorage.getItem('userData'));
+      const token = localStorage.getItem('token');
+      
+      if (!userData?._id) {
+        speak("Please log in to submit attendance.");
+        return;
+      }
+
+      // Prepare attendance records
+      const records = subjects.map(subject => ({
+        subject: subject.name,
+        status: subject.attended ? 'present' : 'absent',
+        time: subject.time,
+        type: subject.type
+      }));
+
+      // Get the date for the selected day
+      const dayLabel = location.state?.day || 'Today';
+      const today = new Date();
+      let date;
+      
+      switch(dayLabel) {
+        case 'Yesterday':
+          date = new Date(today.setDate(today.getDate() - 1));
+          break;
+        case 'Tomorrow':
+          date = new Date(today.setDate(today.getDate() + 1));
+          break;
+        default:
+          date = new Date();
+      }
+
+      // Submit attendance to backend
+      const response = await axios.post(
+        'http://localhost:5000/api/attendance/submit',
+        {
+          date: date.toISOString(),
+          records
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (response.data) {
+        speak("Attendance submitted successfully!");
+        // Navigate to attendance view
+        navigate('/attendance');
+      }
+    } catch (error) {
+      console.error('Error submitting attendance:', error);
+      speak("Sorry, there was an error submitting your attendance. Please try again.");
+    }
   };
+
+  useEffect(() => {
+    const fetchTimetable = async () => {
+      setLoading(true);
+      try {
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        const token = localStorage.getItem('token');
+        if (!userData?._id) return;
+
+        // Get timetable assignment
+        const assignmentRes = await axios.get(
+          `http://localhost:5000/api/timetable-assignments/student/${userData._id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (assignmentRes.data && assignmentRes.data.timetableId) {
+          // Get full timetable
+          const timetableRes = await axios.get(
+            `http://localhost:5000/api/timetable/${assignmentRes.data.timetableId._id}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          setTimetable(timetableRes.data);
+
+          // Find the slots for the selected day
+          const dayLabel = location.state?.day || 'Today';
+          const daysMap = {
+            'Today': new Date().toLocaleDateString('en-US', { weekday: 'long' }),
+            'Tomorrow': new Date(Date.now() + 86400000).toLocaleDateString('en-US', { weekday: 'long' }),
+            'Yesterday': new Date(Date.now() - 86400000).toLocaleDateString('en-US', { weekday: 'long' }),
+          };
+          const realDay = daysMap[dayLabel] || dayLabel;
+          const dayObj = timetableRes.data.days.find(d => d.day === realDay);
+          if (dayObj) {
+            setSubjects(dayObj.slots.map((slot, idx) => ({
+              id: idx + 1,
+              name: slot.subject,
+              time: `${slot.startTime} - ${slot.endTime}`,
+              type: slot.type || 'Lecture',
+              attended: false,
+            })));
+          } else {
+            setSubjects([]);
+          }
+        } else {
+          setSubjects([]);
+        }
+      } catch (err) {
+        setSubjects([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTimetable();
+  }, [location.state?.day]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
@@ -301,41 +404,49 @@ const MarkAttendance = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <div className="space-y-4">
-              {subjects.map((subject) => (
-                <div 
-                  key={subject.id} 
-                  className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-6"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className={`p-3 rounded-lg ${
-                        subject.type === 'Lecture' ? 'bg-blue-50' :
-                        subject.type === 'Lab' ? 'bg-green-50' :
-                        'bg-purple-50'
-                      }`}>
-                        {getTypeIcon(subject.type)}
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-800">{subject.name}</h3>
-                        <div className="flex items-center space-x-2 text-gray-500 text-sm">
-                          <Clock className="w-4 h-4" />
-                          <span>{subject.time}</span>
+              {loading ? (
+                <div className="text-center py-4">Loading schedule...</div>
+              ) : subjects.length === 0 ? (
+                <div className="text-center py-4 text-gray-500">
+                  No classes scheduled for this day.
+                </div>
+              ) : (
+                subjects.map((subject) => (
+                  <div 
+                    key={subject.id} 
+                    className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-6"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className={`p-3 rounded-lg ${
+                          subject.type === 'Lecture' ? 'bg-blue-50' :
+                          subject.type === 'Lab' ? 'bg-green-50' :
+                          'bg-purple-50'
+                        }`}>
+                          {getTypeIcon(subject.type)}
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-800">{subject.name}</h3>
+                          <div className="flex items-center space-x-2 text-gray-500 text-sm">
+                            <Clock className="w-4 h-4" />
+                            <span>{subject.time}</span>
+                          </div>
                         </div>
                       </div>
+                      <button
+                        onClick={() => toggleAttendance(subject.id)}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                          subject.attended 
+                            ? 'bg-green-100 text-green-600' 
+                            : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                        }`}
+                      >
+                        {subject.attended ? <CheckCircle2 className="w-6 h-6" /> : <Circle className="w-6 h-6" />}
+                      </button>
                     </div>
-                    <button
-                      onClick={() => toggleAttendance(subject.id)}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                        subject.attended 
-                          ? 'bg-green-100 text-green-600' 
-                          : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                      }`}
-                    >
-                      {subject.attended ? <CheckCircle2 className="w-6 h-6" /> : <Circle className="w-6 h-6" />}
-                    </button>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
