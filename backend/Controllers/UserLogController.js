@@ -267,6 +267,54 @@ export const getStudentDetails = async (req, res) => {
   }
 };
 
+// @desc    Get all registered students
+// @route   GET /api/user/students
+// @access  Private/Admin
+export const getAllStudents = async (req, res) => {
+  try {
+    // First get all UserLog entries
+    const userLogs = await UserLog.find({}).select('-password');
+    
+    // Then get all student details
+    const students = await Student.find({});
+    
+    // Create a map of studentId to student details
+    const studentMap = students.reduce((acc, student) => {
+      acc[student.studentId] = student;
+      return acc;
+    }, {});
+
+    // Group students by year and semester
+    const groupedStudents = userLogs.reduce((acc, userLog) => {
+      const student = studentMap[userLog.studentId];
+      const year = student?.year || 'Unknown';
+      const semester = student?.semester || 'Unknown';
+      
+      if (!acc[year]) {
+        acc[year] = {};
+      }
+      if (!acc[year][semester]) {
+        acc[year][semester] = [];
+      }
+      
+      acc[year][semester].push({
+        ...userLog.toObject(),
+        studentDetails: student || null
+      });
+      
+      return acc;
+    }, {});
+
+    res.status(200).json(groupedStudents);
+  } catch (error) {
+    console.error('Error fetching all students:', error);
+    res.status(500).json({ 
+      message: 'Server error while fetching students',
+      error: error.message 
+    });
+  }
+};
+
 // Generate JWT
 const generateToken = (id) => {
   if (!process.env.JWT_SECRET) {

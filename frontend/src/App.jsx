@@ -16,6 +16,10 @@ import Contact from "./components/Attendance&Productivity/Contact";
 import AboutUs from "./components/Attendance&Productivity/AboutUs";
 import UserProfile from "./components/Attendance&Productivity/UserProfile";
 
+// Simulate Admin
+import SimulateAdmin from "./components/SimulateAdmin/SimulateAdmin";
+import TimetableManager from "./components/SimulateAdmin/TimetableManager";
+
 // Optional: NotFound component
 const NotFound = () => <div>404 - Page not found</div>;
 
@@ -38,6 +42,10 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/user-profile" element={<UserProfile />} />
+        
+        {/* Simulate Admin Route */}
+        <Route path="/simulate-admin" element={<SimulateAdmin />} />
+        <Route path="/admin-timetable" element={<TimetableManager />} />
 
         {/* Fallback route */}
         <Route path="*" element={<NotFound />} />
