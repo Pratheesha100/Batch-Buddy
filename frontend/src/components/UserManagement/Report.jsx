@@ -309,21 +309,23 @@ const Report = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-center mb-8 pb-4 border-b border-indigo-200 dark:border-indigo-700 gap-4">
               <div className="flex flex-col">
-                <h1 className={`text-3xl font-extrabold tracking-tight ${darkMode ? 'text-indigo-200' : 'text-sky-700'}`}>Batch Buddy</h1>
-                <p className={`text-lg ${darkMode ? 'text-indigo-300' : 'text-indigo-600'}`}>
-                  {getGreeting()} {(user?.studentName || user?.name || 'User')} !!
+                <h1 className={`text-4xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent animate-gradient`}>
+                  Batch Buddy
+                </h1>
+                <p className={`text-xl mt-2 ${darkMode ? 'text-indigo-300' : 'text-indigo-600'} font-medium`}>
+                  {getGreeting()}, <span className="font-semibold">{user?.studentName || user?.name || 'User'}</span>
                 </p>
               </div>
               <div className="flex gap-2 items-center">
                 <button
                   onClick={handleDownloadPDF}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 hover:scale-105"
                 >
                   <FaDownload /> Download report
                 </button>
                 <button 
                   onClick={() => setDarkMode(!darkMode)}
-                  className="p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors"
+                  className="p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors duration-300"
                   aria-label="Toggle dark mode"
                 >
                   {darkMode ? <FaSun className="text-yellow-400" /> : <FaMoon className="text-indigo-600" />}
