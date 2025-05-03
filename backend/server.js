@@ -7,7 +7,7 @@ import userLogRoutes from './Routes/UserLogRoutes.js';
 import taskCornerRoutes from './Routes/TaskCornerRoutes.js';
 import simulateAdminRoutes from './Routes/SimulateAdminRoutes.js';
 import timetableRoutes from './Routes/TimetableRoutes.js';
-import timetableAssignmentRoutes from './Routes/TimetableAssignmentRoutes.js';
+import timetableAssignmentRoutes from './Routes/timetableAssignmentRoutes.js';
 
 dotenv.config();
 

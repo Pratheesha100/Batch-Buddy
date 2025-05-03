@@ -71,6 +71,7 @@ const SimulateAdmin = () => {
   const handleAssignTimetable = async (studentId, timetableId) => {
     try {
       const token = localStorage.getItem('token');
+      console.log('Assigning timetable:', { studentId, timetableId });
       await axios.post('http://localhost:5000/api/timetable-assignments/assign',
         { studentId, timetableId },
         { headers: { Authorization: `Bearer ${token}` } }

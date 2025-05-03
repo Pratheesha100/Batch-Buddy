@@ -15,35 +15,70 @@ const TimeTable = () => {
   const [startSound, setStartSound] = useState(null);
   const [stopSound, setStopSound] = useState(null);
   const [studentDetails, setStudentDetails] = useState(null);
+  const [timetable, setTimetable] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [noTimetable, setNoTimetable] = useState(false);
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-  const scheduleData = {
-    Monday: [
-      { time: '09:00 AM - 10:30 AM', subject: 'Advanced Mathematics', type: 'Lecture', room: 'Hall A-1', lecturer: 'Dr. Smith' },
-      { time: '11:00 AM - 12:30 PM', subject: 'Database Systems', type: 'Lab', room: 'Lab 2B', lecturer: 'Ms. Johnson' },
-      { time: '02:00 PM - 03:30 PM', subject: 'Software Engineering', type: 'Tutorial', room: 'Room 405', lecturer: 'Prof. Davis' },
-    ],
-    Tuesday: [
-      { time: '09:00 AM - 11:00 AM', subject: 'Web Development', type: 'Lab', room: 'Lab 3A', lecturer: 'Mr. Wilson' },
-      { time: '01:00 PM - 02:30 PM', subject: 'Data Structures', type: 'Lecture', room: 'Hall B-2', lecturer: 'Dr. Brown' },
-    ],
-    Wednesday: [
-      { time: '10:00 AM - 11:30 AM', subject: 'Computer Networks', type: 'Lecture', room: 'Hall A-2', lecturer: 'Dr. Taylor' },
-      { time: '02:00 PM - 04:00 PM', subject: 'Mobile Development', type: 'Lab', room: 'Lab 1C', lecturer: 'Ms. Anderson' },
-    ],
-    Thursday: [
-      { time: '09:00 AM - 10:30 AM', subject: 'Artificial Intelligence', type: 'Lecture', room: 'Hall B-1', lecturer: 'Prof. White' },
-      { time: '11:00 AM - 12:30 PM', subject: 'Operating Systems', type: 'Tutorial', room: 'Room 302', lecturer: 'Dr. Lee' },
-    ],
-    Friday: [
-      { time: '09:00 AM - 11:00 AM', subject: 'Software Testing', type: 'Lab', room: 'Lab 2A', lecturer: 'Mr. Clark' },
-      { time: '02:00 PM - 03:30 PM', subject: 'Cloud Computing', type: 'Lecture', room: 'Hall A-3', lecturer: 'Dr. Martin' },
-    ],
-    Saturday: [
-      { time: '10:00 AM - 11:30 AM', subject: 'Project Management', type: 'Seminar', room: 'Hall C-1', lecturer: 'Prof. Adams' },
-    ],
-    Sunday: [],
+  useEffect(() => {
+    const fetchData = async () => {
+      setNoTimetable(false);
+      try {
+        const userData = location.state?.user || JSON.parse(localStorage.getItem('userData'));
+        const token = localStorage.getItem('token');
+        if (!userData?._id) return;
+
+        // 1. Get the timetable assignment for this student
+        const assignmentRes = await axios.get(
+          `http://localhost:5000/api/timetable-assignments/student/${userData._id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (assignmentRes.data && assignmentRes.data.timetableId) {
+          // 2. Get the full timetable using the timetableId
+          const timetableRes = await axios.get(
+            `http://localhost:5000/api/timetable/${assignmentRes.data.timetableId._id}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          setTimetable(timetableRes.data);
+        } else {
+          setTimetable(null);
+          setNoTimetable(true);
+        }
+
+        // Fetch student details (optional, for display)
+        if (userData?.studentId) {
+          const studentResponse = await axios.get(`http://localhost:5000/api/user/student/${userData.studentId}`);
+          if (studentResponse.data) {
+            setStudentDetails(studentResponse.data);
+          }
+        }
+      } catch (err) {
+        setTimetable(null);
+        if (err.response && err.response.status === 404) {
+          setNoTimetable(true);
+        } else {
+          setNoTimetable(false);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [location]);
+
+  const getScheduleForDay = (day) => {
+    if (!timetable || !timetable.days) return [];
+    const dayObj = timetable.days.find(d => d.day === day);
+    if (!dayObj) return [];
+    return dayObj.slots.map((slot, index) => ({
+      id: index + 1,
+      subject: slot.subject,
+      time: `${slot.startTime} - ${slot.endTime}`,
+      type: slot.type || 'Lecture',
+      location: slot.location
+    }));
   };
 
   const getTypeIcon = (type) => {
@@ -75,24 +110,6 @@ const TimeTable = () => {
         return 'bg-gray-100 text-gray-600';
     }
   };
-
-  useEffect(() => {
-    const fetchStudentDetails = async () => {
-      try {
-        const userData = location.state?.user || JSON.parse(localStorage.getItem('userData'));
-        if (userData?.studentId) {
-          const response = await axios.get(`http://localhost:5000/api/user/student/${userData.studentId}`);
-          if (response.data) {
-            setStudentDetails(response.data);
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching student details:', err);
-      }
-    };
-
-    fetchStudentDetails();
-  }, [location]);
 
   const startListening = () => {
     setIsListening(true);
@@ -135,31 +152,48 @@ const TimeTable = () => {
             </div>
 
             <div className="space-y-4">
-              {scheduleData[selectedDay].map((item, index) => (
-                <div key={index} className="bg-gray-50 rounded-lg p-6 hover:bg-gray-100 transition-all">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className={`p-3 rounded-lg ${
-                        item.type === 'Lecture' ? 'bg-blue-50' :
-                        item.type === 'Lab' ? 'bg-green-50' :
-                        'bg-purple-50'
-                      }`}>
-                        {item.type === 'Lecture' ? <BookOpen className="w-6 h-6 text-blue-600" /> :
-                         item.type === 'Lab' ? <Beaker className="w-6 h-6 text-green-600" /> :
-                         <Users className="w-6 h-6 text-purple-600" />}
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-800">{item.subject}</h3>
-                        <div className="flex items-center space-x-2 text-gray-500 text-sm">
-                          <Clock className="w-4 h-4" />
-                          <span>{item.time}</span>
+              {loading ? (
+                <div className="text-center py-4">Loading schedule...</div>
+              ) : noTimetable ? (
+                <div className="text-center py-4 text-gray-500">
+                  No timetable assigned yet. Please contact your administrator.
+                </div>
+              ) : timetable ? (
+                getScheduleForDay(selectedDay).map((item, index) => (
+                  <div key={index} className="bg-gray-50 rounded-lg p-6 hover:bg-gray-100 transition-all">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className={`p-3 rounded-lg ${
+                          item.type === 'Lecture' ? 'bg-blue-50' :
+                          item.type === 'Lab' ? 'bg-green-50' :
+                          'bg-purple-50'
+                        }`}>
+                          {item.type === 'Lecture' ? <BookOpen className="w-6 h-6 text-blue-600" /> :
+                           item.type === 'Lab' ? <Beaker className="w-6 h-6 text-green-600" /> :
+                           <Users className="w-6 h-6 text-purple-600" />}
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-800">{item.subject}</h3>
+                          <div className="flex items-center space-x-2 text-gray-500 text-sm">
+                            <Clock className="w-4 h-4" />
+                            <span>{item.time}</span>
+                          </div>
+                          {item.location && (
+                            <div className="flex items-center space-x-2 text-gray-500 text-sm">
+                              <span>Location: {item.location}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
+                      <ChevronRight className="w-5 h-5 text-gray-400" />
                     </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  No timetable data available.
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>

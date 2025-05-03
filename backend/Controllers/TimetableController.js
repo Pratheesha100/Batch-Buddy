@@ -24,4 +24,17 @@ export const saveTimetable = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: 'Error saving timetable', error: err.message });
   }
+};
+
+export const getTimetableById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const timetable = await Timetable.findById(id);
+    if (!timetable) {
+      return res.status(404).json({ message: 'Timetable not found' });
+    }
+    res.json(timetable);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching timetable', error: err.message });
+  }
 }; 

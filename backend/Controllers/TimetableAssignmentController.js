@@ -70,15 +70,30 @@ const TimetableAssignmentController = {
   // Get assignment for a specific student
   getStudentAssignment: async (req, res) => {
     try {
-      const { studentId } = req.params;
+      let { studentId } = req.params;
+      console.log('[TimetableAssignmentController] Lookup for studentId:', studentId);
+      // If studentId is not a valid ObjectId, treat it as a studentId string
+      const isObjectId = /^[0-9a-fA-F]{24}$/.test(studentId);
+      if (!isObjectId) {
+        // Lookup UserLog by studentId string
+        const user = await UserLog.findOne({ studentId });
+        if (!user) {
+          console.log('[TimetableAssignmentController] User not found for studentId string:', studentId);
+          return res.status(404).json({ message: 'User not found' });
+        }
+        studentId = user._id;
+      }
+      console.log('[TimetableAssignmentController] Final lookup with ObjectId:', studentId);
       const assignment = await StudentTimetableAssignment.findOne({ studentId })
         .populate({
           path: 'timetableId',
-          select: 'year semester',
           model: 'Timetable'
         });
       
       if (!assignment) {
+        // Log all existing assignment studentIds for debug
+        const allAssignments = await StudentTimetableAssignment.find({});
+        console.log('[TimetableAssignmentController] No assignment found. Existing assignment studentIds:', allAssignments.map(a => a.studentId.toString()));
         return res.status(404).json({ message: 'No timetable assigned' });
       }
 

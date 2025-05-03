@@ -13,7 +13,7 @@ router.post('/assign', protect, TimetableAssignmentController.assignTimetable);
 // Get all timetable assignments
 router.get('/assignments', protect, TimetableAssignmentController.getAllAssignments);
 
-// Get assignment for a specific student
-router.get('/assignments/:studentId', protect, TimetableAssignmentController.getStudentAssignment);
+// Get assignment for a specific student (by MongoDB _id or studentId string)
+router.get('/student/:studentId', protect, TimetableAssignmentController.getStudentAssignment);
 
 export default router; 
