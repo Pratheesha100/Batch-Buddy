@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { FaUser, FaLock, FaArrowLeft } from 'react-icons/fa';
+import { FaUser, FaLock, FaArrowLeft, FaGraduationCap, FaBook } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 
 const Register = () => {
@@ -11,10 +11,15 @@ const Register = () => {
     studentId: "",
     password: "",
     confirmPassword: "",
+    year: "",
+    semester: ""
   });
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  const years = ["Year 1", "Year 2", "Year 3", "Year 4"];
+  const semesters = ["Semester 1", "Semester 2"];
 
   const validateStudentId = (value) => {
     if (!/^[a-zA-Z0-9]{1,10}$/.test(value)) {
@@ -26,6 +31,20 @@ const Register = () => {
   const validatePassword = (value) => {
     if (value.length < 6) {
       return "Password must be at least 6 characters long";
+    }
+    return "";
+  };
+
+  const validateYear = (value) => {
+    if (!value) {
+      return "Please select a year";
+    }
+    return "";
+  };
+
+  const validateSemester = (value) => {
+    if (!value) {
+      return "Please select a semester";
     }
     return "";
   };
@@ -65,6 +84,12 @@ const Register = () => {
         break;
       case "password":
         error = validatePassword(value);
+        break;
+      case "year":
+        error = validateYear(value);
+        break;
+      case "semester":
+        error = validateSemester(value);
         break;
       default:
         break;
@@ -116,6 +141,12 @@ const Register = () => {
               break;
             case "password":
               error = validatePassword(formData[key]);
+              break;
+            case "year":
+              error = validateYear(formData[key]);
+              break;
+            case "semester":
+              error = validateSemester(formData[key]);
               break;
             default:
               break;
@@ -192,6 +223,54 @@ const Register = () => {
               />
             </div>
             {errors.studentId && <p className="text-red-300 text-sm mt-1">{errors.studentId}</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaGraduationCap className="h-5 w-5 text-white/60" />
+                </div>
+                <select
+                  name="year"
+                  value={formData.year}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 pl-10 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200 text-white"
+                >
+                  <option value="">Select Year</option>
+                  {years.map((year) => (
+                    <option key={year} value={year} className="bg-blue-600">
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {errors.year && <p className="text-red-300 text-sm mt-1">{errors.year}</p>}
+            </div>
+
+            <div>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaBook className="h-5 w-5 text-white/60" />
+                </div>
+                <select
+                  name="semester"
+                  value={formData.semester}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 pl-10 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200 text-white"
+                >
+                  <option value="">Select Semester</option>
+                  {semesters.map((semester) => (
+                    <option key={semester} value={semester} className="bg-blue-600">
+                      {semester}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {errors.semester && <p className="text-red-300 text-sm mt-1">{errors.semester}</p>}
+            </div>
           </div>
 
           <div>

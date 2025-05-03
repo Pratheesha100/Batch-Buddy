@@ -80,10 +80,10 @@ export const registerUser = async (req, res) => {
   try {
     console.log('Registration request received:', req.body);
     
-    const { studentId, password } = req.body;
+    const { studentId, password, year, semester } = req.body;
 
-    if (!studentId || !password) {
-      console.log('Missing required fields:', { studentId, password });
+    if (!studentId || !password || !year || !semester) {
+      console.log('Missing required fields:', { studentId, password, year, semester });
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
@@ -101,7 +101,9 @@ export const registerUser = async (req, res) => {
     // Create user
     const user = await UserLog.create({
       studentId,
-      password: hashedPassword
+      password: hashedPassword,
+      year,
+      semester
     });
 
     if (user) {
@@ -109,6 +111,8 @@ export const registerUser = async (req, res) => {
       res.status(201).json({
         _id: user._id,
         studentId: user.studentId,
+        year: user.year,
+        semester: user.semester,
         token: generateToken(user._id)
       });
     } else {

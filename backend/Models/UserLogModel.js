@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const userLogSchema = new mongoose.Schema({
+const userLogSchema = mongoose.Schema({
   studentId: {
     type: String,
     required: true,
@@ -10,14 +10,24 @@ const userLogSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  year: {
+    type: String,
+    required: true,
+    enum: ['Year 1', 'Year 2', 'Year 3', 'Year 4']
+  },
+  semester: {
+    type: String,
+    required: true,
+    enum: ['Semester 1', 'Semester 2']
+  },
   isAdmin: {
     type: Boolean,
     default: false
   }
-}, { timestamps: true });
+}, {
+  timestamps: true
+});
 
-const UserLog = mongoose.model('UserLog', userLogSchema);
-
-export { UserLog };
+export const UserLog = mongoose.model('UserLog', userLogSchema);
 
 

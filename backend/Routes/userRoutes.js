@@ -5,10 +5,12 @@ import {
   logoutUser,
   getUserProfile,
   updateUserProfile,
+  getStudentDetails,
+  getAllStudents,
   checkStudent,
   checkUserLogin
 } from '../Controllers/UserLogController.js';
-import { protect } from '../Middleware/authMiddleware.js';
+import { protect, admin } from '../Middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -18,10 +20,13 @@ router.post('/login', loginUser);
 router.post('/logout', logoutUser);
 router.get('/check-student/:studentId', checkStudent);
 router.get('/check-login/:studentId', checkUserLogin);
+router.get('/student/:studentId', getStudentDetails);
 
 // Protected routes
-router.route('/profile')
-  .get(protect, getUserProfile)
-  .put(protect, updateUserProfile);
+router.get('/profile', protect, getUserProfile);
+router.put('/profile', protect, updateUserProfile);
+
+// Admin routes
+router.get('/students', protect, admin, getAllStudents);
 
 export default router; 
