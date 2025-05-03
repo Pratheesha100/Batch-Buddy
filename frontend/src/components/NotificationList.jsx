@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { reminderApi } from '../services/api';
+import { socket } from '../services/notificationService';
 
 function NotificationList() {
   const navigate = useNavigate();
@@ -13,6 +15,55 @@ function NotificationList() {
 
   useEffect(() => {
     fetchReminders();
+
+    // Socket event listeners for real-time updates
+    socket.on('reminderCreated', (reminder) => {
+      console.log('New reminder created:', reminder);
+      setReminders(prevReminders => [...prevReminders, reminder]);
+      toast.success('New reminder added');
+    });
+
+    socket.on('reminderUpdated', (updatedReminder) => {
+      console.log('Reminder updated:', updatedReminder);
+      setReminders(prevReminders => 
+        prevReminders.map(reminder => 
+          reminder._id === updatedReminder._id ? updatedReminder : reminder
+        )
+      );
+    });
+
+    socket.on('reminderDeleted', (reminderId) => {
+      console.log('Reminder deleted:', reminderId);
+      setReminders(prevReminders => 
+        prevReminders.filter(reminder => reminder._id !== reminderId)
+      );
+      toast.info('Reminder deleted');
+    });
+
+    socket.on('reminderDue', (data) => {
+      console.log('Reminder due:', data);
+      toast.info(`Reminder: ${data.title}${data.description ? ` - ${data.description}` : ''}`);
+      // Update the reminder in the list if it exists
+      setReminders(prevReminders => 
+        prevReminders.map(reminder => 
+          reminder._id === data.id ? { ...reminder, ...data } : reminder
+        )
+      );
+    });
+
+    socket.on('notification', async (data) => {
+      console.log('Notification received:', data);
+      await fetchReminders(); // Refresh the list
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('reminderCreated');
+      socket.off('reminderUpdated');
+      socket.off('reminderDeleted');
+      socket.off('reminderDue');
+      socket.off('notification');
+    };
   }, []);
 
   const fetchReminders = async () => {
@@ -29,24 +80,26 @@ function NotificationList() {
     }
   };
 
-  const handleStatusChange = async (e, reminderId) => {
-    e.stopPropagation(); // Prevent navigation when clicking the status button
+  const handleStatusChange = async (reminderId) => {
     try {
       const reminder = reminders.find(r => r._id === reminderId);
       const newStatus = reminder.status === 'completed' ? 'pending' : 'completed';
+      console.log('Updating status for reminder:', reminderId, 'to:', newStatus);
       
       const updatedReminder = await reminderApi.updateReminderStatus(reminderId, newStatus);
+      console.log('Updated reminder:', updatedReminder);
       
       setReminders(reminders.map(reminder => 
         reminder._id === reminderId ? updatedReminder : reminder
       ));
     } catch (err) {
       console.error('Error updating reminder status:', err);
+      setError('Failed to update reminder status. Please try again later.');
     }
   };
 
   const handleReminderClick = (reminderId) => {
-    navigate(`/reminder/${reminderId}`);
+    navigate(`/reminders/${reminderId}`);
   };
 
   const filterReminders = () => {
@@ -188,7 +241,10 @@ function NotificationList() {
               <div className="flex justify-between items-start mb-2">
                 <h3 className="text-lg font-semibold text-gray-900">{reminder.title}</h3>
                 <button
-                  onClick={(e) => handleStatusChange(e, reminder._id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleStatusChange(reminder._id);
+                  }}
                   className={`ml-2 p-1 rounded-full ${
                     reminder.status === 'completed'
                       ? 'text-green-600 hover:bg-green-50'
@@ -243,4 +299,4 @@ function NotificationList() {
   );
 }
 
-export default NotificationList; 
+export default NotificationList;

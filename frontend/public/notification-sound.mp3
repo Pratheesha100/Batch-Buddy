@@ -1,0 +1,9 @@
+const { Server } = require('socket.io');
+const io = new Server(server, {
+  cors: {
+    origin: '*', // Adjust for your frontend
+    methods: ['GET', 'POST']
+  }
+});
+
+<binary content placeholder for notification-sound.mp3>
