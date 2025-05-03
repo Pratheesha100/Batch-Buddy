@@ -51,11 +51,8 @@ const UserLog = () => {
       if (response.data && response.data.token) {
         // Store token and user data in localStorage
         localStorage.setItem('token', response.data.token);
-        localStorage.setItem('userData', JSON.stringify({
-          _id: response.data._id,
-          studentId: response.data.studentId,
-          isAdmin: response.data.isAdmin
-        }));
+        // Store the full user object for robust downstream use
+        localStorage.setItem('userData', JSON.stringify(response.data));
         
         // Show success message
         Swal.fire({
@@ -69,11 +66,7 @@ const UserLog = () => {
             console.log('Attempting to navigate to /home with user data:', response.data);
             navigate('/home', { 
               state: { 
-                user: {
-                  _id: response.data._id,
-                  studentId: response.data.studentId,
-                  isAdmin: response.data.isAdmin
-                }
+                user: response.data
               } 
             });
           } catch (navError) {

@@ -12,22 +12,9 @@ const BatchBuddy = () => {
   const [startSound, setStartSound] = useState(null);
   const [stopSound, setStopSound] = useState(null);
   const [studentDetails, setStudentDetails] = useState(null);
-
-  const scheduleData = {
-    Yesterday: [
-      { id: 1, subject: 'Web Development', time: '09:00 AM - 11:00 AM', type: 'Lab' },
-      { id: 2, subject: 'Data Structures', time: '01:00 PM - 02:30 PM', type: 'Lecture' },
-    ],
-    Today: [
-      { id: 1, subject: 'Advanced Mathematics', time: '09:00 AM - 10:30 AM', type: 'Lecture' },
-      { id: 2, subject: 'Database Systems', time: '11:00 AM - 12:30 PM', type: 'Lab' },
-      { id: 3, subject: 'Software Engineering', time: '02:00 PM - 03:30 PM', type: 'Tutorial' },
-    ],
-    Tomorrow: [
-      { id: 1, subject: 'Computer Networks', time: '10:00 AM - 11:30 AM', type: 'Lecture' },
-      { id: 2, subject: 'Mobile Development', time: '02:00 PM - 04:00 PM', type: 'Lab' },
-    ],
-  };
+  const [timetable, setTimetable] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [noTimetable, setNoTimetable] = useState(false);
 
   const getTypeIcon = (type) => {
     switch (type) {
@@ -46,23 +33,59 @@ const BatchBuddy = () => {
     navigate('/mark-attendance', { state: { day } });
   };
 
-  // Fetch student details
+  // Fetch student details and assigned timetable
   useEffect(() => {
-    const fetchStudentDetails = async () => {
+    const fetchData = async () => {
+      setNoTimetable(false);
       try {
         const userData = location.state?.user || JSON.parse(localStorage.getItem('userData'));
+        const token = localStorage.getItem('token');
+        if (!userData?._id) return;
+
+        // Debug: log the _id being used
+        console.log('Fetching timetable assignment for user _id:', userData._id);
+
+        // 1. Get the timetable assignment for this student
+        const assignmentRes = await axios.get(
+          `http://localhost:5000/api/timetable-assignments/student/${userData._id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (assignmentRes.data && assignmentRes.data.timetableId) {
+          // 2. Get the full timetable using the timetableId
+          const timetableRes = await axios.get(
+            `http://localhost:5000/api/timetable/${assignmentRes.data.timetableId._id}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          setTimetable(timetableRes.data);
+          // Debug: log the timetable days
+          console.log('Fetched timetable days:', timetableRes.data.days?.map(d => d.day));
+        } else {
+          setTimetable(null);
+          setNoTimetable(true);
+        }
+
+        // Fetch student details (optional, for display)
         if (userData?.studentId) {
-          const response = await axios.get(`http://localhost:5000/api/user/student/${userData.studentId}`);
-          if (response.data) {
-            setStudentDetails(response.data);
+          const studentResponse = await axios.get(`http://localhost:5000/api/user/student/${userData.studentId}`);
+          if (studentResponse.data) {
+            setStudentDetails(studentResponse.data);
           }
         }
       } catch (err) {
-        console.error('Error fetching student details:', err);
+        setTimetable(null);
+        if (err.response && err.response.status === 404) {
+          setNoTimetable(true);
+        } else {
+          setNoTimetable(false);
+        }
+        // console.error('Error fetching timetable:', err); // Suppressed to avoid console noise on 404
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchStudentDetails();
+    fetchData();
   }, [location]);
 
   // Initialize audio objects
@@ -171,9 +194,9 @@ const BatchBuddy = () => {
     
     // Create a command map for faster lookup
     const commandMap = {
-      'today': scheduleData.Today,
-      'tomorrow': scheduleData.Tomorrow,
-      'yesterday': scheduleData.Yesterday
+      'today': getScheduleForDay(today),
+      'tomorrow': getScheduleForDay(tomorrow),
+      'yesterday': getScheduleForDay(yesterday)
     };
 
     // Quick check for timetable queries with more flexible matching
@@ -182,8 +205,9 @@ const BatchBuddy = () => {
     if (timeTableMatch) {
       const day = (timeTableMatch[1] || 'today').toLowerCase();
       const schedule = commandMap[day];
-      
-      if (schedule) {
+      // Debug: log the schedule array for the requested day
+      console.log('Voice command schedule for', day, ':', schedule);
+      if (schedule && schedule.length > 0) {
         const response = `${day}'s schedule is: ` + 
           schedule.map((item, index) => {
             const isLast = index === schedule.length - 1;
@@ -225,6 +249,40 @@ const BatchBuddy = () => {
     // Default response
     speak("I didn't quite catch that. You can ask me about your schedule by saying 'What is my time table today?' or mark your attendance by saying 'Mark my attendance for today'");
   };
+
+  // Function to get schedule for a specific day
+  const getScheduleForDay = (day) => {
+    if (!timetable || !timetable.days) return [];
+    const dayObj = timetable.days.find(d => d.day === day);
+    if (!dayObj) return [];
+    return dayObj.slots.map((slot, index) => ({
+      id: index + 1,
+      subject: slot.subject,
+      time: `${slot.startTime} - ${slot.endTime}`,
+      type: slot.type || 'Lecture',
+      location: slot.location
+    }));
+  };
+
+  // Get current day name
+  const getCurrentDay = () => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[new Date().getDay()];
+  };
+
+  // Get yesterday and tomorrow
+  const getAdjacentDays = () => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const today = new Date().getDay();
+    const yesterday = days[(today + 6) % 7];
+    const tomorrow = days[(today + 1) % 7];
+    return { yesterday, tomorrow };
+  };
+
+  const { yesterday, tomorrow } = getAdjacentDays();
+  const today = getCurrentDay();
+  // Debug: log the day values being used
+  console.log('Today:', today, 'Yesterday:', yesterday, 'Tomorrow:', tomorrow);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
@@ -359,32 +417,51 @@ const BatchBuddy = () => {
       {/* Schedule Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {['Yesterday', 'Today', 'Tomorrow'].map((day) => (
+          {[
+            { day: yesterday, label: 'Yesterday' },
+            { day: today, label: 'Today' },
+            { day: tomorrow, label: 'Tomorrow' }
+          ].map(({ day, label }) => (
             <div key={day} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl hover:shadow-2xl transition-all p-6 hover:scale-[1.02]">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-gray-800">{day}</h2>
-                {day === 'Today' && (
+                <h2 className="text-xl font-bold text-gray-800">{label}</h2>
+                {label === 'Today' && (
                   <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full animate-pulse">
                     Active
                   </span>
                 )}
               </div>
               <div className="space-y-4">
-                {scheduleData[day].map((item) => (
-                  <div key={item.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-all border-b border-gray-100 last:border-0">
-                    <div className="p-2 bg-blue-50 rounded-lg">
+                {loading ? (
+                  <div className="text-center py-4">Loading schedule...</div>
+                ) : noTimetable ? (
+                  <div className="text-center py-4 text-gray-500">
+                    No timetable assigned yet. Please contact your administrator.
+                  </div>
+                ) : timetable ? (
+                  getScheduleForDay(day).map((item) => (
+                    <div key={item.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-all border-b border-gray-100 last:border-0">
+                      <div className="p-2 bg-blue-50 rounded-lg">
                         {getTypeIcon(item.type)}
                       </div>
-                    <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-gray-800">{item.subject}</h3>
-                      <p className="text-xs text-gray-500">{item.time}</p>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-gray-800">{item.subject}</h3>
+                        <p className="text-xs text-gray-500">{item.time}</p>
+                        {item.location && (
+                          <p className="text-xs text-gray-500 mt-1">Location: {item.location}</p>
+                        )}
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-500" />
                     </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-500" />
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    No timetable data available.
                   </div>
-                ))}
+                )}
               </div>
               <button 
-                onClick={() => handleMarkAttendance(day)}
+                onClick={() => handleMarkAttendance(label)}
                 className="mt-6 w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-3 px-4 rounded-lg font-medium transition-all hover:shadow-lg hover:scale-[1.02]"
               >
                 Mark Attendance

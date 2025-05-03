@@ -5,7 +5,13 @@ import cookieParser from 'cookie-parser';
 import { connectDB } from './DB/connectDB.js';
 import userLogRoutes from './Routes/UserLogRoutes.js';
 import taskCornerRoutes from './Routes/TaskCornerRoutes.js';
+
 import ongoingTaskRoutes from './Routes/OngoingTaskRoutes.js';
+
+import simulateAdminRoutes from './Routes/SimulateAdminRoutes.js';
+import timetableRoutes from './Routes/TimetableRoutes.js';
+import timetableAssignmentRoutes from './Routes/timetableAssignmentRoutes.js';
+
 
 dotenv.config();
 
@@ -30,7 +36,12 @@ app.use(cookieParser());
 // Routes
 app.use('/api/user', userLogRoutes);
 app.use('/api/tasks', taskCornerRoutes);
+
 app.use('/api/ongoing-tasks', ongoingTaskRoutes);
+app.use('/api/simulate', simulateAdminRoutes);
+app.use('/api/timetable', timetableRoutes);
+app.use('/api/timetable-assignments', timetableAssignmentRoutes);
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -7,7 +7,8 @@ import {
   updateUserProfile,
   checkStudent,
   checkUserLogin,
-  getStudentDetails
+  getStudentDetails,
+  getAllStudents
 } from '../Controllers/UserLogController.js';
 import { protect } from '../Middleware/authMiddleware.js';
 
@@ -25,6 +26,9 @@ router.get('/student/:studentId', getStudentDetails);
 router.route('/profile')
   .get(protect, getUserProfile)
   .put(protect, updateUserProfile);
+
+// Admin route to get all students
+router.get('/students', protect, getAllStudents);
 
 export default router;
 
