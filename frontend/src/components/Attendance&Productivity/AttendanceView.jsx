@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, BarChart2, BookOpen, Calendar, Beaker, Users, Mic, Search } from 'lucide-react';
+import { Clock, BarChart2, BookOpen, Calendar, Beaker, Users, Mic, Search, Brain, AlertTriangle } from 'lucide-react';
 import { Link, useLocation } from "react-router-dom";
 import axios from 'axios';
 import NavigationBar from './NavigationBar';
@@ -54,6 +54,9 @@ const AttendanceView = () => {
   const [loading, setLoading] = useState(true);
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [allAttendance, setAllAttendance] = useState([]);
+  const [analysis, setAnalysis] = useState(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysisError, setAnalysisError] = useState(null);
 
   useEffect(() => {
     const fetchStudentDetails = async () => {
@@ -235,6 +238,85 @@ const AttendanceView = () => {
   // Get current period's data
   const currentData = attendanceData[selectedPeriod];
 
+  const analyzeAttendance = async () => {
+    setAnalyzing(true);
+    setAnalysisError(null);
+    try {
+      // Prepare attendance data for analysis
+      const attendanceData = allAttendance.map(att => ({
+        date: att.date,
+        subjects: att.records.map(rec => ({
+          subject: rec.subject,
+          status: rec.status
+        }))
+      }));
+
+      // Calculate basic statistics
+      const subjectStats = {};
+      attendanceData.forEach(day => {
+        day.subjects.forEach(subject => {
+          if (!subjectStats[subject.subject]) {
+            subjectStats[subject.subject] = { present: 0, absent: 0, total: 0 };
+          }
+          subjectStats[subject.subject].total++;
+          if (subject.status === 'present') {
+            subjectStats[subject.subject].present++;
+          } else {
+            subjectStats[subject.subject].absent++;
+          }
+        });
+      });
+
+      // Calculate attendance rates
+      const attendanceRates = Object.entries(subjectStats).map(([subject, stats]) => ({
+        subject,
+        attendanceRate: (stats.present / stats.total) * 100,
+        totalClasses: stats.total,
+        present: stats.present,
+        absent: stats.absent
+      }));
+
+      // Sort by attendance rate
+      attendanceRates.sort((a, b) => a.attendanceRate - b.attendanceRate);
+
+      // Generate insights
+      const insights = {
+        worstPerforming: attendanceRates[0],
+        bestPerforming: attendanceRates[attendanceRates.length - 1],
+        overallRate: attendanceRates.reduce((acc, curr) => acc + curr.attendanceRate, 0) / attendanceRates.length,
+        recommendations: [],
+        trends: []
+      };
+
+      // Add recommendations based on attendance patterns
+      attendanceRates.forEach(subject => {
+        if (subject.attendanceRate < 75) {
+          insights.recommendations.push({
+            subject: subject.subject,
+            message: `Consider improving attendance in ${subject.subject}. Current rate: ${subject.attendanceRate.toFixed(1)}%`
+          });
+        }
+      });
+
+      // Add trend analysis
+      const recentAttendance = attendanceData.slice(-5);
+      const trend = recentAttendance.map(day => ({
+        date: new Date(day.date).toLocaleDateString(),
+        presentCount: day.subjects.filter(s => s.status === 'present').length,
+        totalCount: day.subjects.length
+      }));
+
+      insights.trends = trend;
+
+      setAnalysis(insights);
+    } catch (error) {
+      console.error('Error analyzing attendance:', error);
+      setAnalysisError('Failed to analyze attendance data. Please try again.');
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <NavigationBar 
@@ -355,78 +437,169 @@ const AttendanceView = () => {
           </div>
         </div>
 
-              {/* Attendance Details Table */}
+              {/* Add Analysis Section */}
               <div className="bg-white rounded-xl shadow-sm p-6 mt-8">
-                <h3 className="text-xl font-semibold mb-4">Attendance Details</h3>
-                {attendanceRecords.length === 0 ? (
-                  <p className="text-gray-500">No attendance records found for this period.</p>
-                ) : (
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead>
-                      <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {attendanceRecords.map((rec, idx) => (
-                        <tr key={idx}>
-                          <td className="px-4 py-2">{rec.subject}</td>
-                          <td className="px-4 py-2">
-                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                              rec.status === 'present'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-red-100 text-red-700'
-                            }`}>
-                              {rec.status.charAt(0).toUpperCase() + rec.status.slice(1)}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-semibold">Attendance Analysis</h3>
+                  <button
+                    onClick={analyzeAttendance}
+                    disabled={analyzing}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all"
+                  >
+                    <Brain className="w-5 h-5" />
+                    <span>{analyzing ? 'Analyzing...' : 'Analyze Attendance'}</span>
+                  </button>
+                </div>
+
+                {analyzing && (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Analyzing attendance patterns...</p>
+                  </div>
+                )}
+
+                {analysisError && (
+                  <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center space-x-2">
+                    <AlertTriangle className="w-5 h-5" />
+                    <p>{analysisError}</p>
+                  </div>
+                )}
+
+                {analysis && !analyzing && (
+                  <div className="space-y-6">
+                    {/* Overall Performance */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-blue-700 mb-2">Overall Attendance Rate</h4>
+                        <p className="text-2xl font-bold">{analysis.overallRate.toFixed(1)}%</p>
+                      </div>
+                      <div className="bg-green-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-green-700 mb-2">Best Performing Subject</h4>
+                        <p className="text-lg font-bold">{analysis.bestPerforming.subject}</p>
+                        <p className="text-sm text-green-600">{analysis.bestPerforming.attendanceRate.toFixed(1)}% attendance</p>
+                      </div>
+                      <div className="bg-red-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-red-700 mb-2">Needs Improvement</h4>
+                        <p className="text-lg font-bold">{analysis.worstPerforming.subject}</p>
+                        <p className="text-sm text-red-600">{analysis.worstPerforming.attendanceRate.toFixed(1)}% attendance</p>
+                      </div>
+                    </div>
+
+                    {/* Recommendations */}
+                    {analysis.recommendations.length > 0 && (
+                      <div className="bg-yellow-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-yellow-700 mb-2">Recommendations</h4>
+                        <ul className="space-y-2">
+                          {analysis.recommendations.map((rec, index) => (
+                            <li key={index} className="flex items-start space-x-2">
+                              <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5" />
+                              <span>{rec.message}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Recent Trends */}
+                    <div>
+                      <h4 className="font-semibold text-gray-700 mb-4">Recent Attendance Trends</h4>
+                      <div className="space-y-3">
+                        {analysis.trends.map((day, index) => (
+                          <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                            <span className="text-gray-600">{day.date}</span>
+                            <div className="flex items-center space-x-4">
+                              <span className="text-sm text-gray-500">
+                                {day.presentCount}/{day.totalCount} classes attended
+                              </span>
+                              <div className="w-24 h-2 bg-gray-200 rounded-full">
+                                <div
+                                  className="h-2 bg-blue-500 rounded-full"
+                                  style={{ width: `${(day.presentCount / day.totalCount) * 100}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
 
-              {/* All Submitted Attendance Records Table */}
-              <div className="bg-white rounded-xl shadow-sm p-6 mt-8">
-                <h3 className="text-xl font-semibold mb-4">Submitted Attendance Records</h3>
-                {allAttendance.length === 0 ? (
-                  <p className="text-gray-500">No attendance records submitted yet.</p>
-                ) : (
-                  allAttendance.map((att, idx) => (
-                    <div key={idx} className="mb-6">
-                      <div className="font-semibold text-blue-700 mb-2">
-                        {new Date(att.date).toLocaleDateString()} ({new Date(att.date).toLocaleTimeString()})
-                      </div>
-                      <table className="min-w-full divide-y divide-gray-200 mb-2">
-                        <thead>
-                          <tr>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              {/* Attendance Details Table */}
+              {attendanceRecords.length > 0 && (
+                <div className="bg-white rounded-xl shadow-sm p-6 mt-8">
+                  <h3 className="text-xl font-semibold mb-4">Attendance Details</h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead>
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {attendanceRecords.map((rec, idx) => (
+                          <tr key={idx}>
+                            <td className="px-4 py-2">{rec.subject}</td>
+                            <td className="px-4 py-2">
+                              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                rec.status === 'present'
+                                  ? 'bg-green-100 text-green-700'
+                                  : 'bg-red-100 text-red-700'
+                              }`}>
+                                {rec.status.charAt(0).toUpperCase() + rec.status.slice(1)}
+                              </span>
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          {att.records.map((rec, i) => (
-                            <tr key={i}>
-                              <td className="px-4 py-2">{rec.subject}</td>
-                              <td className="px-4 py-2">
-                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                  rec.status === 'present'
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-red-100 text-red-700'
-                                }`}>
-                                  {rec.status.charAt(0).toUpperCase() + rec.status.slice(1)}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ))
-                )}
-              </div>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* All Submitted Attendance Records Table */}
+              {allAttendance.length > 0 && (
+                <div className="bg-white rounded-xl shadow-sm p-6 mt-8">
+                  <h3 className="text-xl font-semibold mb-4">Submitted Attendance Records</h3>
+                  <div className="space-y-6">
+                    {allAttendance.map((att, idx) => (
+                      <div key={idx} className="mb-6">
+                        <div className="font-semibold text-blue-700 mb-2">
+                          {new Date(att.date).toLocaleDateString()} ({new Date(att.date).toLocaleTimeString()})
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full divide-y divide-gray-200 mb-2">
+                            <thead>
+                              <tr>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {att.records.map((rec, i) => (
+                                <tr key={i}>
+                                  <td className="px-4 py-2">{rec.subject}</td>
+                                  <td className="px-4 py-2">
+                                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                      rec.status === 'present'
+                                        ? 'bg-green-100 text-green-700'
+                                        : 'bg-red-100 text-red-700'
+                                    }`}>
+                                      {rec.status.charAt(0).toUpperCase() + rec.status.slice(1)}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
         {/* Time Distribution and Upcoming Events */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
