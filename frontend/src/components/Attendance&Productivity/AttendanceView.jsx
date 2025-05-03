@@ -246,7 +246,7 @@ const AttendanceView = () => {
       {/* Main Content */}
       <div className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
+        {/* Header */}
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Attendance Overview</h1>
             <div className="flex space-x-2">
@@ -290,70 +290,70 @@ const AttendanceView = () => {
             </div>
           ) : (
             <>
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-gray-600 text-sm mb-1">Total Hours</p>
-                      <h2 className="text-3xl font-bold">{currentData.totalHours}</h2>
-                    </div>
-                    <div className="bg-blue-100 p-3 rounded-lg">
-                      <Clock className="w-6 h-6 text-blue-600" />
-                    </div>
-                  </div>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-gray-600 text-sm mb-1">Total Hours</p>
+                  <h2 className="text-3xl font-bold">{currentData.totalHours}</h2>
                 </div>
-
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-gray-600 text-sm mb-1">Attendance Rate</p>
-                      <h2 className="text-3xl font-bold">{currentData.attendanceRate}</h2>
-                    </div>
-                    <div className="bg-green-100 p-3 rounded-lg">
-                      <BarChart2 className="w-6 h-6 text-green-600" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-gray-600 text-sm mb-1">
-                        {selectedPeriod === 'daily' ? 'Classes Today' : 'Total Classes'}
-                      </p>
-                      <h2 className="text-3xl font-bold">{currentData.classesToday}</h2>
-                    </div>
-                    <div className="bg-purple-100 p-3 rounded-lg">
-                      <BookOpen className="w-6 h-6 text-purple-600" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-gray-600 text-sm mb-1">Study Streak</p>
-                      <h2 className="text-3xl font-bold">{currentData.studyStreak}</h2>
-                    </div>
-                    <div className="bg-orange-100 p-3 rounded-lg">
-                      <Calendar className="w-6 h-6 text-orange-600" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-gray-600 text-sm mb-1">Voice Recognition</p>
-                      <h2 className="text-3xl font-bold">{currentData.voiceRecognition}</h2>
-                    </div>
-                    <div className="bg-blue-100 p-3 rounded-lg">
-                      <Mic className="w-6 h-6 text-blue-600" />
-                    </div>
-                  </div>
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <Clock className="w-6 h-6 text-blue-600" />
                 </div>
               </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-gray-600 text-sm mb-1">Attendance Rate</p>
+                  <h2 className="text-3xl font-bold">{currentData.attendanceRate}</h2>
+                </div>
+                <div className="bg-green-100 p-3 rounded-lg">
+                  <BarChart2 className="w-6 h-6 text-green-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-gray-600 text-sm mb-1">
+                    {selectedPeriod === 'daily' ? 'Classes Today' : 'Total Classes'}
+                  </p>
+                  <h2 className="text-3xl font-bold">{currentData.classesToday}</h2>
+                </div>
+                <div className="bg-purple-100 p-3 rounded-lg">
+                  <BookOpen className="w-6 h-6 text-purple-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-gray-600 text-sm mb-1">Study Streak</p>
+                  <h2 className="text-3xl font-bold">{currentData.studyStreak}</h2>
+                </div>
+                <div className="bg-orange-100 p-3 rounded-lg">
+                  <Calendar className="w-6 h-6 text-orange-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-gray-600 text-sm mb-1">Voice Recognition</p>
+                  <h2 className="text-3xl font-bold">{currentData.voiceRecognition}</h2>
+              </div>
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <Mic className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+        </div>
 
               {/* Attendance Details Table */}
               <div className="bg-white rounded-xl shadow-sm p-6 mt-8">
@@ -428,67 +428,67 @@ const AttendanceView = () => {
                 )}
               </div>
 
-              {/* Time Distribution and Upcoming Events */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Time Distribution */}
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <h3 className="text-xl font-semibold mb-6">Time Distribution</h3>
-                  <div className="space-y-6">
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-600">Lectures</span>
-                        <span className="text-gray-900">{currentData.timeDistribution.lectures}%</span>
-                      </div>
-                      <div className="h-2 bg-gray-100 rounded-full">
-                        <div 
-                          className="h-2 bg-blue-500 rounded-full" 
-                          style={{ width: `${currentData.timeDistribution.lectures}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-600">Self-Study</span>
-                        <span className="text-gray-900">{currentData.timeDistribution.selfStudy}%</span>
-                      </div>
-                      <div className="h-2 bg-gray-100 rounded-full">
-                        <div 
-                          className="h-2 bg-green-500 rounded-full" 
-                          style={{ width: `${currentData.timeDistribution.selfStudy}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-600">Exams</span>
-                        <span className="text-gray-900">{currentData.timeDistribution.exams}%</span>
-                      </div>
-                      <div className="h-2 bg-gray-100 rounded-full">
-                        <div 
-                          className="h-2 bg-purple-500 rounded-full" 
-                          style={{ width: `${currentData.timeDistribution.exams}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-600">Lab Work</span>
-                        <span className="text-gray-900">{currentData.timeDistribution.labWork}%</span>
-                      </div>
-                      <div className="h-2 bg-gray-100 rounded-full">
-                        <div 
-                          className="h-2 bg-orange-500 rounded-full" 
-                          style={{ width: `${currentData.timeDistribution.labWork}%` }}
-                        ></div>
-                      </div>
-                    </div>
+        {/* Time Distribution and Upcoming Events */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Time Distribution */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-xl font-semibold mb-6">Time Distribution</h3>
+            <div className="space-y-6">
+              <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-gray-600">Lectures</span>
+                    <span className="text-gray-900">{currentData.timeDistribution.lectures}%</span>
                   </div>
+                  <div className="h-2 bg-gray-100 rounded-full">
+                    <div 
+                      className="h-2 bg-blue-500 rounded-full" 
+                      style={{ width: `${currentData.timeDistribution.lectures}%` }}
+                    ></div>
                 </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-gray-600">Self-Study</span>
+                    <span className="text-gray-900">{currentData.timeDistribution.selfStudy}%</span>
+              </div>
+                  <div className="h-2 bg-gray-100 rounded-full">
+                    <div 
+                      className="h-2 bg-green-500 rounded-full" 
+                      style={{ width: `${currentData.timeDistribution.selfStudy}%` }}
+                    ></div>
+                </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-gray-600">Exams</span>
+                    <span className="text-gray-900">{currentData.timeDistribution.exams}%</span>
+              </div>
+                  <div className="h-2 bg-gray-100 rounded-full">
+                    <div 
+                      className="h-2 bg-purple-500 rounded-full" 
+                      style={{ width: `${currentData.timeDistribution.exams}%` }}
+                    ></div>
+                </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-gray-600">Lab Work</span>
+                    <span className="text-gray-900">{currentData.timeDistribution.labWork}%</span>
+              </div>
+                  <div className="h-2 bg-gray-100 rounded-full">
+                    <div 
+                      className="h-2 bg-orange-500 rounded-full" 
+                      style={{ width: `${currentData.timeDistribution.labWork}%` }}
+                    ></div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                {/* Upcoming Events */}
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <h3 className="text-xl font-semibold mb-6">Upcoming Events</h3>
-                  <div className="space-y-4">
+          {/* Upcoming Events */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-xl font-semibold mb-6">Upcoming Events</h3>
+            <div className="space-y-4">
                     {upcomingEvents.length === 0 ? (
                       <p className="text-gray-500 text-center py-4">No upcoming classes</p>
                     ) : (
@@ -500,11 +500,11 @@ const AttendanceView = () => {
                             'bg-green-100'
                           }`}>
                             {event.type === 'LAB' ? <Beaker className="w-5 h-5 text-purple-600" /> : <BookOpen className="w-5 h-5 text-blue-600" />}
-                          </div>
-                          <div className="flex-1">
+                  </div>
+                  <div className="flex-1">
                             <h4 className="text-gray-900 font-medium">{event.title}</h4>
                             <p className="text-gray-500 text-sm">{event.time}</p>
-                          </div>
+                </div>
                           <span className={`text-xs font-medium px-2.5 py-0.5 rounded ${
                             event.type === 'LECTURE' ? 'bg-blue-100 text-blue-600' :
                             event.type === 'LAB' ? 'bg-purple-100 text-purple-600' :
@@ -512,10 +512,10 @@ const AttendanceView = () => {
                           }`}>
                             {event.type}
                           </span>
-                        </div>
+                </div>
                       ))
                     )}
-                  </div>
+                </div>
                 </div>
               </div>
             </>

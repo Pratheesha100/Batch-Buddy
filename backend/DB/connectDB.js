@@ -51,7 +51,7 @@ const connectDB = async () => {
             console.log('MongoDB connection closed through app termination');
             process.exit(0);
         });
-
+        
         // List all collections
         const collections = await mongoose.connection.db.listCollections().toArray();
         console.log('Available collections:', collections.map(c => c.name));

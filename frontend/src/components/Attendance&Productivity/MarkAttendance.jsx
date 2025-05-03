@@ -289,7 +289,7 @@ const MarkAttendance = () => {
       if (response.data) {
         speak("Attendance submitted successfully!");
         // Navigate to attendance view
-        navigate('/attendance');
+    navigate('/attendance');
       }
     } catch (error) {
       console.error('Error submitting attendance:', error);
@@ -412,39 +412,39 @@ const MarkAttendance = () => {
                 </div>
               ) : (
                 subjects.map((subject) => (
-                  <div 
-                    key={subject.id} 
-                    className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-6"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className={`p-3 rounded-lg ${
-                          subject.type === 'Lecture' ? 'bg-blue-50' :
-                          subject.type === 'Lab' ? 'bg-green-50' :
-                          'bg-purple-50'
-                        }`}>
-                          {getTypeIcon(subject.type)}
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-800">{subject.name}</h3>
-                          <div className="flex items-center space-x-2 text-gray-500 text-sm">
-                            <Clock className="w-4 h-4" />
-                            <span>{subject.time}</span>
-                          </div>
+                <div 
+                  key={subject.id} 
+                  className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-6"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className={`p-3 rounded-lg ${
+                        subject.type === 'Lecture' ? 'bg-blue-50' :
+                        subject.type === 'Lab' ? 'bg-green-50' :
+                        'bg-purple-50'
+                      }`}>
+                        {getTypeIcon(subject.type)}
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800">{subject.name}</h3>
+                        <div className="flex items-center space-x-2 text-gray-500 text-sm">
+                          <Clock className="w-4 h-4" />
+                          <span>{subject.time}</span>
                         </div>
                       </div>
-                      <button
-                        onClick={() => toggleAttendance(subject.id)}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                          subject.attended 
-                            ? 'bg-green-100 text-green-600' 
-                            : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                        }`}
-                      >
-                        {subject.attended ? <CheckCircle2 className="w-6 h-6" /> : <Circle className="w-6 h-6" />}
-                      </button>
                     </div>
+                    <button
+                      onClick={() => toggleAttendance(subject.id)}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                        subject.attended 
+                          ? 'bg-green-100 text-green-600' 
+                          : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                      }`}
+                    >
+                      {subject.attended ? <CheckCircle2 className="w-6 h-6" /> : <Circle className="w-6 h-6" />}
+                    </button>
                   </div>
+                </div>
                 ))
               )}
             </div>

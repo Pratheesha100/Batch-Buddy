@@ -101,6 +101,14 @@ const SimulateAdmin = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white rounded-2xl shadow-2xl mb-12 border border-gray-100 mt-10">
+      <div className="flex justify-end mb-8">
+        <button
+          onClick={() => navigate('/admin-timetable')}
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-6 py-3 rounded-lg font-semibold shadow-md transition-all text-lg"
+        >
+          Manage Timetables
+        </button>
+      </div>
       <h2 className="text-3xl font-bold text-center text-blue-700 mb-12">Registered Students</h2>
       {years.length === 0 ? (
         <div className="text-center py-8 text-gray-500 text-lg">No students found</div>

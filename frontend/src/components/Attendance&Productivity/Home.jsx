@@ -60,9 +60,11 @@ const BatchBuddy = () => {
           setTimetable(timetableRes.data);
           // Debug: log the timetable days
           console.log('Fetched timetable days:', timetableRes.data.days?.map(d => d.day));
+          setLoading(false);
         } else {
           setTimetable(null);
           setNoTimetable(true);
+          setLoading(false);
         }
 
         // Fetch student details (optional, for display)
@@ -79,8 +81,6 @@ const BatchBuddy = () => {
         } else {
           setNoTimetable(false);
         }
-        // console.error('Error fetching timetable:', err); // Suppressed to avoid console noise on 404
-      } finally {
         setLoading(false);
       }
     };
@@ -211,12 +211,14 @@ const BatchBuddy = () => {
 
   const handleVoiceCommand = (command) => {
     console.log('Processing command:', command);
-    // Check if timetable is loaded
-    if (!timetable || !timetable.days) {
-      speak("Sorry, your timetable is still loading. Please try again in a moment.");
+    
+    // Improved timetable check
+    const hasValidTimetable = timetable && timetable.days && timetable.days.length > 0;
+    if (!hasValidTimetable) {
+      speak("I'm still loading your timetable. Please wait a moment and try again.");
       return;
     }
-    console.log('timetable in voice command:', timetable);
+
     // Normalize the command
     const normalizedCommand = command.trim().toLowerCase().replace(/\s+/g, ' ');
 
@@ -228,31 +230,40 @@ const BatchBuddy = () => {
       'yesterday': getScheduleForDay(yesterday)
     };
 
-    // Flexible regex for timetable/schedule queries
-    const timeTableMatch = normalizedCommand.match(/(what('| i)?s|show|tell me|read|give me|display|say|speak).*(timetable|time table|schedule).*(today|tomorrow|yesterday)?/i);
+    // Enhanced timetable/schedule query detection
+    const timeTablePatterns = [
+      /(what('| i)?s|show|tell me|read|give me|display|say|speak).*(timetable|time table|schedule).*(today|tomorrow|yesterday)?/i,
+      /(my|the).*(timetable|time table|schedule).*(today|tomorrow|yesterday)?/i,
+      /(classes|lectures).*(today|tomorrow|yesterday)?/i
+    ];
+
     let day = 'today';
-    if (timeTableMatch && timeTableMatch[3]) {
-      day = timeTableMatch[3].toLowerCase();
-    } else if (normalizedCommand.includes('tomorrow')) {
-      day = 'tomorrow';
-    } else if (normalizedCommand.includes('yesterday')) {
-      day = 'yesterday';
+    let matchedPattern = timeTablePatterns.find(pattern => pattern.test(normalizedCommand));
+    
+    if (matchedPattern) {
+      const dayMatch = normalizedCommand.match(/(today|tomorrow|yesterday)/i);
+      if (dayMatch) {
+        day = dayMatch[0].toLowerCase();
+      }
     }
 
-    // Try to match timetable/schedule queries
-    if (
-      timeTableMatch ||
-      normalizedCommand.includes('timetable') ||
-      normalizedCommand.includes('time table') ||
-      normalizedCommand.includes('schedule')
-    ) {
+    // Check if it's a timetable/schedule query
+    if (matchedPattern || 
+        normalizedCommand.includes('timetable') || 
+        normalizedCommand.includes('time table') || 
+        normalizedCommand.includes('schedule') ||
+        normalizedCommand.includes('classes') ||
+        normalizedCommand.includes('lectures')) {
+      
       const schedule = commandMap[day];
       console.log('Voice command schedule for', day, ':', schedule);
+      
       if (schedule && schedule.length > 0) {
-        const response = `${day}'s schedule is: ` +
+        const response = `Here's your schedule for ${day}: ` +
           schedule.map((item, index) => {
             const isLast = index === schedule.length - 1;
-            return `${item.subject} from ${item.time}, which is a ${item.type}${isLast ? '.' : '. Then, '}`;
+            const timeStr = item.time.replace(/-/g, ' to ');
+            return `${item.subject} from ${timeStr}, which is a ${item.type}${isLast ? '.' : '. Then, '}`;
           }).join('');
         console.log('Speaking response:', response);
         speak(response);
@@ -264,9 +275,15 @@ const BatchBuddy = () => {
     }
 
     // Handle attendance marking commands with more flexible matching
-    const attendanceMatch = normalizedCommand.match(/(mark|record|take).*(attendance|present).*(for|on)?\s*(today|tomorrow|yesterday)?/i);
+    const attendancePatterns = [
+      /(mark|record|take).*(attendance|present).*(for|on)?\s*(today|tomorrow|yesterday)?/i,
+      /(mark|record|take).*(me|my).*(attendance|present).*(for|on)?\s*(today|tomorrow|yesterday)?/i
+    ];
+
+    const attendanceMatch = attendancePatterns.find(pattern => pattern.test(normalizedCommand));
     if (attendanceMatch) {
-      const attDay = (attendanceMatch[4] || 'today').toLowerCase();
+      const dayMatch = normalizedCommand.match(/(today|tomorrow|yesterday)/i);
+      const attDay = (dayMatch ? dayMatch[0] : 'today').toLowerCase();
       const dayMap = {
         'today': 'Today',
         'tomorrow': 'Tomorrow',
@@ -286,15 +303,15 @@ const BatchBuddy = () => {
       }
     }
 
-    // Default response
-    speak("Sorry, I didn't understand. Try saying 'what is my timetable today' or 'show my schedule for tomorrow'.");
+    // Default response with suggestions
+    speak("I can help you with your timetable or attendance. Try saying 'what's my schedule today' or 'show my timetable for tomorrow'.");
   };
 
   // Function to get schedule for a specific day
   const getScheduleForDay = (day) => {
     if (!timetable || !timetable.days) return [];
     const dayObj = timetable.days.find(d => d.day === day);
-    if (!dayObj) return [];
+    if (!dayObj || !dayObj.slots || dayObj.slots.length === 0) return [];
     return dayObj.slots.map((slot, index) => ({
       id: index + 1,
       subject: slot.subject,
@@ -452,12 +469,15 @@ const BatchBuddy = () => {
               </div>
               <div className="space-y-4">
                 {loading ? (
-                  <div className="text-center py-4">Loading schedule...</div>
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                    <p className="text-gray-500">Loading schedule...</p>
+                  </div>
                 ) : noTimetable ? (
                   <div className="text-center py-4 text-gray-500">
                     No timetable assigned yet. Please contact your administrator.
                   </div>
-                ) : timetable ? (
+                ) : timetable && timetable.days ? (
                   getScheduleForDay(day).map((item) => (
                     <div key={item.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-all border-b border-gray-100 last:border-0">
                       <div className="p-2 bg-blue-50 rounded-lg">
