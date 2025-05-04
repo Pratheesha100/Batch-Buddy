@@ -27,7 +27,7 @@ const __dirname = path.dirname(__filename);
 // Helper to format section titles
 const addSectionTitle = (doc, title) => {
   doc.moveDown(1.5)
-    .fontSize(14)
+    .fontSize(12)
     .font('Helvetica-Bold')
     .text(title, { underline: true, align: 'left' })
     .moveDown(0.5)
@@ -275,8 +275,21 @@ export const generateAnalysisReport = async (req, res) => {
         }]
       },
       options: {
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true } }
+        scales: { y: { beginAtZero: true } },
+        plugins: {
+            legend: { display: true },
+            datalabels: {
+                anchor: 'center',
+                align: 'center',
+                formatter: (value, context) => {
+                    return value > 0 ? value : '';
+                },
+                color: '#ffffff',
+                font: {
+                    weight: 'bold'
+                }
+            }
+        }
       }
     };
 
@@ -297,51 +310,95 @@ export const generateAnalysisReport = async (req, res) => {
         }]
       },
       options: {
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, max: 100 } }
+        scales: { y: { beginAtZero: true, max: 100 } },
+        plugins: {
+           legend: { display: true },
+           datalabels: {
+                anchor: 'center',
+                align: 'center',
+                formatter: (value, context) => {
+                    return value > 5 ? value.toFixed(1) + '%' : '';
+                },
+                color: '#333',
+                font: {
+                    weight: 'bold'
+                }
+            }
+        }
       }
     };
 
-    // --- 4. Finalize PDF ---
-    console.log("Finalizing PDF report stream.");
+    // --- 4. Add Charts to PDF ---
+    addSectionTitle(doc, 'Visualizations');
+
+    let currentY = doc.y;
+    const pageHeight = doc.page.height - doc.page.margins.top - doc.page.margins.bottom;
+    const chartHeight = 150; // Height of each chart image
+    const titleHeight = 30; // Approximate height for title + spacing
+    const spacing = 20; // Space between charts
+
+    const addChart = (title, imageBuffer) => {
+        const requiredHeight = titleHeight + chartHeight + spacing;
+        // Check if there's enough space for this chart on the current page
+        if (currentY + requiredHeight > pageHeight + doc.page.margins.top && doc.y !== doc.page.margins.top) {
+            doc.addPage();
+            currentY = doc.page.margins.top; // Reset Y for the new page
+            addSectionTitle(doc, 'Visualizations (Continued)'); // Add continued title if needed
+        } else {
+           // Add a bit of space before the next chart if not on a new page start
+           if (doc.y > doc.page.margins.top + 20) { // Avoid adding space right at the top
+              doc.moveDown(1); // Add some space before the chart title
+              currentY = doc.y;
+           }
+        }
+
+        doc.fontSize(12).font('Helvetica-Bold').text(title, 50, currentY);
+        currentY += titleHeight - 10; // Adjust Y after title
+
+        if (imageBuffer) {
+           try {
+              doc.image(imageBuffer, 50, currentY, { width: 400, height: chartHeight }); // Slightly wider chart
+              currentY += chartHeight + spacing;
+              doc.y = currentY; // Explicitly set doc.y to the bottom of the added chart
+           } catch (imgErr) {
+               console.error(`Error adding chart image for "${title}":`, imgErr);
+               doc.fillColor('red').text(`Error rendering chart: ${title}`, 50, currentY);
+               currentY += 20; // Move down past error message
+               doc.y = currentY;
+               doc.fillColor('black'); // Reset color
+           }
+
+        } else {
+           doc.fillColor('red').text(`Chart data unavailable for: ${title}`, 50, currentY);
+           currentY += 20;
+           doc.y = currentY;
+           doc.fillColor('black');
+        }
+    };
+
+    console.log("Generating chart images...");
     const [
       participationChartImage,
       studentPieChartImage,
       topModulesBarChartImage,
       attendanceByDayBarChartImage
     ] = await Promise.all([
-      generateChartImage(participationChartConfig, 350, 150),
-      generateChartImage(studentPieChartConfig, 350, 150),
-      generateChartImage(topModulesBarChartConfig, 350, 150),
-      generateChartImage(attendanceByDayBarChartConfig, 350, 150)
+      generateChartImage(participationChartConfig, 400, 150), // Match width
+      generateChartImage(studentPieChartConfig, 400, 150),
+      generateChartImage(topModulesBarChartConfig, 400, 150),
+      generateChartImage(attendanceByDayBarChartConfig, 400, 150)
     ]);
+    console.log("Chart images generated.");
 
-    // Add a new page for all charts (single page, stacked vertically, smaller size)
-    doc.addPage();
+    console.log("Adding charts to PDF...");
+    addChart('Participation Rate Trend', participationChartImage);
+    addChart('Student Distribution by Faculty', studentPieChartImage);
+    addChart('Top 5 Attended Modules (Lectures)', topModulesBarChartImage);
+    addChart('Average Attendance Rate by Day', attendanceByDayBarChartImage);
+    console.log("Charts added to PDF.");
 
-    // --- All Charts on One Page, Stacked Vertically ---
-    let chartY = 50;
-    const chartSpacing = 30;
-
-    doc.fontSize(14).font('Helvetica-Bold').text('Participation Rate Chart', 50, chartY);
-    chartY += 20;
-    doc.image(participationChartImage, 50, chartY, { width: 350, height: 150 });
-    chartY += 150 + chartSpacing;
-
-    doc.fontSize(14).font('Helvetica-Bold').text('Student Distribution by Faculty', 50, chartY);
-    chartY += 20;
-    doc.image(studentPieChartImage, 50, chartY, { width: 350, height: 150 });
-    chartY += 150 + chartSpacing;
-
-    doc.fontSize(14).font('Helvetica-Bold').text('Top 5 Most Attended Modules', 50, chartY);
-    chartY += 20;
-    doc.image(topModulesBarChartImage, 50, chartY, { width: 350, height: 150 });
-    chartY += 150 + chartSpacing;
-
-    doc.fontSize(14).font('Helvetica-Bold').text('Attendance by Day', 50, chartY);
-    chartY += 20;
-    doc.image(attendanceByDayBarChartImage, 50, chartY, { width: 350, height: 150 });
-
+    // --- 5. Finalize PDF ---
+    console.log("Finalizing PDF report stream.");
     doc.end();
 
   } catch (error) {

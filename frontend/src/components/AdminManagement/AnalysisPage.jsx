@@ -4,7 +4,7 @@ import Header from "./Navigation/Header";
 import Footer from "./Navigation/Footer";
 import "./adminDash.css"; 
 import { useNavigate } from 'react-router-dom'; 
-import { RefreshCw, MessageSquareText, Sparkles, Download } from 'lucide-react';
+import { RefreshCw, MessageSquareText, Sparkles, Download, Loader } from 'lucide-react';
 import { 
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label, 
     BarChart, Bar, Cell, XAxis as BarXAxis, YAxis as BarYAxis, CartesianGrid as BarGrid, Tooltip as BarTooltip, Legend as BarLegend, ResponsiveContainer as BarContainer, Label as BarLabel, 
@@ -48,6 +48,8 @@ function AnalysisPage() {
   const [studentSummaryData, setStudentSummaryData] = useState(null);
   const [isStudentSummaryLoading, setIsStudentSummaryLoading] = useState(true);
   const [studentSummaryError, setStudentSummaryError] = useState(null);
+
+  const [isDownloadingReport, setIsDownloadingReport] = useState(false);
 
   const navigate = useNavigate(); // Hook for navigation
 
@@ -404,6 +406,60 @@ function AnalysisPage() {
     }
   };
 
+  const handleDownloadReport = async () => {
+    setIsDownloadingReport(true); // Start loading
+    try {
+      const response = await fetch("http://localhost:5000/api/admin/analysis");
+
+      if (!response.ok) {
+        // Try to get error message from response if possible
+        let errorMsg = `HTTP error! status: ${response.status}`;
+        try {
+            const errorData = await response.json(); // Assuming error response is JSON
+            errorMsg = errorData.message || errorMsg;
+        } catch (e) {
+           // Ignore if error response is not JSON
+        }
+        throw new Error(errorMsg);
+      }
+
+      // Get the filename from the Content-Disposition header
+      const disposition = response.headers.get('Content-Disposition');
+      let filename = `Analysis-Report-${moment().format('YYYY-MM-DD')}.pdf`; // Default filename
+      if (disposition && disposition.includes('attachment')) {
+        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+        const matches = filenameRegex.exec(disposition);
+        if (matches != null && matches[1]) {
+          filename = matches[1].replace(/['"]/g, '');
+        }
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename); // Use extracted or default filename
+
+      // Append to html link element page
+      document.body.appendChild(link);
+
+      // Start download
+      link.click();
+
+      // Clean up and remove the link
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+      console.error("Error downloading the report:", error);
+      // You might want to show a user-friendly error message here
+      // e.g., using a toast notification library
+      alert(`Failed to download report: ${error.message}`); 
+    } finally {
+      setIsDownloadingReport(false); // Stop loading
+    }
+  };
+
   return (
     <div className="admin-dashboard-container"> {/* Reuse container class */}
       <Nav isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
@@ -612,18 +668,24 @@ function AnalysisPage() {
                           </div>
                         )}
                       </div>
-                       {/* Download Button Moved Here */}
+                       {/* Download Button Section */}
                    <div className="download-report-section">
-                      <a
-                        href="http://localhost:5000/api/admin/analysis"
-                        className="download-report-button"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        download
-                      >
-                        <Download size={18} /> Download Report
-                      </a>
-                    </div>
+                    <button
+                      className="download-report-button"
+                      onClick={handleDownloadReport}
+                      disabled={isDownloadingReport}
+                    >
+                      {isDownloadingReport ? (
+                        <>
+                          <Loader size={18} className="icon-spin" /> Downloading...
+                        </>
+                      ) : (
+                        <>
+                          <Download size={18} /> Download Report
+                        </>
+                      )}
+                    </button>
+                  </div>
                    </div>
   
                   
