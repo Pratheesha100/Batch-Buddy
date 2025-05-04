@@ -1,8 +1,9 @@
 import express from "express";
-import { connectDB } from "./DB/connectDB.js"; // Import the connectDB function
+import { connectDB } from "./DB/connectDB.js"; 
 import dotenv from "dotenv";
 import cors from "cors";
-import router from "./Routes/AdminRoutes.js"; // Import your routes
+import adminRouter from "./Routes/AdminRoutes.js"; 
+import analysisRouter from "./Routes/AnalyticsRoutes.js"; 
 
 dotenv.config(); // Load environment variables
 
@@ -17,8 +18,9 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 // function calling for database connection
 connectDB();
 
-// mounting admin route
-app.use("/admin", router);
+// Mounting routes
+app.use("/api/admin", adminRouter); // Keep existing admin routes (prefix adjusted)
+app.use("/api/analysis", analysisRouter); // Mount analysis routes
 
 // Start the server
 app.listen(PORT, () => {

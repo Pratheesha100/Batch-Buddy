@@ -173,7 +173,7 @@ export { addMultipleDegrees };
 //Get all locations
 const getAllLocations = async (req, res,) => {
     try {
-        const locations = await Locations.find().populate('faculty', 'facultyName');
+        const locations = await Locations.find().populate('faculty', 'facultyName').lean();
 
         if (!locations || locations.length === 0) {
             return res.status(404).json({ message: 'No locations found' });
@@ -276,14 +276,10 @@ export { getAllGroups };
 const getGroupsByFaculty = async (req, res) => {
     const { facultyId } = req.params;
     try {
-        // Assuming Groups schema has a direct reference to faculty
-        // Adjust the query if the relationship is indirect (e.g., through Degree)
         const groups = await Groups.find({ faculty: facultyId })
             .populate('degree', 'degreeName')
             .populate('batch', 'batchType')
-            .lean(); // Add .lean() here to return plain JavaScript objects
-            // Add other necessary populates
-
+            .lean();
         if (!groups || groups.length === 0) {
             return res.status(404).json({ message: 'No groups found for this faculty' });
         }
@@ -431,7 +427,8 @@ export { addMultipleModule };
 const getAllLecturers = async (req, res,) => {
     try {
         const lecturers = await Lecturers.find()
-            .populate('faculty', 'facultyName');
+            .populate('faculty', 'facultyName')
+            .lean();
 
         if (!lecturers || lecturers.length === 0) {
             return res.status(404).json({ message: 'No lecturers found' });
@@ -518,7 +515,8 @@ const getAllStudents = async (req, res,) => {
         const students = await Students.find()
             .populate('faculty', 'facultyName')
             .populate('batch', 'batchType')
-            .populate('degree', 'degreeName');
+            .populate('degree', 'degreeName')
+            .lean();
 
         if (!students || students.length === 0) {
             return res.status(404).json({ message: 'No students found' });
@@ -716,15 +714,17 @@ export { addStudentModules };
 
 //Timetable model
 //Get all timetables
-const getAllTimetables = async (req, res,) => {
+const getAllTimetables = async (req, res) => {
     try {
-        const timetables = await Timetable.find();
-
-        if (!timetables || timetables.length === 0) {
-            return res.status(404).json({ message: 'No timetables found' });
-        }
-
-        res.status(200).json(timetables);//display the timetables
+        const timetables = await Timetable.find()
+            .populate('module', 'moduleCode moduleName')
+            .populate('location', 'locationCode')
+            .populate('lecturer', 'lecturerCode')
+            .populate('group', 'groupNum year')
+            .populate('batch', 'batchType')
+            .populate('faculty', 'facultyName')
+            .lean();
+        res.status(200).json(timetables);
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Error fetching timetables' });
@@ -734,14 +734,14 @@ export { getAllTimetables };
 
 //create timetables
 const addTimetables = async (req, res) => {
-    const { module, day, startTime, endTime, location, lecturer, group, year, faculty, type } = req.body;
+    const { module, day, startTime, endTime, location, lecturer, group, year,semester, faculty, type } = req.body;
     //input validation
-    if (!module || !day || !startTime || !endTime || !location || !lecturer || !group || !year || !faculty || !type) {
-        return res.status(404).json({ message: 'module, day, startTime, endTime, location and lecturer are required' });
+    if (!module || !day || !startTime || !endTime || !location || !lecturer || !group || !year || !semester || !faculty || !type) {
+    return res.status(404).json({ message: 'module, day, startTime, endTime, location and lecturer are required' });
     }
 
     try {
-        const newTimetable = new Timetable({ module, day, startTime, endTime, location, lecturer, group,year, faculty, type });
+        const newTimetable = new Timetable({ module, day, startTime, endTime, location, lecturer, group,year,semester, faculty, type });
         await newTimetable.save();
         res.status(200).json(newTimetable);
     } catch (err) {
@@ -754,15 +754,15 @@ export { addTimetables };
 //update timetables
 const updateTimetable = async (req, res) =>{
     const { id } = req.params;
-    const { module, day, startTime, endTime, location, lecturer, group, year, faculty, type } = req.body;
+    const { module, day, startTime, endTime, location, lecturer, group, year,semester, faculty, type } = req.body;
 
     // Input validation
-    if (!module || !day || !startTime || !endTime || !location || !lecturer || !group || !year || !faculty || !type) {
+    if (!module || !day || !startTime || !endTime || !location || !lecturer || !group || !year || !semester || !faculty || !type) {
         return res.status(400).json({ message: 'All fields are required' });
     }
 
     try {
-        const updateTimetable = await Timetable.findByIdAndUpdate(id, { module, day, startTime, endTime, location, lecturer, group, year, faculty, type }, { new: true });
+        const updateTimetable = await Timetable.findByIdAndUpdate(id, { module, day, startTime, endTime, location, lecturer, group, year,semester, faculty, type }, { new: true });
 
         if (!updateTimetable) {
             return res.status(404).json({ message: 'Timetable not found' });
@@ -894,7 +894,7 @@ const getAllReschedules = async (req, res,) => {
             .populate('location', 'locationName locationCode')
             .populate('lecturer', 'lecturerName')
             .populate('batch', 'batchType')
-            .lean();//tells Mongoose to return plain JavaScript objects instead of full Mongoose documents.
+            .lean();
 
         if (!reschedules || reschedules.length === 0) {
             return res.status(404).json({ message: 'No reschedules found' });
