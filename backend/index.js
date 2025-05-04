@@ -1,14 +1,14 @@
 import express from "express";
-import { connectDB } from "./DB/connectDB.js"; // Import the connectDB function
+import { connectDB } from "./DB/connectDB.js"; 
 import dotenv from "dotenv";
 import cors from "cors";
-import userRoutes from "./Routes/UserLogRoutes.js";
-import taskRoutes from "./Routes/TaskCornerRoutes.js";
+import adminRouter from "./Routes/AdminRoutes.js"; 
+import analysisRouter from "./Routes/AnalyticsRoutes.js"; 
 
 dotenv.config(); // Load environment variables
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+const app = express();   
+const PORT = 5000;
 
 // Middleware
 app.use(cors()); // Enable CORS for all routes
@@ -18,15 +18,9 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 // function calling for database connection
 connectDB();
 
-// Routes
-app.use("/api/user", userRoutes);
-app.use("/api/tasks", taskRoutes);
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
-});
+// Mounting routes
+app.use("/api/admin", adminRouter); // Keep existing admin routes (prefix adjusted)
+app.use("/api/analysis", analysisRouter); // Mount analysis routes
 
 // Start the server
 app.listen(PORT, () => {

@@ -5,7 +5,16 @@ import jsPDF from "jspdf";
 // Admin management system
 import AdminDash from './components/AdminManagement/AdminDashboard.jsx';
 import Timetable from './components/AdminManagement/Timetable.jsx';
+<<<<<<< HEAD
 import Event from './components/AdminManagement/Event.jsx';
+=======
+import Event from './components/AdminManagement/Event.jsx'
+import Faculty from "./components/AdminManagement/Faculty.jsx";
+import Student from "./components/AdminManagement/Student.jsx";
+import Lecturer from "./components/AdminManagement/Lecturer.jsx";
+import Location from "./components/AdminManagement/Location.jsx";
+import AnalysisPage from "./components/AdminManagement/AnalysisPage.jsx";
+>>>>>>> Admin-management-(Samadhi)
 
 // User management system
 import LandingPage from "./components/UserManagement/landingPage";
@@ -40,6 +49,12 @@ function App() {
         <Route path="/dashboard" element={<AdminDash />}/>
         <Route path="/admin-timetable" element={<Timetable />}/>
         <Route path="/events" element={<Event />}/>
+        <Route path="/faculties" element={<Faculty/>}/>
+        <Route path="/students" element={<Student/>}/>
+        <Route path="/lecturers" element={<Lecturer/>}/>
+        <Route path="/locations" element={<Location/>}/>
+        <Route path="/analysis" element={<AnalysisPage/>}/>
+
 
         {/* User Management Routes */}
         

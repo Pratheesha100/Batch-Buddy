@@ -7,10 +7,12 @@ const rescheduleSchema = new mongoose.Schema({
     newDate: { type: Date, required: true },
     startTime: { type: String, required: true },
     endTime: { type: String, required: true },
-    location: { type: mongoose.Schema.Types.ObjectId, ref: "Locations", required: true },
+    location: { type: mongoose.Schema.Types.ObjectId, ref: "Location", required: true },
     lecturer: { type: mongoose.Schema.Types.ObjectId, ref: "Lecturers", required: true },
-    group: { type: mongoose.Schema.Types.ObjectId, ref: "Group" },
+    group: { type: mongoose.Schema.Types.ObjectId, ref: "Groups" },
+    year: { type: String, required: true },
     faculty: { type: mongoose.Schema.Types.ObjectId, ref: "Faculty" }, 
+    batch: { type: mongoose.Schema.Types.ObjectId, ref: "Batches" },
     type: {
         type: String,
         set: (value) => {

@@ -9,9 +9,9 @@ const studentSchema = new mongoose.Schema(
   address: { type: String, required: true },
   birthday: { type: Date, required: true },
   email: { type: String, required: true, unique: true },
-  degree: { type: mongoose.Schema.Types.ObjectId, ref: "Degree", required: true },
+  degree: { type: mongoose.Schema.Types.ObjectId, ref: "Degrees", required: true },
   faculty: { type: mongoose.Schema.Types.ObjectId, ref: "Faculty", required: true },
-  batch: { type: mongoose.Schema.Types.ObjectId, ref: "Batch", required: true },
+  batch: { type: mongoose.Schema.Types.ObjectId, ref: "Batches", required: true },
 }
 , { timestamps: true }
 );

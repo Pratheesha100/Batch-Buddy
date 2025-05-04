@@ -1,123 +1,103 @@
 import React, { useState, useEffect } from 'react';
+import Swal from 'sweetalert2'; // Import Swal if needed for feedback
 import "./shared.css";
 
 function UpdateReschedule({ schedule, onClose, onUpdate }) {
+    // State for dropdown data
+    const [faculties, setFaculties] = useState([]);
+    const [batches, setBatches] = useState([]);
+    const [modules, setModules] = useState([]); // Renamed 'course' to 'module' for consistency
+    const [groups, setGroups] = useState([]);
+    const [locations, setLocations] = useState([]);
+    const [lecturers, setLecturers] = useState([]);
+
     const [formData, setFormData] = useState({
         faculty: '',
         batch: '',
         year: '',
         group: '',
-        course: '',
+        module: '', // Renamed from course
         lecturer: '',
-        date: '',
-        oldTime: '',
-        newTime: '',
+        oldDate: '', // Added oldDate
+        newDate: '', // Renamed from date
+        startTime: '', // Renamed from oldTime
+        endTime: '',   // Renamed from newTime
         location: '',
-        notes: ''
+        type: '',     // Added type
     });
 
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Fetch dropdown data on component mount
+    useEffect(() => {
+        const fetchDropdowns = async () => {
+            try {
+                const [facRes, batchRes, modRes, groupRes, locRes, lecRes] = await Promise.all([
+                    fetch('http://localhost:5000/api/admin/getFaculties'),
+                    fetch('http://localhost:5000/api/admin/getBatches'),
+                    fetch('http://localhost:5000/api/admin/modules'),
+                    fetch('http://localhost:5000/api/admin/groups'),
+                    fetch('http://localhost:5000/api/admin/locations'),
+                    fetch('http://localhost:5000/api/admin/lecturers'),
+                ]);
+                setFaculties(facRes.ok ? await facRes.json() : []);
+                setBatches(batchRes.ok ? await batchRes.json() : []);
+                setModules(modRes.ok ? await modRes.json() : []);
+                setGroups(groupRes.ok ? await groupRes.json() : []);
+                setLocations(locRes.ok ? await locRes.json() : []);
+                setLecturers(lecRes.ok ? await lecRes.json() : []);
+            } catch (err) {
+                console.error("Error fetching dropdowns:", err);
+                // Optionally show an error message to the user
+            }
+        };
+        fetchDropdowns();
+    }, []);
+
     // Initialize form data when schedule prop changes
     useEffect(() => {
         if (schedule) {
             setFormData({
-                faculty: schedule.faculty,
-                batch: schedule.batch,
-                year: schedule.year,
-                group: schedule.group,
-                course: schedule.course,
-                lecturer: schedule.professor,
-                date: schedule.newDate,
-                oldTime: schedule.oldTime,
-                newTime: schedule.newTime,
-                location: schedule.room,
-                notes: schedule.notes || ''
+                faculty: schedule.faculty?._id || schedule.faculty || '',
+                batch: schedule.batch?._id || schedule.batch || '',
+                year: schedule.year || '',
+                group: schedule.group?._id || schedule.group || '',
+                module: schedule.module?._id || schedule.module || '', // Use module
+                lecturer: schedule.lecturer?._id || schedule.lecturer || '',
+                oldDate: schedule.oldDate ? new Date(schedule.oldDate).toISOString().split('T')[0] : '', // Add oldDate
+                newDate: schedule.newDate ? new Date(schedule.newDate).toISOString().split('T')[0] : '', // Use newDate
+                startTime: schedule.startTime || '', // Use startTime
+                endTime: schedule.endTime || '',   // Use endTime
+                location: schedule.location?._id || schedule.location || '',
+                type: schedule.type || '',         // Add type
             });
         }
     }, [schedule]);
 
-    // Validation rules
+    // Validation rules (Update as needed based on new fields)
     const validateField = (name, value) => {
         let error = '';
-        
+        // Add/Update validation rules for module, oldDate, newDate, startTime, endTime, type
         switch (name) {
-            case 'faculty':
-                if (!value) {
-                    error = 'Please select a faculty';
+            case 'faculty': if (!value) error = 'Please select a faculty'; break;
+            case 'batch': if (!value) error = 'Please select a batch'; break;
+            case 'year': if (!value) error = 'Please select a year'; break;
+            case 'group': if (!value) error = 'Please select a group'; break;
+            case 'module': if (!value) error = 'Please select a module'; break;
+            case 'lecturer': if (!value) error = 'Please select a lecturer'; break;
+            case 'oldDate': if (!value) error = 'Please select the original date'; break;
+            case 'newDate': if (!value) error = 'Please select the new date'; break;
+            case 'startTime': if (!value) error = 'Please select the start time'; break;
+            case 'endTime':
+                if (!value) error = 'Please select the end time';
+                else if (formData.startTime && value <= formData.startTime) {
+                    error = 'End time must be after start time';
                 }
                 break;
-
-            case 'batch':
-                if (!value) {
-                    error = 'Please select a batch';
-                }
-                break;
-
-            case 'year':
-                if (!value) {
-                    error = 'Please select a year';
-                }
-                break;
-
-            case 'group':
-                if (!value) {
-                    error = 'Please select a group';
-                }
-                break;
-
-            case 'course':
-                if (!value) {
-                    error = 'Please select a course';
-                }
-                break;
-
-            case 'lecturer':
-                if (!value) {
-                    error = 'Please select a lecturer';
-                }
-                break;
-
-            case 'date':
-                if (!value) {
-                    error = 'Please select a date';
-                } else {
-                    const selectedDate = new Date(value);
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    
-                    if (selectedDate < today) {
-                        error = 'Date cannot be in the past';
-                    }
-                }
-                break;
-
-            case 'oldTime':
-                if (!value) {
-                    error = 'Please select the original time';
-                }
-                break;
-
-            case 'newTime':
-                if (!value) {
-                    error = 'Please select the new time';
-                } else if (formData.oldTime && value === formData.oldTime) {
-                    error = 'New time must be different from the original time';
-                }
-                break;
-
-            case 'location':
-                if (!value) {
-                    error = 'Please select a location';
-                }
-                break;
-
-            case 'notes':
-                if (value.length > 500) {
-                    error = 'Notes must not exceed 500 characters';
-                }
-                break;
+            case 'location': if (!value) error = 'Please select a location'; break;
+            case 'type': if (!value) error = 'Please select a session type'; break;
+            default: break;
         }
         return error;
     };
@@ -130,8 +110,12 @@ function UpdateReschedule({ schedule, onClose, onUpdate }) {
             [name]: value
         }));
 
-        // Validate on change
-        const error = validateField(name, value);
+        let error = validateField(name, value);
+        // Re-validate endTime if startTime changes
+        if (name === 'startTime' && formData.endTime) {
+             const endTimeError = validateField('endTime', formData.endTime);
+             setErrors(prev => ({...prev, endTime: endTimeError}));
+        }
         setErrors(prev => ({
             ...prev,
             [name]: error
@@ -143,7 +127,6 @@ function UpdateReschedule({ schedule, onClose, onUpdate }) {
         e.preventDefault();
         setIsSubmitting(true);
 
-        // Validate all fields
         const newErrors = {};
         Object.keys(formData).forEach(key => {
             const error = validateField(key, formData[key]);
@@ -152,19 +135,42 @@ function UpdateReschedule({ schedule, onClose, onUpdate }) {
 
         setErrors(newErrors);
 
-        // If there are no errors, proceed with submission
         if (Object.keys(newErrors).length === 0) {
             try {
-                // Call the onUpdate function with the updated data
-                await onUpdate(schedule.id, formData);
-                onClose(); // Close the modal after successful update
+                // Construct payload matching the backend schema
+                const payload = {
+                    faculty: formData.faculty,
+                    batch: formData.batch,
+                    year: formData.year,
+                    group: formData.group,
+                    module: formData.module,
+                    lecturer: formData.lecturer,
+                    oldDate: formData.oldDate,
+                    newDate: formData.newDate,
+                    startTime: formData.startTime,
+                    endTime: formData.endTime,
+                    location: formData.location,
+                    type: formData.type,
+                };
+                await onUpdate(schedule._id, payload); // Pass the updated payload
+                onClose();
             } catch (error) {
                 console.error('Error updating schedule:', error);
+                // Optionally show error Swal
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Update Failed',
+                    text: 'Failed to update reschedule. Please try again.',
+                    confirmButtonColor: '#ef4444',
+                    width: 400,
+                });
             }
         }
-
         setIsSubmitting(false);
     };
+
+    // Get today's date for min attribute
+    const today = new Date().toISOString().split('T')[0];
 
     return (
         <div className="admin-modal-overlay">
@@ -175,9 +181,10 @@ function UpdateReschedule({ schedule, onClose, onUpdate }) {
                 </div>
                 <form className="admin-form" onSubmit={handleSubmit}>
                     <div className="admin-form-grid">
+                        {/* Faculty Dropdown */}
                         <div>
                             <label className="admin-label">Faculty</label>
-                            <select 
+                            <select
                                 name="faculty"
                                 value={formData.faculty}
                                 onChange={handleChange}
@@ -185,16 +192,16 @@ function UpdateReschedule({ schedule, onClose, onUpdate }) {
                                 required
                             >
                                 <option value="">Select Faculty</option>
-                                <option value="computing">Computing</option>
-                                <option value="engineering">Engineering</option>
-                                <option value="business">Business</option>
-                                <option value="humanities">Humanities</option>
+                                {faculties.map(faculty => (
+                                    <option key={faculty._id} value={faculty._id}>{faculty.facultyName}</option>
+                                ))}
                             </select>
                             {errors.faculty && <span className="admin-error-message">{errors.faculty}</span>}
                         </div>
+                        {/* Batch Dropdown */}
                         <div>
                             <label className="admin-label">Batch</label>
-                            <select 
+                            <select
                                 name="batch"
                                 value={formData.batch}
                                 onChange={handleChange}
@@ -202,31 +209,38 @@ function UpdateReschedule({ schedule, onClose, onUpdate }) {
                                 required
                             >
                                 <option value="">Select Batch</option>
-                                <option value="batch1">Weekday</option>
-                                <option value="batch2">Weekend</option>
+                                {batches.map(batch => (
+                                    <option key={batch._id} value={batch._id}>{batch.batchType}</option>
+                                ))}
                             </select>
                             {errors.batch && <span className="admin-error-message">{errors.batch}</span>}
                         </div>
+                         {/* Year Dropdown */}
                         <div>
                             <label className="admin-label">Year</label>
-                            <select 
+                             <select
                                 name="year"
                                 value={formData.year}
                                 onChange={handleChange}
                                 className={errors.year ? 'admin-select admin-error' : 'admin-select'}
                                 required
-                            >
+                             >
                                 <option value="">Select Year</option>
-                                <option value="1">Year 1</option>
-                                <option value="2">Year 2</option>
-                                <option value="3">Year 3</option>
-                                <option value="4">Year 4</option>
+                                <option value="Y1S1">Year 1 Semester 1</option>
+                                <option value="Y1S2">Year 1 Semester 2</option>
+                                <option value="Y2S1">Year 2 Semester 1</option>
+                                <option value="Y2S2">Year 2 Semester 2</option>
+                                <option value="Y3S1">Year 3 Semester 1</option>
+                                <option value="Y3S2">Year 3 Semester 2</option>
+                                <option value="Y4S1">Year 4 Semester 1</option>
+                                <option value="Y4S2">Year 4 Semester 2</option>
                             </select>
                             {errors.year && <span className="admin-error-message">{errors.year}</span>}
                         </div>
+                        {/* Group Dropdown */}
                         <div>
                             <label className="admin-label">Group</label>
-                            <select 
+                            <select
                                 name="group"
                                 value={formData.group}
                                 onChange={handleChange}
@@ -234,31 +248,33 @@ function UpdateReschedule({ schedule, onClose, onUpdate }) {
                                 required
                             >
                                 <option value="">Select Group</option>
-                                <option value="A">Group 1</option>
-                                <option value="B">Group 2</option>
-                                <option value="C">Group 3</option>
+                                {groups.map(group => (
+                                    <option key={group._id} value={group._id}>{group.groupNum}</option>
+                                ))}
                             </select>
                             {errors.group && <span className="admin-error-message">{errors.group}</span>}
                         </div>
+                        {/* Module (Course) Dropdown */}
                         <div>
-                            <label className="admin-label">Course</label>
-                            <select 
-                                name="course"
-                                value={formData.course}
+                            <label className="admin-label">Module</label> {/* Changed label */}
+                            <select
+                                name="module" // Changed name
+                                value={formData.module} // Changed value binding
                                 onChange={handleChange}
-                                className={errors.course ? 'admin-select admin-error' : 'admin-select'}
+                                className={errors.module ? 'admin-select admin-error' : 'admin-select'} // Changed error check
                                 required
                             >
-                                <option value="">Select Course</option>
-                                <option value="cs101">CS101</option>
-                                <option value="cs102">CS102</option>
-                                <option value="cs103">CS103</option>
+                                <option value="">Select Module</option>
+                                {modules.map(module => (
+                                    <option key={module._id} value={module._id}>{module.moduleName} ({module.moduleCode})</option>
+                                ))}
                             </select>
-                            {errors.course && <span className="admin-error-message">{errors.course}</span>}
+                            {errors.module && <span className="admin-error-message">{errors.module}</span>} {/* Changed error check */}
                         </div>
+                         {/* Lecturer Dropdown */}
                         <div>
                             <label className="admin-label">Lecturer</label>
-                            <select 
+                            <select
                                 name="lecturer"
                                 value={formData.lecturer}
                                 onChange={handleChange}
@@ -266,75 +282,102 @@ function UpdateReschedule({ schedule, onClose, onUpdate }) {
                                 required
                             >
                                 <option value="">Select Lecturer</option>
-                                <option value="lecturer1">Dr. Smith</option>
-                                <option value="lecturer2">Prof. Johnson</option>
-                                <option value="lecturer3">Dr. Williams</option>
+                                {lecturers.map(lecturer => (
+                                    <option key={lecturer._id} value={lecturer._id}>{lecturer.lecturerName}</option>
+                                ))}
                             </select>
                             {errors.lecturer && <span className="admin-error-message">{errors.lecturer}</span>}
                         </div>
+                         {/* Old Date Input */}
                         <div>
-                            <label className="admin-label">Date</label>
-                            <input 
-                                type="date" 
-                                name="date"
-                                value={formData.date}
+                            <label className="admin-label">Old Date</label>
+                            <input
+                                type="date"
+                                name="oldDate"
+                                value={formData.oldDate}
                                 onChange={handleChange}
-                                className={errors.date ? 'admin-input admin-error' : 'admin-input'}
+                                className={errors.oldDate ? 'admin-input admin-error' : 'admin-input'}
+                                max={formData.newDate || undefined} // Old date can't be after new date
                                 required
                             />
-                            {errors.date && <span className="admin-error-message">{errors.date}</span>}
+                            {errors.oldDate && <span className="admin-error-message">{errors.oldDate}</span>}
                         </div>
+                        {/* New Date Input */}
                         <div>
-                            <label className="admin-label">Old Time</label>
-                            <input 
-                                type="time" 
-                                name="oldTime"
-                                value={formData.oldTime}
+                            <label className="admin-label">New Date</label>
+                            <input
+                                type="date"
+                                name="newDate"
+                                value={formData.newDate}
                                 onChange={handleChange}
-                                className={errors.oldTime ? 'admin-input admin-error' : 'admin-input'}
+                                className={errors.newDate ? 'admin-input admin-error' : 'admin-input'}
+                                min={formData.oldDate || today} // New date must be after old date or today
                                 required
                             />
-                            {errors.oldTime && <span className="admin-error-message">{errors.oldTime}</span>}
+                            {errors.newDate && <span className="admin-error-message">{errors.newDate}</span>}
                         </div>
+                         {/* Start Time Input */}
                         <div>
-                            <label className="admin-label">New Time</label>
-                            <input 
-                                type="time" 
-                                name="newTime"
-                                value={formData.newTime}
+                            <label className="admin-label">Start Time</label>
+                            <input
+                                type="time"
+                                name="startTime"
+                                value={formData.startTime}
                                 onChange={handleChange}
-                                className={errors.newTime ? 'admin-input admin-error' : 'admin-input'}
+                                className={errors.startTime ? 'admin-input admin-error' : 'admin-input'}
                                 required
                             />
-                            {errors.newTime && <span className="admin-error-message">{errors.newTime}</span>}
+                            {errors.startTime && <span className="admin-error-message">{errors.startTime}</span>}
                         </div>
+                        {/* End Time Input */}
+                        <div>
+                            <label className="admin-label">End Time</label>
+                            <input
+                                type="time"
+                                name="endTime"
+                                value={formData.endTime}
+                                onChange={handleChange}
+                                className={errors.endTime ? 'admin-input admin-error' : 'admin-input'}
+                                required
+                            />
+                            {errors.endTime && <span className="admin-error-message">{errors.endTime}</span>}
+                        </div>
+                         {/* Location Dropdown */}
                         <div>
                             <label className="admin-label">Location</label>
-                            <select 
+                            <select
                                 name="location"
                                 value={formData.location}
                                 onChange={handleChange}
                                 className={errors.location ? 'admin-select admin-error' : 'admin-select'}
                                 required
                             >
-                                <option value="">Select Room</option>
-                                <option value="101">Room 101</option>
-                                <option value="102">Room 102</option>
-                                <option value="103">Room 103</option>
+                                <option value="">Select Location</option>
+                                {locations.map(location => (
+                                    <option key={location._id} value={location._id}>{location.locationName} ({location.locationCode})</option>
+                                ))}
                             </select>
                             {errors.location && <span className="admin-error-message">{errors.location}</span>}
                         </div>
-                    </div>
-                    <div className="admin-note-container">
-                        <label className="admin-label">Additional Notes</label>
-                        <textarea 
-                            name="notes"
-                            value={formData.notes}
-                            onChange={handleChange}
-                            placeholder="Enter any additional notes or requirements"
-                            className={errors.notes ? 'admin-textarea admin-error' : 'admin-textarea'}
-                        ></textarea>
-                        {errors.notes && <span className="admin-error-message">{errors.notes}</span>}
+                         {/* Session Type Dropdown */}
+                        <div>
+                            <label className="admin-label">Session Type</label>
+                             <select
+                                name="type"
+                                value={formData.type}
+                                onChange={handleChange}
+                                className={errors.type ? 'admin-select admin-error' : 'admin-select'}
+                                required
+                             >
+                                <option value="">Select Type</option>
+                                <option value="Lecture">Lecture</option>
+                                <option value="Practical">Practical</option>
+                                <option value="Tutorial">Tutorial</option>
+                                <option value="Presentation">Presentation</option>
+                                <option value="Viva">Viva</option>
+                            </select>
+                            {errors.type && <span className="admin-error-message">{errors.type}</span>}
+                        </div>
                     </div>
                     <div className="admin-form-actions">
                         <button
@@ -344,8 +387,8 @@ function UpdateReschedule({ schedule, onClose, onUpdate }) {
                         >
                             Cancel
                         </button>
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             className="admin-btn admin-save-btn"
                             disabled={isSubmitting}
                         >
