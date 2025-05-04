@@ -484,6 +484,8 @@ const ChartCard = ({ title, data, dataKey, xAxisKey, isLoading, error, xAxisLabe
             strokeWidth={2}
             dot={{ r: 3 }}
             activeDot={{ r: 6 }}
+            fillOpacity={0.3}
+            fill="#1E64F0"
           />
         </LineChart>
       </ResponsiveContainer>

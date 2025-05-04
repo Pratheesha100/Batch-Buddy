@@ -447,10 +447,10 @@ function Timetable() {
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}
-                accept=".xlsx, .xls, .csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv"
+                accept=".pdf, application/pdf, .xlsx, .xls, .csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv"
                 style={{ display: 'none' }}
               />
-              <motion.button
+              {/* <motion.button
                 className="admin-btnn admin-upload-btn"
                 onClick={handleFileSelection}
                 whileHover={{ scale: 1.05 }}
@@ -464,7 +464,7 @@ function Timetable() {
                     <Upload size={21} /> Upload File
                   </>
                 )}
-              </motion.button>
+              </motion.button> */}
             </div>
             <div className="admin-search-container">
               <div className="flex items-center gap-2 rounded-lg px-2 py-2 shadow-sm">

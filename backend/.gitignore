@@ -15,3 +15,5 @@ build/
 # Cache and temp files
 .cache/
 .DS_Store
+
+uploads/
