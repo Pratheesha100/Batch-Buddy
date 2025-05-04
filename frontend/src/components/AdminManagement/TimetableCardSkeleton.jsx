@@ -1,5 +1,5 @@
 import React from 'react';
-import './timetable.css'; // Reuse timetable CSS for skeleton styles
+import './timetable.css';
 
 const SkeletonCard = () => (
     <div className="admin-card skeleton-card">
