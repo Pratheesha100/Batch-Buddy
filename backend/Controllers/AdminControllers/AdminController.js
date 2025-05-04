@@ -258,7 +258,7 @@ export { addMultipleLocations };
 //Get all groups
 const getAllGroups = async (req, res,) => {
     try {
-        const groups = await Groups.find();
+        const groups = await Groups.find().lean();
 
         if (!groups || groups.length === 0) {
             return res.status(404).json({ message: 'No groups found' });

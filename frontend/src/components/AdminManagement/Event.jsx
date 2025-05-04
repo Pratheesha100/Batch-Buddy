@@ -174,12 +174,22 @@ function Event() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedData),
       });
-      if (!res.ok) throw new Error('Failed to update reschedule');
-      const updated = await res.json();
-      const reschedulesRes = await fetch("http://localhost:5000/api/admin/reschedules");
-      if (!reschedulesRes.ok) throw new Error("Failed to fetch reschedules");
-      const reschedulesData = await reschedulesRes.json();
-      setReschedules(reschedulesData || []);
+      if (!res.ok) {
+        // Try to get error message from backend
+        const errorData = await res.json().catch(() => ({ message: 'Failed to update reschedule' }));
+        throw new Error(errorData.message || 'Failed to update reschedule');
+      }
+
+      // Don't use the direct response, re-fetch the list instead
+      // const updated = await res.json(); 
+      // setReschedules(prevReschedules =>
+      //  prevReschedules.map(schedule =>
+      //    schedule._id === id ? updated : schedule
+      //  )
+      // );
+
+      await fetchReschedules(); // Re-fetch the list to get populated data
+
       setShowUpdateForm(false);
       setSelectedSchedule(null);
       await Swal.fire({
@@ -194,7 +204,7 @@ function Event() {
       await Swal.fire({
         icon: 'error',
         title: 'Update Failed',
-        text: 'Failed to update reschedule. Please try again.',
+        text: err.message || 'Failed to update reschedule. Please try again.', // Show backend error message if available
         confirmButtonColor: '#ef4444',
         width: 400,
       });
@@ -334,6 +344,23 @@ function Event() {
       });
     }
   };
+
+  // Add a fetchReschedules function to refresh the reschedule list
+  const fetchReschedules = async () => {
+    try {
+      const reschedulesRes = await fetch("http://localhost:5000/api/admin/reschedules");
+      if (!reschedulesRes.ok) throw new Error("Failed to fetch reschedules");
+      const reschedulesData = await reschedulesRes.json();
+      setReschedules(reschedulesData || []);
+    } catch (err) {
+      console.error("Error fetching reschedules:", err);
+    }
+  };
+
+  // Ensure fetchReschedules is called on initial load
+  useEffect(() => {
+    fetchReschedules();
+  }, []);
 
   if (error) return <div className="text-center py-8 text-red-500">Error: {error}</div>;
 
@@ -553,7 +580,12 @@ function Event() {
           </div>
         </div>
       }>
-        {showForm && <AddReschedule onClose={handleCloseForm} />}
+        {showForm && (
+          <AddReschedule
+            onClose={handleCloseForm}
+            onRescheduleAdded={() => fetchReschedules()}
+          />
+        )}
       </Suspense>
       
       <Suspense fallback={
