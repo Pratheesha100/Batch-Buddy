@@ -132,6 +132,7 @@ function UpdateTimetable({ timetable, onClose, onUpdate }) {
         const { name, value } = e.target;
 
         let updatedFormData = { ...formData, [name]: value };
+        let currentErrors = { ...errors }; // Copy current errors
 
         // If group changes, try to update year and semester automatically
         if (name === 'group') {
@@ -139,39 +140,32 @@ function UpdateTimetable({ timetable, onClose, onUpdate }) {
             if (selectedGroup) {
                 updatedFormData = {
                     ...updatedFormData,
-                    year: selectedGroup.year || '', // Update year based on selected group
-                    semester: selectedGroup.semester || '', // Update semester based on selected group
+                    year: selectedGroup.year || '', 
+                    semester: selectedGroup.semester || '', 
                 };
-                // Clear potential errors for year/semester as they are auto-filled
-                 setErrors(prev => ({ ...prev, year: '', semester: '' }));
+                 currentErrors.year = '';
+                 currentErrors.semester = '';
             } else {
-                 updatedFormData = { ...updatedFormData, year: '', semester: ''}; // Clear if group is invalid/unselected
+                 // Clear year/semester if group is deselected or not found
+                 updatedFormData = { ...updatedFormData, year: '', semester: ''};
+                 // Re-validate year/semester as they might now be invalid
+                 currentErrors.year = validateField('year', '', updatedFormData);
+                 currentErrors.semester = validateField('semester', '', updatedFormData);
             }
+            // Validate the group field itself
+            currentErrors.group = validateField('group', value, updatedFormData);
+        } else {
+             // Validate the currently changing field
+            currentErrors[name] = validateField(name, value, updatedFormData);
+        }
+
+        // Special validation for endTime related to startTime
+        if (name === 'startTime' || name === 'endTime') {
+            currentErrors.endTime = validateField('endTime', updatedFormData.endTime, updatedFormData);
         }
 
         setFormData(updatedFormData);
-
-        // Validate the changed field
-        const error = validateField(name, value);
-        let errorsUpdate = { ...errors, [name]: error };
-
-        // Special validation for endTime related to startTime
-        if (name === 'startTime' && updatedFormData.endTime) {
-            const endTimeError = validateField('endTime', updatedFormData.endTime);
-            errorsUpdate = { ...errorsUpdate, endTime: endTimeError };
-        }
-        if (name === 'endTime') {
-             const endTimeError = validateField('endTime', value);
-             errorsUpdate = { ...errorsUpdate, endTime: endTimeError };
-        }
-        // Also validate auto-filled year/semester if group changed
-         if (name === 'group') {
-            const yearError = validateField('year', updatedFormData.year);
-            const semesterError = validateField('semester', updatedFormData.semester);
-            errorsUpdate = { ...errorsUpdate, year: yearError, semester: semesterError };
-        }
-
-        setErrors(errorsUpdate);
+        setErrors(currentErrors); // Update errors state
     };
 
 
@@ -287,33 +281,33 @@ function UpdateTimetable({ timetable, onClose, onUpdate }) {
                             </select>
                             {errors.group && <span className="admin-error-message">{errors.group}</span>}
                         </div>
-                         {/* Year Input (Potentially ReadOnly or derived) */}
+                         {/* Year Input (ReadOnly derived) */}
                          <div>
                             <label className="admin-label">Year</label>
                             <input
                                 type="number" // Use number type
                                 name="year"
                                 value={formData.year}
-                                onChange={handleChange}
-                                className={errors.year ? 'admin-input admin-error' : 'admin-input'}
-                                placeholder="Year (e.g., 1)"
+                                onChange={handleChange} // Keep onChange in case validation triggers
+                                className={`${errors.year ? 'admin-error' : ''} admin-input admin-input-readonly`} // Add readonly class
+                                placeholder="(from Group)"
                                 required
-                                readOnly // Make read-only if derived from group
+                                readOnly // Make read-only
                             />
                             {errors.year && <span className="admin-error-message">{errors.year}</span>}
                         </div>
-                         {/* Semester Input (Potentially ReadOnly or derived) */}
+                         {/* Semester Input (ReadOnly derived) */}
                         <div>
                             <label className="admin-label">Semester</label>
                             <input
                                 type="number" // Use number type
                                 name="semester"
                                 value={formData.semester}
-                                onChange={handleChange}
-                                className={errors.semester ? 'admin-input admin-error' : 'admin-input'}
-                                placeholder="Semester (e.g., 1)"
+                                onChange={handleChange} // Keep onChange in case validation triggers
+                                className={`${errors.semester ? 'admin-error' : ''} admin-input admin-input-readonly`} // Add readonly class
+                                placeholder="(from Group)"
                                 required
-                                readOnly // Make read-only if derived from group
+                                readOnly // Make read-only
                             />
                             {errors.semester && <span className="admin-error-message">{errors.semester}</span>}
                         </div>
