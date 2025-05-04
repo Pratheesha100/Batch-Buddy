@@ -1,17 +1,17 @@
-import Faculties from '../Models/Faculties.js';
-import Batches from '../Models/Batches.js';
-import Degrees from '../Models/Degrees.js';
-import Locations from '../Models/Location.js';
-import Groups from '../Models/Groups.js';
-import Modules from '../Models/Modules.js';
-import Lecturers from '../Models/Lecturers.js';
-import Students from '../Models/Students.js';
-import LecturerModule from '../Models/LecturerModule.js';
-import StudentGroup from '../Models/StudentGroups.js';
-import StudentModule from '../Models/StudentModules.js';
-import Timetable from '../Models/Timetables.js';
-import Events from '../Models/Events.js';
-import Reschedules from '../Models/Reschedules.js';
+import Faculties from '../../Models/Faculty.js';
+import Batches from '../../Models/Batches.js';
+import Degrees from '../../Models/Degrees.js';
+import Locations from '../../Models/Location.js';
+import Groups from '../../Models/Groups.js';
+import Modules from '../../Models/Modules.js';
+import Lecturers from '../../Models/Lecturers.js';
+import Students from '../../Models/Students.js';
+import LecturerModule from '../../Models/LecturerModule.js';
+import StudentGroup from '../../Models/StudentGroups.js';
+import StudentModule from '../../Models/StudentModules.js';
+import Timetable from '../../Models/Timetables.js';
+import Events from '../../Models/Events.js';
+import Reschedules from '../../Models/Reschedules.js';
 
 //Faculties model
 //Get all faculties
@@ -173,7 +173,7 @@ export { addMultipleDegrees };
 //Get all locations
 const getAllLocations = async (req, res,) => {
     try {
-        const locations = await Locations.find();
+        const locations = await Locations.find().populate('faculty', 'facultyName');
 
         if (!locations || locations.length === 0) {
             return res.status(404).json({ message: 'No locations found' });
@@ -186,6 +186,26 @@ const getAllLocations = async (req, res,) => {
     }
 };
 export { getAllLocations };
+
+// Get locations by faculty
+const getLocationsByFaculty = async (req, res) => {
+    const { facultyId } = req.params;
+    try {
+        const locations = await Locations.find({ faculty: facultyId })
+            .populate('faculty', 'facultyName')
+            .lean();
+        if (!locations || locations.length === 0) {
+            return res.status(404).json({ message: 'No locations found for this faculty' });
+        }
+        res.status(200).json(locations);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error fetching locations' });
+    }
+};
+
+export { getLocationsByFaculty };
+
 
 //create locations
 const addLocations = async (req, res) => {
@@ -251,6 +271,30 @@ const getAllGroups = async (req, res,) => {
     }
 };
 export { getAllGroups };
+
+// Get groups by faculty
+const getGroupsByFaculty = async (req, res) => {
+    const { facultyId } = req.params;
+    try {
+        // Assuming Groups schema has a direct reference to faculty
+        // Adjust the query if the relationship is indirect (e.g., through Degree)
+        const groups = await Groups.find({ faculty: facultyId })
+            .populate('degree', 'degreeName')
+            .populate('batch', 'batchType')
+            .lean(); // Add .lean() here to return plain JavaScript objects
+            // Add other necessary populates
+
+        if (!groups || groups.length === 0) {
+            return res.status(404).json({ message: 'No groups found for this faculty' });
+        }
+        res.status(200).json(groups);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error fetching groups' });
+    }
+};
+
+export { getGroupsByFaculty };
 
 //create groups
 const addGroups = async (req, res) => {
@@ -319,6 +363,23 @@ const getAllModules = async (req, res,) => {
 };
 export { getAllModules };
 
+// Get modules by faculty
+const getModulesByFaculty = async (req, res) => {
+    const { facultyId } = req.params;
+    try {
+        const modules = await Modules.find({ faculty: facultyId }).lean();
+        if (!modules || modules.length === 0) {
+            return res.status(404).json({ message: 'No modules found for this faculty' });
+        }
+        res.status(200).json(modules);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error fetching modules' });
+    }
+};
+
+export { getModulesByFaculty };
+
 //create modules
 const addModules = async (req, res) => {
     const { moduleCode, moduleName, degree, year, credits, faculty, lecturerInCharge } = req.body;
@@ -369,7 +430,8 @@ export { addMultipleModule };
 //Get all lecturers
 const getAllLecturers = async (req, res,) => {
     try {
-        const lecturers = await Lecturers.find();
+        const lecturers = await Lecturers.find()
+            .populate('faculty', 'facultyName');
 
         if (!lecturers || lecturers.length === 0) {
             return res.status(404).json({ message: 'No lecturers found' });
@@ -382,6 +444,26 @@ const getAllLecturers = async (req, res,) => {
     }
 };
 export { getAllLecturers };
+
+// Get lecturers by faculty
+const getLecturersByFaculty = async (req, res) => {
+    const { facultyId } = req.params;
+    try {
+        const lecturers = await Lecturers.find({ faculty: facultyId })
+            .populate('faculty', 'facultyName')
+            .lean();
+        if (!lecturers || lecturers.length === 0) {
+            return res.status(404).json({ message: 'No lecturers found for this faculty' });
+        }
+        res.status(200).json(lecturers);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error fetching lecturers' });
+    }
+};
+
+export { getLecturersByFaculty };
+
 
 //create lecturers
 const addLecturers = async (req, res) => {
@@ -433,7 +515,10 @@ export {addMultipleLecturers };
 //Get all students
 const getAllStudents = async (req, res,) => {
     try {
-        const students = await Students.find();
+        const students = await Students.find()
+            .populate('faculty', 'facultyName')
+            .populate('batch', 'batchType')
+            .populate('degree', 'degreeName');
 
         if (!students || students.length === 0) {
             return res.status(404).json({ message: 'No students found' });
@@ -649,14 +734,14 @@ export { getAllTimetables };
 
 //create timetables
 const addTimetables = async (req, res) => {
-    const { module, day, startTime, endTime, location, lecturer, group, faculty, type } = req.body;
+    const { module, day, startTime, endTime, location, lecturer, group, year, faculty, type } = req.body;
     //input validation
-    if (!module || !day || !startTime || !endTime || !location || !lecturer || !group || !faculty || !type) {
+    if (!module || !day || !startTime || !endTime || !location || !lecturer || !group || !year || !faculty || !type) {
         return res.status(404).json({ message: 'module, day, startTime, endTime, location and lecturer are required' });
     }
 
     try {
-        const newTimetable = new Timetable({ module, day, startTime, endTime, location, lecturer, group, faculty, type });
+        const newTimetable = new Timetable({ module, day, startTime, endTime, location, lecturer, group,year, faculty, type });
         await newTimetable.save();
         res.status(200).json(newTimetable);
     } catch (err) {
@@ -667,8 +752,48 @@ const addTimetables = async (req, res) => {
 export { addTimetables };
 
 //update timetables
+const updateTimetable = async (req, res) =>{
+    const { id } = req.params;
+    const { module, day, startTime, endTime, location, lecturer, group, year, faculty, type } = req.body;
+
+    // Input validation
+    if (!module || !day || !startTime || !endTime || !location || !lecturer || !group || !year || !faculty || !type) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    try {
+        const updateTimetable = await Timetable.findByIdAndUpdate(id, { module, day, startTime, endTime, location, lecturer, group, year, faculty, type }, { new: true });
+
+        if (!updateTimetable) {
+            return res.status(404).json({ message: 'Timetable not found' });
+        }
+
+        res.status(200).json(updateTimetable);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error updating timetable' });
+    }
+}
+export { updateTimetable };
 
 //delete timetables
+const deleteTimetable = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deletedTimetable = await Events.findByIdAndDelete(id);
+
+        if (!deletedTimetable) {
+            return res.status(404).json({ message: 'Timetable not found' });
+        }
+
+        res.status(200).json({ message: 'Timetable deleted successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error deleting timetable' });
+    }
+}
+export { deleteTimetable };
 //---------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -677,7 +802,7 @@ export { addTimetables };
 //Get all events
 const getAllEvents = async (req, res,) => {
     try {
-        const events = await Events.find();
+        const events = await Events.find().populate('faculty', 'facultyName').lean();
 
         if (!events || events.length === 0) {
             return res.status(404).json({ message: 'No events found' });
@@ -762,7 +887,14 @@ export { deleteEvents };
 //Get all reschedules
 const getAllReschedules = async (req, res,) => {
     try {
-        const reschedules = await Reschedules.find();
+        const reschedules = await Reschedules.find()
+            .populate('faculty', 'facultyName')
+            .populate('module', 'moduleName')
+            .populate('group', 'groupNum')
+            .populate('location', 'locationName locationCode')
+            .populate('lecturer', 'lecturerName')
+            .populate('batch', 'batchType')
+            .lean();//tells Mongoose to return plain JavaScript objects instead of full Mongoose documents.
 
         if (!reschedules || reschedules.length === 0) {
             return res.status(404).json({ message: 'No reschedules found' });
@@ -778,14 +910,14 @@ export { getAllReschedules };
 
 //create reschedules
 const addReschedules = async (req, res) => {
-    const { module, oldDate, newDate, startTime, endTime, location, lecturer, group, faculty, type } = req.body;
+    const { module, oldDate, newDate, startTime, endTime, location, lecturer, year, group, batch, faculty, type } = req.body;
     //input validation
-    if (!module || !oldDate || !newDate || !startTime || !endTime || !location || !lecturer || !group || !faculty || !type) {
-        return res.status(404).json({ message: 'module, oldDate, newDate, startTime, endTime, location and lecturer are required' });
+    if (!module || !oldDate || !newDate || !startTime || !endTime || !location || !lecturer || !year || !group || !batch || !faculty || !type) {
+        return res.status(404).json({ message: 'module, oldDate, newDate, startTime, endTime, location, lecturer, year, group, batch, faculty and type are required' });
     }
 
     try {
-        const newReschedule = new Reschedules({ module, oldDate, newDate, startTime, endTime, location, lecturer, group, faculty, type });
+        const newReschedule = new Reschedules({ module, oldDate, newDate, startTime, endTime, location, lecturer, year, group, batch, faculty, type });
         await newReschedule.save();
         res.status(200).json(newReschedule);
     } catch (err) {
@@ -798,15 +930,15 @@ export { addReschedules };
 //update reschedules
 const updateReschedules = async (req, res) => {
     const { id } = req.params;
-    const { module, oldDate, newDate, startTime, endTime, location, lecturer, group, faculty, type } = req.body;
+    const { module, oldDate, newDate, startTime, endTime, location, lecturer, year, group, batch, faculty, type } = req.body;
 
     // Input validation
-    if (!module || !oldDate || !newDate || !startTime || !endTime || !location || !lecturer || !group || !faculty || !type) {
+    if (!module || !oldDate || !newDate || !startTime || !endTime || !location || !lecturer || !year || !group || !batch || !faculty || !type) {
         return res.status(400).json({ message: 'All fields are required' });
     }
 
     try {
-        const updatedReschedule = await Reschedules.findByIdAndUpdate(id, { module, oldDate, newDate, startTime, endTime, location, lecturer, group, faculty, type }, { new: true });
+        const updatedReschedule = await Reschedules.findByIdAndUpdate(id, { module, oldDate, newDate, startTime, endTime, location, lecturer, year, group, batch, faculty, type }, { new: true });
 
         if (!updatedReschedule) {
             return res.status(404).json({ message: 'Reschedule not found' });
@@ -838,5 +970,10 @@ const deleteReschedules = async (req, res) => {
     }
 }
 export { deleteReschedules };
+
+
+
+
+
 
 
