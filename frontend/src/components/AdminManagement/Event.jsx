@@ -1,14 +1,47 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import Nav from "./Navigation/Navbar";
 import Header from "./Navigation/Header";
 import Footer from "./Navigation/Footer";
-import { PlusCircle, Trash2, Pencil, MapPin, AlarmClock } from "lucide-react";
-import AddReschedule from "./AddReschedule";
-import UpdateReschedule from "./UpdateReschedule";
-import AddEvent from "./AddEvent";
-import UpdateEvent from "./UpdateEvent";
+import { PlusCircle, Trash2, Pencil, MapPin, AlarmClock, ChevronLeft, ChevronRight } from "lucide-react";
+import EventCardSkeleton from "./EventCardSkeleton";
+import RescheduleTableSkeleton from "./RescheduleTableSkeleton";
+// Lazy load modal components
+const AddReschedule = lazy(() => import("./AddReschedule"));
+const UpdateReschedule = lazy(() => import("./UpdateReschedule"));
+const AddEvent = lazy(() => import("./AddEvent"));
+const UpdateEvent = lazy(() => import("./UpdateEvent"));
 import "./shared.css";
 import "./event.css";
+import Swal from 'sweetalert2';
+
+// Format date helper function
+const formatDate = (dateString) => {
+  if (!dateString) return '-';
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  } catch (err) {
+    console.error("Error formatting date:", err);
+    return '-';
+  }
+};
+
+// Move fetchEvents helper above useEffect
+const fetchEvents = async (setError, setEvents) => {
+  try {
+    const eventsRes = await fetch("http://localhost:5000/api/admin/events");
+    if (!eventsRes.ok) throw new Error("Failed to fetch events");
+    const eventsData = await eventsRes.json();
+    setEvents(eventsData);
+  } catch (err) {
+    setError(err.message);
+    console.error("Error fetching events:", err);
+  }
+};
 
 function Event() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -18,75 +51,95 @@ function Event() {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [deleteType, setDeleteType] = useState(null); // 'event' or 'schedule'
-  //const navigate = useNavigate();
+  const [deleteType, setDeleteType] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Sample data for schedules
-  const [schedules, setSchedules] = useState([
-    {
-      id: 1,
-      faculty: "Computing",
-      year: "2",
-      batch: "Weekday",
-      group: "Group 1",
-      course: "Advanced Mathematics",
-      originalDate: "Mar 10, 2025",
-      newDate: "Mar 12, 2025",
-      professor: "Dr. Smith",
-      room: "Room A301",
-      oldTime: "09:00",
-      newTime: "11:00",
-    },
-    {
-      id: 2,
-      faculty: "Engineering",
-      year: "3",
-      batch: "Weekend",
-      group: "Group 2",
-      course: "Computer Science",
-      originalDate: "Mar 15, 2025",
-      newDate: "Mar 17, 2025",
-      professor: "Prof. Johnson",
-      room: "Lab F201",
-      oldTime: "14:00",
-      newTime: "16:00",
-    },
-    {
-      id: 3,
-      faculty: "Business",
-      year: "1",
-      batch: "Weekday",
-      group: "Group 3",
-      course: "Database Systems",
-      originalDate: "Mar 20, 2025",
-      newDate: "Mar 23, 2025",
-      professor: "Dr. Samantha",
-      room: "Lab G301",
-      oldTime: "10:00",
-      newTime: "12:00",
-    },
-  ]);
+  // State for real data
+  const [events, setEvents] = useState([]);
+  const [reschedules, setReschedules] = useState([]);
+  const [faculties, setFaculties] = useState([]);
+  const [batches, setBatches] = useState([]);
 
-  const [events, setEvents] = useState([
-    {
-      id: 1,
-      title: "Annual Tech Festival",
-      date: "March 15, 2025",
-      description:
-        "Join us for an exciting day of technology demonstrations, workshops, and networking.",
-      location: "Main Auditorium",
-      time: "9:00 AM",
-    },
-    {
-      id: 2,
-      title: "Cultural Night",
-      date: "April 5, 2025",
-      description:
-        "Experience diverse cultural performances by our talented students.",
-      location: "Open Theater",
-      time: "6:00 PM",
-    },
-  ]);
+  // Pagination state for Reschedules table
+  const [currentReschedulePage, setCurrentReschedulePage] = useState(1);
+  const [reschedulesPerPage] = useState(10); // Adjust number per page as needed
+
+  // Create a ref for the container width measurement
+  const scrollContainerRef = React.useRef(null);
+  const [containerWidth, setContainerWidth] = useState(800);
+
+  // Add a resize observer to update container width
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      setContainerWidth(scrollContainerRef.current.offsetWidth);
+      
+      const resizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+          setContainerWidth(entry.contentRect.width);
+        }
+      });
+      
+      resizeObserver.observe(scrollContainerRef.current);
+      return () => resizeObserver.disconnect();
+    }
+  }, []);
+
+  // Fetch initial data
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Use Promise.all to fetch data in parallel
+        const [eventsRes, reschedulesRes, facRes, batchRes] = await Promise.all([
+          fetch("http://localhost:5000/api/admin/events"),
+          fetch("http://localhost:5000/api/admin/reschedules"),
+          fetch('http://localhost:5000/api/admin/getFaculties'),
+          fetch('http://localhost:5000/api/admin/getBatches')
+        ]);
+
+        // Process Events response
+        if (!eventsRes.ok) throw new Error("Failed to fetch events");
+        const eventsData = await eventsRes.json();
+        setEvents(eventsData);
+
+        // Process Reschedules response
+        if (!reschedulesRes.ok) throw new Error("Failed to fetch reschedules");
+        const reschedulesData = await reschedulesRes.json();
+        setReschedules(reschedulesData || []);
+
+        // Process Faculties response
+        if (!facRes.ok) throw new Error('Failed to fetch faculties');
+        const facData = await facRes.json();
+        setFaculties(facData);
+
+        // Process Batches response
+        if (!batchRes.ok) throw new Error('Failed to fetch batches');
+        const batchData = await batchRes.json();
+        setBatches(batchData);
+
+      } catch (err) {
+        setError(err.message);
+        console.error("Error fetching data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // --- Pagination Logic for Reschedules ---
+  const indexOfLastReschedule = currentReschedulePage * reschedulesPerPage;
+  const indexOfFirstReschedule = indexOfLastReschedule - reschedulesPerPage;
+  const currentRescheduleRecords = reschedules.slice(indexOfFirstReschedule, indexOfLastReschedule);
+  const totalReschedulePages = Math.ceil(reschedules.length / reschedulesPerPage);
+
+  const paginateReschedules = (pageNumber) => setCurrentReschedulePage(pageNumber);
+  const nextReschedulePage = () => setCurrentReschedulePage(prev => Math.min(prev + 1, totalReschedulePages));
+  const prevReschedulePage = () => setCurrentReschedulePage(prev => Math.max(prev - 1, 1));
+  // --- End Reschedule Pagination Logic ---
 
   const handleAddSchedule = () => {
     setShowForm(true);
@@ -114,27 +167,38 @@ function Event() {
     setSelectedSchedule(null);
   };
 
-  const handleUpdateSchedule = async (updatedData) => {
-    setSchedules((prevSchedules) =>
-      prevSchedules.map((schedule) =>
-        schedule.id === updatedData.id
-          ? {
-              ...schedule,
-              faculty: updatedData.faculty,
-              year: updatedData.year,
-              batch: updatedData.batch,
-              group: updatedData.group,
-              course: updatedData.course,
-              originalDate: schedule.originalDate,
-              newDate: updatedData.newDate,
-              professor: updatedData.lecturer,
-              room: updatedData.room,
-              oldTime: updatedData.oldTime,
-              newTime: updatedData.newTime,
-            }
-          : schedule
-      )
-    );
+  const handleUpdateSchedule = async (id, updatedData) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/updateReschedules/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData),
+      });
+      if (!res.ok) throw new Error('Failed to update reschedule');
+      const updated = await res.json();
+      const reschedulesRes = await fetch("http://localhost:5000/api/admin/reschedules");
+      if (!reschedulesRes.ok) throw new Error("Failed to fetch reschedules");
+      const reschedulesData = await reschedulesRes.json();
+      setReschedules(reschedulesData || []);
+      setShowUpdateForm(false);
+      setSelectedSchedule(null);
+      await Swal.fire({
+        icon: 'success',
+        title: 'Reschedule Updated',
+        text: 'The reschedule was updated successfully.',
+        confirmButtonColor: '#2563eb',
+        width: 400,
+      });
+    } catch (err) {
+      console.error('Error updating reschedule:', err);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Update Failed',
+        text: 'Failed to update reschedule. Please try again.',
+        confirmButtonColor: '#ef4444',
+        width: 400,
+      });
+    }
   };
 
   const handleEditEvent = (event) => {
@@ -143,20 +207,34 @@ function Event() {
   };
 
   const handleUpdateEvent = async (id, updatedData) => {
-    setEvents((prevEvents) =>
-      prevEvents.map((event) =>
-        event.id === id
-          ? {
-              ...event,
-              title: updatedData.eventName,
-              date: updatedData.date,
-              time: updatedData.time,
-              location: updatedData.location,
-              description: updatedData.notes,
-            }
-          : event
-      )
-    );
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/updateEvents/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData),
+      });
+      if (!res.ok) throw new Error('Failed to update event');
+      await res.json();
+      await fetchEvents(setError, setEvents);
+      setShowUpdateForm(false);
+      setSelectedEvent(null);
+      await Swal.fire({
+        icon: 'success',
+        title: 'Event Updated',
+        text: 'The event was updated successfully.',
+        confirmButtonColor: '#2563eb',
+        width: 400,
+      });
+    } catch (err) {
+      console.error('Error updating event:', err);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Update Failed',
+        text: 'Failed to update event. Please try again.',
+        confirmButtonColor: '#ef4444',
+        width: 400,
+      });
+    }
   };
 
   const handleDeleteClick = (item, type) => {
@@ -170,20 +248,54 @@ function Event() {
     setShowDeleteConfirmation(true);
   };
 
-  const handleDeleteConfirm = () => {
-    if (deleteType === "event") {
-      setEvents((prevEvents) =>
-        prevEvents.filter((event) => event.id !== selectedEvent.id)
-      );
-    } else {
-      setSchedules((prevSchedules) =>
-        prevSchedules.filter((schedule) => schedule.id !== selectedSchedule.id)
-      );
+  const handleDeleteConfirm = async () => {
+    try {
+      let successTitle = '';
+      let successText = '';
+      if (deleteType === "event") {
+        const res = await fetch(`http://localhost:5000/api/admin/deleteEvents/${selectedEvent._id}`, {
+          method: 'DELETE',
+        });
+        if (!res.ok) throw new Error('Failed to delete event');
+        setEvents(prevEvents => prevEvents.filter(event => event._id !== selectedEvent._id));
+        successTitle = 'Event Deleted';
+        successText = 'The event was deleted successfully.';
+      } else {
+        const res = await fetch(`http://localhost:5000/api/admin/deleteReschedules/${selectedSchedule._id}`, {
+          method: 'DELETE',
+        });
+        if (!res.ok) throw new Error('Failed to delete reschedule');
+        setReschedules(prevReschedules => prevReschedules.filter(schedule => schedule._id !== selectedSchedule._id));
+        successTitle = 'Reschedule Deleted';
+        successText = 'The reschedule was deleted successfully.';
+      }
+      // Hide the confirmation modal and reset state BEFORE showing SweetAlert
+      setShowDeleteConfirmation(false);
+      setSelectedEvent(null);
+      setSelectedSchedule(null);
+      setDeleteType(null);
+
+      await Swal.fire({
+        icon: 'success',
+        title: successTitle,
+        text: successText,
+        confirmButtonColor: '#2563eb',
+        width: 400,
+      });
+    } catch (err) {
+      console.error('Error deleting:', err);
+      setShowDeleteConfirmation(false);
+      setSelectedEvent(null);
+      setSelectedSchedule(null);
+      setDeleteType(null);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Delete Failed',
+        text: 'Failed to delete. Please try again.',
+        confirmButtonColor: '#ef4444',
+        width: 400,
+      });
     }
-    setShowDeleteConfirmation(false);
-    setSelectedEvent(null);
-    setSelectedSchedule(null);
-    setDeleteType(null);
   };
 
   const handleDeleteCancel = () => {
@@ -193,11 +305,41 @@ function Event() {
     setDeleteType(null);
   };
 
+  const handleCreateEvent = async (newEventData) => {
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/addEvents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newEventData),
+      });
+      if (!res.ok) throw new Error('Failed to create event');
+      await res.json();
+      await fetchEvents(setError, setEvents);
+      setShowAddEventForm(false);
+      await Swal.fire({
+        icon: 'success',
+        title: 'Event Created',
+        text: 'The event was created successfully.',
+        confirmButtonColor: '#2563eb',
+        width: 400,
+      });
+    } catch (err) {
+      console.error(err);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Create Failed',
+        text: 'Failed to create event. Please try again.',
+        confirmButtonColor: '#ef4444',
+        width: 400,
+      });
+    }
+  };
+
+  if (error) return <div className="text-center py-8 text-red-500">Error: {error}</div>;
+
   return (
     <div className="admin-dashboard-container">
-      {/* Pass collapse state & setter to Navbar */}
       <Nav isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-
       <div className={`admin-content ${isCollapsed ? "collapsed" : ""}`}>
         <Header />
         <div className="admin-main-content-container">
@@ -209,14 +351,51 @@ function Event() {
             <h3 className="admin-section-title">Social Events</h3>
             <div className="admin-events-container">
               <div className="admin-events-card-container">
-                {events.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    onEdit={() => handleEditEvent(event)}
-                    onDelete={() => handleDeleteClick(event, "event")}
-                  />
-                ))}
+                <button 
+                  className="carousel-button prev"
+                  onClick={() => {
+                    if (scrollContainerRef.current) {
+                      scrollContainerRef.current.scrollBy({ left: -364, behavior: 'smooth' });
+                    }
+                  }}
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                <div 
+                  className="admin-events-card-container-scroll" 
+                  ref={scrollContainerRef}
+                >
+                  {loading ? (
+                    <>
+                      {/* Render multiple skeletons to fill the initial view */}
+                      <EventCardSkeleton />
+                      <EventCardSkeleton />
+                      <EventCardSkeleton />
+                    </>
+                  ) : events.length > 0 ? (
+                    events.map((event) => (
+                      <EventCard
+                        key={event._id || `event-${Math.random()}`}
+                        event={event}
+                        onEdit={() => handleEditEvent(event)}
+                        onDelete={() => handleDeleteClick(event, "event")}
+                        formatDate={formatDate}
+                      />
+                    ))
+                  ) : (
+                    <div className="text-center py-4">No events found</div>
+                  )}
+                </div>
+                <button 
+                  className="carousel-button next"
+                  onClick={() => {
+                    if (scrollContainerRef.current) {
+                      scrollContainerRef.current.scrollBy({ left: 364, behavior: 'smooth' });
+                    }
+                  }}
+                >
+                  <ChevronRight size={24} />
+                </button>
               </div>
               <div className="admin-add-button-container">
                 <button
@@ -239,7 +418,6 @@ function Event() {
                   className="admin-add-schedule-btn"
                   onClick={handleAddSchedule}
                 >
-                  {" "}
                   <PlusCircle size={21} />
                   Add New Schedule
                 </button>
@@ -251,69 +429,153 @@ function Event() {
                   <tr>
                     <th>Faculty</th>
                     <th>Year</th>
-                    <th>Batch</th>
                     <th>Group</th>
-                    <th>Course</th>
+                    <th>Batch</th>
+                    <th>Module</th>
                     <th>Original Date</th>
                     <th>New Date</th>
-                    <th>Professor</th>
-                    <th>Room</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Location</th>
+                    <th>Lecturer</th>
+                    <th>Type</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {schedules.map((schedule) => (
-                    <tr key={schedule.id}>
-                      <td>{schedule.faculty}</td>
-                      <td>{schedule.year}</td>
-                      <td>{schedule.batch}</td>
-                      <td>{schedule.group}</td>
-                      <td>{schedule.course}</td>
-                      <td>{schedule.originalDate}</td>
-                      <td>{schedule.newDate}</td>
-                      <td>{schedule.professor}</td>
-                      <td>{schedule.room}</td>
-                      <td className="admin-table-actions">
-                        <span onClick={() => handleEditSchedule(schedule)}>
-                          <Pencil
-                            size={21} color="#121c14" className="admin-edit-icon"
-                          />
-                        </span>
-                        <span onClick={() => handleDeleteClick(schedule, "schedule")}>
-                          <Trash2
-                            size={21} color="#d12929" className="admin-delete-icon"
-                          />
-                        </span>
+                  {loading ? (
+                    <RescheduleTableSkeleton rows={5} /> // Show 5 skeleton rows
+                  ) : reschedules && reschedules.length > 0 ? (
+                    currentRescheduleRecords.map((schedule) => (
+                      <tr key={schedule._id || `schedule-${Math.random()}`}>
+                        <td>{schedule.faculty?.facultyName || '-'}</td>
+                        <td>{schedule.year || '-'}</td>
+                        <td>{schedule.group?.groupNum || '-'}</td>
+                        <td>{schedule.batch?.batchType || '-'}</td>
+                        <td>{schedule.module?.moduleName || '-'}</td>
+                        <td>{formatDate(schedule.oldDate)}</td>
+                        <td>{formatDate(schedule.newDate)}</td>
+                        <td>{schedule.startTime || '-'}</td>
+                        <td>{schedule.endTime || '-'}</td>
+                        <td>{schedule.location?.locationCode || '-'}</td>
+                        <td>{schedule.lecturer?.lecturerName || '-'}</td>
+                        <td>{schedule.type || '-'}</td>
+                        <td className="admin-table-actions">
+                          <span onClick={() => handleEditSchedule(schedule)}>
+                            <Pencil
+                              size={21} color="#121c14" className="admin-edit-icon"
+                            />
+                          </span>
+                          <span onClick={() => handleDeleteClick(schedule, "schedule")}>
+                            <Trash2
+                              size={21} color="#d12929" className="admin-delete-icon"
+                            />
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="13" className="text-center py-4">
+                        {loading ? '' : 'No reschedules found'} {/* Hide message during load */}
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
+              
+              {/* Pagination Controls for Reschedule Table */}
+              {totalReschedulePages > 1 && (
+                <div className="flex items-center justify-between mt-6 px-4">
+                  <div className="text-sm text-gray-600">
+                    Showing {indexOfFirstReschedule + 1} to {Math.min(indexOfLastReschedule, reschedules.length)} of {reschedules.length} entries
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={prevReschedulePage}
+                      disabled={currentReschedulePage === 1}
+                      className={`flex items-center px-4 py-2 rounded-md text-sm font-medium ${currentReschedulePage === 1 ? 'text-gray-400 bg-gray-100 cursor-not-allowed' : 'text-gray-700 bg-white hover:bg-gray-50'}`}
+                    >
+                      <ChevronLeft size={18} className="mr-1" /> Previous
+                    </button>
+                    <div className="flex items-center gap-1">
+                      {(() => {
+                        const pageNumbers = [];
+                        const maxPagesToShow = 7;
+                        let startPage, endPage;
+                        if (totalReschedulePages <= maxPagesToShow) {
+                          startPage = 1; endPage = totalReschedulePages;
+                        } else {
+                          const maxPagesBeforeCurrent = Math.floor(maxPagesToShow / 2);
+                          const maxPagesAfterCurrent = Math.ceil(maxPagesToShow / 2) - 1;
+                          if (currentReschedulePage <= maxPagesBeforeCurrent) {
+                            startPage = 1; endPage = maxPagesToShow;
+                          } else if (currentReschedulePage + maxPagesAfterCurrent >= totalReschedulePages) {
+                            startPage = totalReschedulePages - maxPagesToShow + 1; endPage = totalReschedulePages;
+                          } else {
+                            startPage = currentReschedulePage - maxPagesBeforeCurrent; endPage = currentReschedulePage + maxPagesAfterCurrent;
+                          }
+                        }
+                        for (let i = startPage; i <= endPage; i++) {
+                          pageNumbers.push(
+                            <button
+                              key={i}
+                              onClick={() => paginateReschedules(i)}
+                              className={`px-3 py-1 rounded-md text-sm font-medium ${currentReschedulePage === i ? 'bg-blue-600 text-white' : 'text-gray-600 bg-white hover:bg-gray-100'}`}
+                            >
+                              {i}
+                            </button>
+                          );
+                        }
+                        return pageNumbers;
+                      })()}
+                    </div>
+                    <button
+                      onClick={nextReschedulePage}
+                      disabled={currentReschedulePage === totalReschedulePages}
+                      className={`flex items-center px-4 py-2 rounded-md text-sm font-medium ${currentReschedulePage === totalReschedulePages ? 'text-gray-400 bg-gray-100 cursor-not-allowed' : 'text-gray-700 bg-white hover:bg-gray-50'}`}
+                    >
+                      Next <ChevronRight size={18} className="ml-1" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
         <Footer />
       </div>
 
-      {showForm && <AddReschedule onClose={handleCloseForm} />}
+      <Suspense fallback={<div>Loading form...</div>}>
+        {showForm && <AddReschedule onClose={handleCloseForm} />}
+      </Suspense>
       
-      {showUpdateForm && selectedSchedule && (
-        <UpdateReschedule
-          schedule={selectedSchedule}
-          onClose={handleCloseUpdateForm}
-          onUpdate={handleUpdateSchedule}
-        />
-      )}
+      <Suspense fallback={<div>Loading form...</div>}>
+        {showUpdateForm && selectedSchedule && (
+          <UpdateReschedule
+            schedule={selectedSchedule}
+            faculties={faculties}
+            batches={batches}
+            onClose={handleCloseUpdateForm}
+            onUpdate={handleUpdateSchedule}
+          />
+        )}
+      </Suspense>
 
-      {showUpdateForm && selectedEvent && (
-        <UpdateEvent
-          event={selectedEvent}
-          onClose={handleCloseUpdateForm}
-          onUpdate={handleUpdateEvent}
-        />
-      )}
+      <Suspense fallback={<div>Loading form...</div>}>
+        {showUpdateForm && selectedEvent && (
+          <UpdateEvent
+            event={selectedEvent}
+            faculties={faculties}
+            onClose={handleCloseUpdateForm}
+            onUpdate={handleUpdateEvent}
+          />
+        )}
+      </Suspense>
 
-      {showAddEventForm && <AddEvent onClose={handleCloseAddEventForm} />}
+      <Suspense fallback={<div>Loading form...</div>}>
+        {showAddEventForm && <AddEvent faculties={faculties} onClose={handleCloseAddEventForm} onAdd={handleCreateEvent} />}
+      </Suspense>
 
       {showDeleteConfirmation && (
         <div className="admin-modal-overlay">
@@ -329,10 +591,10 @@ function Event() {
               {deleteType === "event" ? (
                 <>
                   <p>
-                    <strong>Event Title:</strong> {selectedEvent?.title}
+                    <strong>Event Title:</strong> {selectedEvent?.eventName}
                   </p>
                   <p>
-                    <strong>Date:</strong> {selectedEvent?.date}
+                    <strong>Date:</strong> {new Date(selectedEvent?.eventDate).toLocaleDateString()}
                   </p>
                   <p>
                     <strong>Location:</strong> {selectedEvent?.location}
@@ -344,16 +606,16 @@ function Event() {
               ) : (
                 <>
                   <p>
-                    <strong>Course:</strong> {selectedSchedule?.course}
+                    <strong>Module:</strong> {selectedSchedule?.module?.moduleName}
                   </p>
                   <p>
-                    <strong>Faculty:</strong> {selectedSchedule?.faculty}
+                    <strong>Faculty:</strong> {selectedSchedule?.faculty?.facultyName}
                   </p>
                   <p>
-                    <strong>Group:</strong> {selectedSchedule?.group}
+                    <strong>Group:</strong> {selectedSchedule?.group?.groupNum}
                   </p>
                   <p>
-                    <strong>New Date:</strong> {selectedSchedule?.newDate}
+                    <strong>New Date:</strong> {new Date(selectedSchedule?.newDate).toLocaleDateString()}
                   </p>
                 </>
               )}
@@ -381,24 +643,34 @@ function Event() {
   );
 }
 
-const EventCard = ({ event, onEdit, onDelete }) => (
+// EventCard component 
+const EventCard = ({ event, onEdit, onDelete, formatDate }) => (
   <div className="admin-event-card">
-    <h3 className="admin-event-title">{event.title}</h3>
-    <p className="admin-event-date">{event.date}</p>
-    <p className="admin-event-description">{event.description}</p>
+    <h3 className="admin-event-title">{event.eventName || 'Untitled Event'}</h3>
+    <p className="admin-event-date">{formatDate(event.eventDate)}</p>
+    <div className="admin-event-content">
+      <p className="admin-event-description">{event.eventDescription || 'No description available'}</p>
+      <p className="admin-event-faculty">{event.faculty?.facultyName || 'No faculty specified'}</p>
+    </div>
     <div className="admin-event-details">
       <span>
-        <MapPin size={18} color="#999999" className="adminicon" />
-        {event.location}
+        <MapPin size={7} color="#999999" className="adminicon" />
+        {event.location || 'No location specified'}
       </span>
       <span>
-        <AlarmClock size={18} color="#999999" className="adminicon" /> {event.time}
+        <AlarmClock size={7} color="#999999" className="adminicon" /> 
+        {event.time || 'No time specified'}
       </span>
     </div>
     <div className="admin-event-actions">
-      <Pencil size={26} className="admin-action-icon1" onClick={onEdit} />
-      <Trash2 size={26} className="admin-action-icon2" onClick={onDelete} />
+      <button className="admin-action-button edit" onClick={onEdit}>
+        <Pencil size={16} />
+      </button>
+      <button className="admin-action-button delete" onClick={onDelete}>
+        <Trash2 size={16} />
+      </button>
     </div>
   </div>
 );
+
 export default Event;

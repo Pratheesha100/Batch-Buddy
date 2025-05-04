@@ -4,26 +4,77 @@ import "./shared.css";
 function UpdateEvent({ event, onClose, onUpdate }) {
     const [formData, setFormData] = useState({
         eventName: '',
-        faculty: '',
-        date: '',
+        eventDescription: '',
+        eventDate: '',
         time: '',
         location: '',
-        notes: ''
+        faculty: ''
     });
 
+    const [faculties, setFaculties] = useState([]);
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
+    // Fetch faculties
+    useEffect(() => {
+        const fetchFaculties = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/admin/getFaculties');
+                if (response.ok) {
+                    const data = await response.json();
+                    setFaculties(data);
+                }
+            } catch (error) {
+                console.error('Error fetching faculties:', error);
+            }
+        };
+        
+        fetchFaculties();
+    }, []);
+
+    // Populate form data when event changes
     useEffect(() => {
         if (event) {
+            setIsLoading(true);
+            // Format the date for the date input (YYYY-MM-DD)
+            const formattedDate = event.eventDate 
+                ? new Date(event.eventDate).toISOString().split('T')[0] 
+                : '';
+                
+            // Convert time to 24-hour format if needed
+            let formattedTime = '';
+            if (event.time) {
+                // Check if time is in 12-hour format (contains AM/PM)
+                if (event.time.includes('AM') || event.time.includes('PM')) {
+                    const timeParts = event.time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                    if (timeParts) {
+                        let hours = parseInt(timeParts[1]);
+                        const minutes = timeParts[2];
+                        const period = timeParts[3].toUpperCase();
+                        
+                        // Convert to 24-hour format
+                        if (period === 'PM' && hours < 12) hours += 12;
+                        if (period === 'AM' && hours === 12) hours = 0;
+                        
+                        // Format as HH:MM
+                        formattedTime = `${hours.toString().padStart(2, '0')}:${minutes}`;
+                    }
+                } else {
+                    // Already in correct format or another format
+                    formattedTime = event.time;
+                }
+            }
+                
             setFormData({
-                eventName: event.title,
-                faculty: event.faculty || '',
-                date: event.date,
-                time: event.time,
-                location: event.location,
-                notes: event.description
+                eventName: event.eventName || '',
+                eventDescription: event.eventDescription || '',
+                eventDate: formattedDate,
+                time: formattedTime,
+                location: event.location || '',
+                faculty: event.faculty?._id || event.faculty || ''
             });
+            setIsLoading(false);
         }
     }, [event]);
 
@@ -48,17 +99,9 @@ function UpdateEvent({ event, onClose, onUpdate }) {
                 }
                 break;
 
-            case 'date':
+            case 'eventDate':
                 if (!value) {
                     error = 'Date is required';
-                } else {
-                    const selectedDate = new Date(value);
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    
-                    if (selectedDate < today) {
-                        error = 'Date cannot be in the past';
-                    }
                 }
                 break;
 
@@ -71,18 +114,14 @@ function UpdateEvent({ event, onClose, onUpdate }) {
             case 'location':
                 if (!value.trim()) {
                     error = 'Location is required';
-                } else if (value.length < 5) {
-                    error = 'Location must be at least 5 characters';
                 }
                 break;
 
-            case 'notes':
+            case 'eventDescription':
                 if (!value.trim()) {
                     error = 'Description is required';
                 } else if (value.length < 10) {
                     error = 'Description must be at least 10 characters';
-                } else if (value.length > 500) {
-                    error = 'Description must not exceed 500 characters';
                 }
                 break;
         }
@@ -122,16 +161,16 @@ function UpdateEvent({ event, onClose, onUpdate }) {
         // If there are no errors, proceed with submission
         if (Object.keys(newErrors).length === 0) {
             try {
-                const updatedEvent = {
-                    id: event.id,
-                    title: formData.eventName,
-                    faculty: formData.faculty,
-                    date: formData.date,
+                const updatedEventData = {
+                    eventName: formData.eventName,
+                    eventDescription: formData.eventDescription,
+                    eventDate: formData.eventDate,
                     time: formData.time,
                     location: formData.location,
-                    description: formData.notes
+                    faculty: formData.faculty
                 };
-                onUpdate(event.id, updatedEvent);
+                
+                await onUpdate(event._id, updatedEventData);
                 onClose();
             } catch (error) {
                 console.error('Error updating event:', error);
@@ -141,8 +180,9 @@ function UpdateEvent({ event, onClose, onUpdate }) {
         setIsSubmitting(false);
     };
 
-    // Get today's date in YYYY-MM-DD format for date input min attribute
-    const today = new Date().toISOString().split('T')[0];
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div className="admin-modal-overlay">
@@ -176,10 +216,11 @@ function UpdateEvent({ event, onClose, onUpdate }) {
                                 required
                             >
                                 <option value="">Select Faculty</option>
-                                <option value="computing">Computing</option>
-                                <option value="engineering">Engineering</option>
-                                <option value="business">Business</option>
-                                <option value="humanities">Humanities</option>
+                                {faculties.map(faculty => (
+                                    <option key={faculty._id} value={faculty._id}>
+                                        {faculty.facultyName}
+                                    </option>
+                                ))}
                             </select>
                             {errors.faculty && <span className="admin-error-message">{errors.faculty}</span>}
                         </div>
@@ -187,14 +228,13 @@ function UpdateEvent({ event, onClose, onUpdate }) {
                             <label className="admin-label">Date</label>
                             <input 
                                 type="date" 
-                                name="date"
-                                value={formData.date}
+                                name="eventDate"
+                                value={formData.eventDate}
                                 onChange={handleChange}
-                                min={today}
-                                className={errors.date ? 'admin-input admin-error' : 'admin-input'}
+                                className={errors.eventDate ? 'admin-input admin-error' : 'admin-input'}
                                 required
                             />
-                            {errors.date && <span className="admin-error-message">{errors.date}</span>}
+                            {errors.eventDate && <span className="admin-error-message">{errors.eventDate}</span>}
                         </div>
                         <div>
                             <label className="admin-label">Time</label>
@@ -225,14 +265,14 @@ function UpdateEvent({ event, onClose, onUpdate }) {
                     <div className="admin-note-container">
                         <label className="admin-label">Description</label>
                         <textarea 
-                            name="notes"
-                            value={formData.notes}
+                            name="eventDescription"
+                            value={formData.eventDescription}
                             onChange={handleChange}
                             placeholder="Enter a description (minimum 10 characters)"
-                            className={errors.notes ? 'admin-textarea admin-error' : 'admin-textarea'}
+                            className={errors.eventDescription ? 'admin-textarea admin-error' : 'admin-textarea'}
                             required
                         ></textarea>
-                        {errors.notes && <span className="error-message">{errors.notes}</span>}
+                        {errors.eventDescription && <span className="admin-error-message">{errors.eventDescription}</span>}
                     </div>
                     <div className="admin-form-actions">
                         <button
