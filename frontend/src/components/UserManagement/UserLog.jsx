@@ -39,6 +39,18 @@ const UserLog = () => {
         });
         return;
       }
+      // Check for second admin credentials
+      if (userFormData.studentId === 'adminsama' && userFormData.password === 'adminsama') {
+        Swal.fire({
+          icon: 'success',
+          title: 'Admin Login Successful!',
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(() => {
+          navigate('/dashboard');
+        });
+        return;
+      }
       // Normal student login
       const response = await axios.post('http://localhost:5000/api/user/login', {
         ...userFormData,

@@ -28,7 +28,7 @@ function Navbar({ isCollapsed, setIsCollapsed }) {
           {/* Navigation Items */}
           <nav className="admin-nav">
             <NavItem to="/dashboard" icon={<LayoutDashboard  />} text="Dashboard" isCollapsed={isCollapsed} />
-            <NavItem to="/timetable" icon={<CalendarClock  />} text="Timetable" isCollapsed={isCollapsed} />
+            <NavItem to="/admin-timetable" icon={<CalendarClock  />} text="Timetable" isCollapsed={isCollapsed} />
             <NavItem to="/events"  icon={<CalendarPlus2 />} text="Events" isCollapsed={isCollapsed} />
             <NavItem  icon={<Settings  />} text="Settings" isCollapsed={isCollapsed} />
           </nav>
