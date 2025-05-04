@@ -15,8 +15,6 @@ const connectDB = async () => {
         console.log('MongoDB URI:', mongoURI.replace(/\/\/[^:]+:[^@]+@/, '//<credentials>@')); // Hide credentials in logs
 
         const options = {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
             serverSelectionTimeoutMS: 30000, // Increased timeout
             socketTimeoutMS: 45000,
             family: 4, // Force IPv4

@@ -1,15 +1,11 @@
-<<<<<<< HEAD
+import React from 'react';
 import { Route, Routes, useLocation } from "react-router-dom";
+import jsPDF from "jspdf";
 
 // Admin management system
 import AdminDash from './components/AdminManagement/AdminDashboard.jsx';
 import Timetable from './components/AdminManagement/Timetable.jsx';
-import Event from './components/AdminManagement/Event.jsx'
-=======
-import React from 'react';
-import { Route, Routes } from "react-router-dom";
-import jsPDF from "jspdf";
->>>>>>> new-User-management
+import Event from './components/AdminManagement/Event.jsx';
 
 // User management system
 import LandingPage from "./components/UserManagement/landingPage";
@@ -39,25 +35,20 @@ function App() {
   return (
     <div className="app">
       <Routes>
-<<<<<<< HEAD
         {/* Admin Routes */}
-        <Route path="" element={<AdminDash/>} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/dashboard" element={<AdminDash />}/>
-        <Route path="/timetable" element={<Timetable />}/>
+        <Route path="/admin-timetable" element={<Timetable />}/>
         <Route path="/events" element={<Event />}/>
 
-        
-        {/* User Routes */}
-=======
         {/* User Management Routes */}
-        <Route path="/" element={<LandingPage />} />
+        
         <Route path="/login" element={<UserLog />} />
         <Route path="/register" element={<Register />} />
         <Route path="/get-started" element={<Register />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/task-corner" element={<TaskCorner />} />
         <Route path="/report" element={<Report />} />
->>>>>>> new-User-management
 
         {/* Attendance & Productivity Routes */}
         <Route path="/home" element={<BatchBuddy />} />
@@ -68,12 +59,9 @@ function App() {
         <Route path="/about" element={<AboutUs />} />
         <Route path="/user-profile" element={<UserProfile />} />
 
-       
-
         {/* Simulate Admin Route */}
         <Route path="/simulate-admin" element={<SimulateAdmin />} />
         <Route path="/admin-timetable" element={<TimetableManager />} />
-
 
         {/* Fallback route */}
         <Route path="*" element={<NotFound />} />
