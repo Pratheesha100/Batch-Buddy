@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, MessageSquare } from 'lucide-react';
-import './aiChatModal.css'; // We'll create this CSS file next
-import AiResponseParser from './AiResponseParser.jsx'; // Import the parser
+import './aiChatModal.css'; 
+import AiResponseParser from './AiResponseParser.jsx'; 
 
 function AiChatModal({ isOpen, onClose }) {
   const [messages, setMessages] = useState([]);
@@ -19,7 +19,7 @@ function AiChatModal({ isOpen, onClose }) {
   useEffect(() => {
     if (isOpen) {
       setMessages([
-        { role: 'ai', content: 'Hello! How can I help you analyze the attendance data today?' }
+        { role: 'ai', content: 'Hello! How can I help you analyze and predict attendance data today?' }
       ]);
       setInput('');
       setError(null);

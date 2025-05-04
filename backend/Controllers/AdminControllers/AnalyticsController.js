@@ -11,6 +11,7 @@ import Faculties from '../../Models/Faculty.js';
 import Batches from '../../Models/Batches.js';
 import Groups from '../../Models/Groups.js';
 import Locations from '../../Models/Location.js';
+import Events from '../../Models/Events.js';
 
 // --- Helper Functions ---
 
@@ -341,6 +342,130 @@ export async function getAttendanceByDemographics() {
   } catch (e) { console.error("Err demo breakdown:", e); throw new Error("Failed to calculate demographic breakdown."); }
 }
 
+// --- Attendance Correlation Analytics ---
+
+// Analyze potential correlation between event frequency and attendance
+export async function analyzeEventImpactOnAttendance() {
+  console.log("Analyzing event impact on attendance...");
+  try {
+    const [eventsByMonth, attendanceByMonth] = await Promise.all([
+      // Count events per month
+      Events.aggregate([
+        { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$eventDate' } }, eventCount: { $sum: 1 } } },
+        { $sort: { '_id': 1 } }
+      ]),
+      // Calculate average attendance rate per month
+      Attendance.aggregate([
+        { $group: { 
+            _id: { $dateToString: { format: '%Y-%m', date: '$date' } }, 
+            total: { $sum: 1 }, 
+            present: { $sum: { $cond: [{ $eq: ["$status", "Present"] }, 1, 0] } }
+          } 
+        },
+        { $match: { total: { $gt: 0 } } }, // Avoid division by zero
+        { $project: { 
+            _id: 1, 
+            attendanceRate: { $round: [{ $multiply: [{ $divide: ["$present", "$total"] }, 100] }, 1] } 
+          }
+        },
+        { $sort: { '_id': 1 } }
+      ])
+    ]);
+
+    // Simple correlation check (more advanced stats could be used)
+    const correlationData = attendanceByMonth.map(attMonth => {
+      const eventData = eventsByMonth.find(evtMonth => evtMonth._id === attMonth._id);
+      return {
+        month: attMonth._id,
+        attendanceRate: attMonth.attendanceRate,
+        eventCount: eventData ? eventData.eventCount : 0
+      };
+    });
+
+    // Identify months with high event counts and their attendance
+    correlationData.sort((a, b) => b.eventCount - a.eventCount);
+    const highEventMonths = correlationData.slice(0, 3);
+
+    // Identify months with lowest attendance and their event counts
+    correlationData.sort((a, b) => a.attendanceRate - b.attendanceRate);
+    const lowAttendanceMonths = correlationData.slice(0, 3);
+
+    return {
+      analysis: "Comparison of monthly event counts and average attendance rates.",
+      highEventMonths, // Top 3 months with most events
+      lowAttendanceMonths // Top 3 months with lowest attendance
+    };
+
+  } catch (e) {
+    console.error("Error analyzing event impact:", e);
+    return { error: "Failed to analyze event impact on attendance." };
+  }
+}
+
+// Analyze potential correlation between reschedule frequency and attendance
+export async function analyzeRescheduleImpactOnAttendance() {
+  console.log("Analyzing reschedule impact on attendance...");
+  try {
+    const [reschedulesByModule, attendanceByModule] = await Promise.all([
+      // Count reschedules per module
+      Reschedules.aggregate([
+        { $group: { _id: '$module', rescheduleCount: { $sum: 1 } } },
+        { $lookup: { from: 'modules', localField: '_id', foreignField: '_id', as: 'mod' } },
+        { $unwind: { path: '$mod', preserveNullAndEmptyArrays: true } },
+        { $project: { _id: 1, moduleName: { $ifNull: ["$mod.moduleName", "Unknown"] }, rescheduleCount: 1 } },
+        { $sort: { rescheduleCount: -1 } }
+      ]),
+      // Calculate average attendance rate per module
+      Attendance.aggregate([
+        { $lookup: { from: 'timetables', localField: 'timetable', foreignField: '_id', as: 'tt' } },
+        { $unwind: { path: '$tt', preserveNullAndEmptyArrays: true } },
+        { $match: { "tt.module": { $exists: true, $ne: null } } },
+        { $group: { 
+            _id: '$tt.module', 
+            total: { $sum: 1 }, 
+            present: { $sum: { $cond: [{ $eq: ["$status", "Present"] }, 1, 0] } }
+          } 
+        },
+        { $match: { total: { $gt: 0 } } }, // Avoid division by zero
+        { $project: { 
+            _id: 1, 
+            attendanceRate: { $round: [{ $multiply: [{ $divide: ["$present", "$total"] }, 100] }, 1] } 
+          }
+        }
+      ])
+    ]);
+
+    // Correlate reschedule counts with attendance rates
+    const correlationData = reschedulesByModule.map(reschedMod => {
+      const attendanceData = attendanceByModule.find(attMod => attMod._id.equals(reschedMod._id));
+      return {
+        moduleId: reschedMod._id,
+        moduleName: reschedMod.moduleName,
+        rescheduleCount: reschedMod.rescheduleCount,
+        attendanceRate: attendanceData ? attendanceData.attendanceRate : null // May be null if no attendance recorded
+      };
+    });
+
+    // Identify top rescheduled modules and their attendance
+    const highRescheduleModules = correlationData.filter(m => m.attendanceRate !== null).slice(0, 5);
+
+    // Identify modules with lowest attendance and their reschedule counts
+    correlationData.sort((a, b) => (a.attendanceRate ?? 101) - (b.attendanceRate ?? 101)); // Sort low attendance first, handle nulls
+    const lowAttendanceModules = correlationData.filter(m => m.attendanceRate !== null).slice(0, 5);
+
+    return {
+      analysis: "Comparison of module reschedule frequency and average attendance rates.",
+      highRescheduleModules, // Top 5 modules with most reschedules (and their attendance)
+      lowAttendanceModules // Top 5 modules with lowest attendance (and their reschedule count)
+    };
+
+  } catch (e) {
+    console.error("Error analyzing reschedule impact:", e);
+    return { error: "Failed to analyze reschedule impact on attendance." };
+  }
+}
+
+// --- Main Analysis Function ---
 // Main Analysis Function for Initial Recommendations (Exported)
 export async function generateAttendanceRecommendations() {
   console.log("Fetching data for general recommendations...");
@@ -371,4 +496,180 @@ export async function generateAttendanceRecommendations() {
       console.error("Error generating recommendations:", error);
       throw new Error("Failed to generate recommendations.");
   }
+}
+
+// --- Event Analytics ---
+async function getEventSummary() {
+  // Total events, by faculty, by month, most common locations, upcoming events
+  const today = new Date();
+  const startOfToday = new Date(today.setHours(0,0,0,0));
+  const summary = await Events.aggregate([
+    { $facet: {
+      total: [{ $count: 'count' }],
+      byFaculty: [
+        { $lookup: { from: 'faculties', localField: 'faculty', foreignField: '_id', as: 'f' } },
+        { $unwind: { path: '$f', preserveNullAndEmptyArrays: true } },
+        { $group: { _id: '$f.facultyName', count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ],
+      byMonth: [
+        { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$eventDate' } }, count: { $sum: 1 } } },
+        { $sort: { '_id': 1 } }
+      ],
+      byLocation: [
+        { $group: { _id: '$location', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 }
+      ],
+      upcoming: [
+        { $match: { eventDate: { $gte: startOfToday } } },
+        { $sort: { eventDate: 1 } },
+        { $limit: 5 },
+        { $project: { eventName: 1, eventDate: 1, location: 1, faculty: 1 } }
+      ]
+    }}
+  ]);
+  return {
+    total: summary[0]?.total[0]?.count || 0,
+    byFaculty: summary[0]?.byFaculty || [],
+    byMonth: summary[0]?.byMonth || [],
+    topLocations: summary[0]?.byLocation || [],
+    upcoming: summary[0]?.upcoming || []
+  };
+}
+
+async function getEventPatterns() {
+  // Peak months, days, times, most active faculties
+  const patterns = await Events.aggregate([
+    { $facet: {
+      byDayOfWeek: [
+        { $project: { day: { $dayOfWeek: '$eventDate' } } },
+        { $group: { _id: '$day', count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ],
+      byTime: [
+        { $group: { _id: '$time', count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ],
+      byFaculty: [
+        { $group: { _id: '$faculty', count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ]
+    }}
+  ]);
+  return {
+    byDayOfWeek: patterns[0]?.byDayOfWeek || [],
+    byTime: patterns[0]?.byTime || [],
+    byFaculty: patterns[0]?.byFaculty || []
+  };
+}
+
+async function getEventPredictions() {
+  // Predict next month/faculty with most events (simple trend)
+  const byMonth = await Events.aggregate([
+    { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$eventDate' } }, count: { $sum: 1 } } },
+    { $sort: { '_id': 1 } }
+  ]);
+  // Simple prediction: next month = last month + (last month - prev month)
+  if (byMonth.length < 2) return { prediction: 'Insufficient data' };
+  const last = byMonth[byMonth.length-1];
+  const prev = byMonth[byMonth.length-2];
+  const diff = last.count - prev.count;
+  const nextMonth = moment(last._id, 'YYYY-MM').add(1, 'month').format('YYYY-MM');
+  return {
+    nextMonth,
+    predictedCount: Math.max(0, last.count + diff),
+    trend: diff > 0 ? 'increasing' : (diff < 0 ? 'decreasing' : 'stable')
+  };
+}
+
+// --- Reschedule Analytics ---
+async function getRescheduleSummary() {
+  // Total reschedules, by module, by lecturer, by faculty, by type, by month
+  const summary = await Reschedules.aggregate([
+    { $facet: {
+      total: [{ $count: 'count' }],
+      byModule: [
+        { $group: { _id: '$module', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 }
+      ],
+      byLecturer: [
+        { $group: { _id: '$lecturer', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 }
+      ],
+      byFaculty: [
+        { $group: { _id: '$faculty', count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ],
+      byType: [
+        { $group: { _id: '$type', count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ],
+      byMonth: [
+        { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$newDate' } }, count: { $sum: 1 } } },
+        { $sort: { '_id': 1 } }
+      ]
+    }}
+  ]);
+  return {
+    total: summary[0]?.total[0]?.count || 0,
+    byModule: summary[0]?.byModule || [],
+    byLecturer: summary[0]?.byLecturer || [],
+    byFaculty: summary[0]?.byFaculty || [],
+    byType: summary[0]?.byType || [],
+    byMonth: summary[0]?.byMonth || []
+  };
+}
+
+async function getReschedulePatterns() {
+  // Peak periods, modules/lecturers with most reschedules, day/time trends
+  const patterns = await Reschedules.aggregate([
+    { $facet: {
+      byDayOfWeek: [
+        { $project: { day: { $dayOfWeek: '$newDate' } } },
+        { $group: { _id: '$day', count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ],
+      byTime: [
+        { $group: { _id: '$startTime', count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ],
+      byModule: [
+        { $group: { _id: '$module', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 }
+      ],
+      byLecturer: [
+        { $group: { _id: '$lecturer', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 }
+      ]
+    }}
+  ]);
+  return {
+    byDayOfWeek: patterns[0]?.byDayOfWeek || [],
+    byTime: patterns[0]?.byTime || [],
+    byModule: patterns[0]?.byModule || [],
+    byLecturer: patterns[0]?.byLecturer || []
+  };
+}
+
+async function getReschedulePredictions() {
+  // Predict next month/module/lecturer with most reschedules (simple trend)
+  const byMonth = await Reschedules.aggregate([
+    { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$newDate' } }, count: { $sum: 1 } } },
+    { $sort: { '_id': 1 } }
+  ]);
+  if (byMonth.length < 2) return { prediction: 'Insufficient data' };
+  const last = byMonth[byMonth.length-1];
+  const prev = byMonth[byMonth.length-2];
+  const diff = last.count - prev.count;
+  const nextMonth = moment(last._id, 'YYYY-MM').add(1, 'month').format('YYYY-MM');
+  return {
+    nextMonth,
+    predictedCount: Math.max(0, last.count + diff),
+    trend: diff > 0 ? 'increasing' : (diff < 0 ? 'decreasing' : 'stable')
+  };
 }

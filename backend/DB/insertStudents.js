@@ -19,9 +19,9 @@ const studentSchema = new mongoose.Schema({
 const Student = mongoose.model('Student', studentSchema);
 
 // Constants from your inputs
-const facultyId = "660f0c8fa8f6b624c2ab1234";
-const degreeId = "67f53a3e5502be9c36d4d0bb";
-const batchId = "67f535a610409250e6e3f2d0";
+const facultyId = "67f533de10409250e6e3f2ca";
+const degreeId = "67f53bd95502be9c36d4d0c3";
+const batchId = "67f5359c10409250e6e3f2ce";
 
 // Sample realistic name pools
 const firstNames = ["Samantha", "Kavindu", "Dilani", "Tharindu", "Nadeesha", "Isuru", "Sachini", "Pasindu", "Janani", "Lakshan", "Madushi", "Ravindu", "Imashi", "Shakya", "Pratheesha", "Haritha", "Tharushi", "Nimasha", "Sashini", "Dhanushka", "Chathura", "Dilshan", "Hiruni", "Kasun", "Nishantha", "Pavithra", "Rukmal", "Shanika", "Thilina", "Udaya", "Vimukthi"];
@@ -42,20 +42,20 @@ const getRandomPhone = () => {
   return `${getRandomItem(prefixes)}${Math.floor(1000000 + Math.random() * 9000000)}`;
 };
 
-// Generate 100 NEW student records
-const students = Array.from({ length: 100 }, (_, i) => {
+// Generate 20 NEW student records
+const students = Array.from({ length: 20 }, (_, i) => {
   const firstName = getRandomItem(firstNames);
   const lastName = getRandomItem(lastNames);
   const fullName = `${firstName} ${lastName}`;
   const index = 100 + i; // Start from IT22100100
-  const studentId = `IT22${index.toString().padStart(6, '0')}`;
+  const studentId = `EE22${index.toString().padStart(6, '0')}`;
   const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${index}@university.lk`;
 
   return {
     studentName: fullName,
     studentId,
     contactNumber: getRandomPhone(),
-    address: `No. ${i + 101}, ${getRandomItem(["Lake Road", "Temple Lane", "University Ave", "Main Street"])}, ${getRandomItem(["Kandy", "Colombo", "Galle", "Jaffna", "Matara"])}`,
+    address: `No. ${i + 101}, ${getRandomItem(["Lake Road", "Temple Lane", "University Ave", "Main Street"])} , ${getRandomItem(["Kandy", "Colombo", "Galle", "Jaffna", "Matara"])}`,
     birthday: getRandomBirthday(),
     email,
     degree: degreeId,
@@ -71,7 +71,7 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 
     try {
       await Student.insertMany(students);
-      console.log("🎉 Successfully inserted 100 additional unique student records!");
+      console.log("🎉 Successfully inserted 20 additional unique student records!");
     } catch (error) {
       console.error("❌ Error inserting students:", error);
     } finally {

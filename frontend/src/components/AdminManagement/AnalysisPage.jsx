@@ -256,9 +256,41 @@ function AnalysisPage() {
   const hasAttendanceByDayError = !!attendanceByDayError;
   const hasStudentSummaryError = !!studentSummaryError;
 
-  // Custom colors for bar charts (optional)
-  const MODULE_COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c'];
-  const DAY_COLORS = ['#e6fcf5', '#fff4e6', '#f3e8ff', '#dfeeff', '#ffebe6', '#f0f0f0', '#e0e0e0'];
+  // Updated color palettes for charts
+  const MODULE_COLORS = [
+    '#20c997', // Teal
+    '#f9c74f', // Yellow
+    '#845ef7', // Purple
+    '#228be6', // Blue
+    '#51cf66', // Green
+    '#fa5252', // Red
+    '#fcc419', // Yellow
+    '#15aabf', // Cyan
+    '#e64980', // Pink
+    '#fab005'  // Amber
+  ];
+  const PIE_COLORS = [
+    '#70d6ff',  // Light Blue
+    '#b983ff', // Purple
+    '#ffd670', // Light Yellow
+    '#ff70a6', // Pink
+    '#f94144', // Red
+    '#f3722c', // Orange
+    '#f9c74f', // Yellow
+    '#90be6d', // Green
+    '#43aa8b', // Teal
+    '#577590', // Blue
+  ];
+  const DAY_COLORS = [
+    '#228be6', // Monday - Blue
+    '#20c997', // Tuesday - Teal
+    '#ff922b', // Wednesday - Orange
+    '#845ef7', // Thursday - Purple
+    '#51cf66', // Friday - Green
+    '#fa5252', // Saturday - Red
+    '#fcc419'  // Sunday - Yellow
+  ];
+  
 
   // Simple Bar Chart Component (can be expanded or moved)
   const SimpleBarChartCard = ({ title, data, xKey, yKey, colors, isLoading, error, label }) => {
@@ -525,7 +557,7 @@ function AnalysisPage() {
                          data={studentSummaryData?.byFaculty || []}
                          dataKey="count"
                          nameKey="_id" 
-                         colors={MODULE_COLORS}
+                         colors={PIE_COLORS}
                          isLoading={isStudentSummaryLoading}
                          error={studentSummaryError}
                        />
