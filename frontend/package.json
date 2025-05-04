@@ -1,11 +1,18 @@
 {
+<<<<<<< HEAD
   "name": "batchbuddy",
   "private": true,
   "version": "0.1.0",
+=======
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+>>>>>>> origin/main2_test
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+<<<<<<< HEAD
     "lint": "eslint . --ext js,jsx",
     "preview": "vite preview"
   },
@@ -18,6 +25,50 @@
     "react-router-dom": "^6.30.0",
     "react-toastify": "^11.0.5",
     "socket.io-client": "^4.8.1"
+=======
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+<<<<<<< HEAD
+    "@heroicons/react": "^2.2.0",
+    "@tailwindcss/vite": "^4.0.15",
+    "axios": "^1.8.4",
+    "framer-motion": "^12.5.0",
+    "lucide-react": "^0.483.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "~7.5.2",
+    "recharts": "^2.15.1",
+    "sweetalert2": "^11.17.2",
+    "zustand": "^5.0.3"
+=======
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@heroicons/react": "^2.1.1",
+    "@mui/icons-material": "^7.0.2",
+    "@mui/material": "^7.0.2",
+    "axios": "^1.6.7",
+    "bootstrap": "^5.3.5",
+    "chart.js": "^4.4.8",
+    "dompurify": "^3.2.5",
+    "framer-motion": "^11.0.5",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.7.0",
+    "lucide-react": "^0.503.0",
+    "react": "^18.2.0",
+    "react-beautiful-dnd": "^13.1.1",
+    "react-bootstrap": "^2.10.9",
+    "react-calendar-heatmap": "^1.10.0",
+    "react-chartjs-2": "^5.3.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^5.0.1",
+    "react-router-dom": "^6.22.1",
+    "react-toastify": "^11.0.5",
+    "sweetalert2": "^11.10.5"
+>>>>>>> new-User-management
+>>>>>>> origin/main2_test
   },
   "devDependencies": {
     "@types/react": "^18.2.55",
