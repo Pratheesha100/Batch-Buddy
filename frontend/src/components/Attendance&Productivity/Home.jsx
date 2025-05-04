@@ -209,77 +209,47 @@ const BatchBuddy = () => {
   // Debug: log the day values being used
   console.log('Today:', today, 'Yesterday:', yesterday, 'Tomorrow:', tomorrow);
 
+  // Function to get schedule for a specific day
+  const getScheduleForDay = (day) => {
+    console.log('Getting schedule for day:', day);
+    console.log('Current timetable:', timetable);
+    
+    if (!timetable || !timetable.days) {
+      console.log('No timetable or days found');
+      return [];
+    }
+
+    const dayObj = timetable.days.find(d => d.day === day);
+    console.log('Found day object:', dayObj);
+    
+    if (!dayObj || !dayObj.slots || dayObj.slots.length === 0) {
+      console.log('No slots found for day');
+      return [];
+    }
+
+    return dayObj.slots.map((slot, index) => ({
+      id: index + 1,
+      subject: slot.subject,
+      time: `${slot.startTime} - ${slot.endTime}`,
+      type: slot.type || 'Lecture',
+      location: slot.location
+    }));
+  };
+
   const handleVoiceCommand = (command) => {
     console.log('Processing command:', command);
+    console.log('Current timetable state:', { loading, noTimetable, timetable });
     
-    // Improved timetable check
-    const hasValidTimetable = timetable && timetable.days && timetable.days.length > 0;
-    if (!hasValidTimetable) {
-      speak("I'm still loading your timetable. Please wait a moment and try again.");
-      return;
-    }
-
     // Normalize the command
     const normalizedCommand = command.trim().toLowerCase().replace(/\s+/g, ' ');
-
-    // Use the same today, yesterday, tomorrow as the UI
-    // Command map for voice queries
-    const commandMap = {
-      'today': getScheduleForDay(today),
-      'tomorrow': getScheduleForDay(tomorrow),
-      'yesterday': getScheduleForDay(yesterday)
-    };
-
-    // Enhanced timetable/schedule query detection
-    const timeTablePatterns = [
-      /(what('| i)?s|show|tell me|read|give me|display|say|speak).*(timetable|time table|schedule).*(today|tomorrow|yesterday)?/i,
-      /(my|the).*(timetable|time table|schedule).*(today|tomorrow|yesterday)?/i,
-      /(classes|lectures).*(today|tomorrow|yesterday)?/i
-    ];
-
-    let day = 'today';
-    let matchedPattern = timeTablePatterns.find(pattern => pattern.test(normalizedCommand));
-    
-    if (matchedPattern) {
-      const dayMatch = normalizedCommand.match(/(today|tomorrow|yesterday)/i);
-      if (dayMatch) {
-        day = dayMatch[0].toLowerCase();
-      }
-    }
-
-    // Check if it's a timetable/schedule query
-    if (matchedPattern || 
-        normalizedCommand.includes('timetable') || 
-        normalizedCommand.includes('time table') || 
-        normalizedCommand.includes('schedule') ||
-        normalizedCommand.includes('classes') ||
-        normalizedCommand.includes('lectures')) {
-      
-      const schedule = commandMap[day];
-      console.log('Voice command schedule for', day, ':', schedule);
-      
-      if (schedule && schedule.length > 0) {
-        const response = `Here's your schedule for ${day}: ` +
-          schedule.map((item, index) => {
-            const isLast = index === schedule.length - 1;
-            const timeStr = item.time.replace(/-/g, ' to ');
-            return `${item.subject} from ${timeStr}, which is a ${item.type}${isLast ? '.' : '. Then, '}`;
-          }).join('');
-        console.log('Speaking response:', response);
-        speak(response);
-        return;
-      } else {
-        speak(`You have no scheduled classes for ${day}.`);
-        return;
-      }
-    }
 
     // Handle attendance marking commands with more flexible matching
     const attendancePatterns = [
       /(mark|record|take).*(attendance|present).*(for|on)?\s*(today|tomorrow|yesterday)?/i,
-      /(mark|record|take).*(me|my).*(attendance|present).*(for|on)?\s*(today|tomorrow|yesterday)?/i
+      /(mark|record|take).*(me|my).*(attendance|present).*(for|on)?\s*(today|tomorrow|yesterday)?/i,
+      /(mark|record|take).*(my|me).*(attendance|present).*(for|on)?\s*(today|tomorrow|yesterday)?/i
     ];
-
+    
     const attendanceMatch = attendancePatterns.find(pattern => pattern.test(normalizedCommand));
     if (attendanceMatch) {
       const dayMatch = normalizedCommand.match(/(today|tomorrow|yesterday)/i);
@@ -303,22 +273,56 @@ const BatchBuddy = () => {
       }
     }
 
-    // Default response with suggestions
-    speak("I can help you with your timetable or attendance. Try saying 'what's my schedule today' or 'show my timetable for tomorrow'.");
-  };
+    // Check for timetable/schedule query
+    const timeTablePatterns = [
+      /(what('| i)?s|show|tell me|read|give me|display|say|speak).*(timetable|time table|schedule).*(today|tomorrow|yesterday)?/i,
+      /(my|the).*(timetable|time table|schedule).*(today|tomorrow|yesterday)?/i,
+      /(classes|lectures).*(today|tomorrow|yesterday)?/i
+    ];
 
-  // Function to get schedule for a specific day
-  const getScheduleForDay = (day) => {
-    if (!timetable || !timetable.days) return [];
-    const dayObj = timetable.days.find(d => d.day === day);
-    if (!dayObj || !dayObj.slots || dayObj.slots.length === 0) return [];
-    return dayObj.slots.map((slot, index) => ({
-      id: index + 1,
-      subject: slot.subject,
-      time: `${slot.startTime} - ${slot.endTime}`,
-      type: slot.type || 'Lecture',
-      location: slot.location
-    }));
+    let day = 'today';
+    let matchedPattern = timeTablePatterns.find(pattern => pattern.test(normalizedCommand));
+    
+    if (matchedPattern) {
+      const dayMatch = normalizedCommand.match(/(today|tomorrow|yesterday)/i);
+      if (dayMatch) {
+        day = dayMatch[0].toLowerCase();
+      }
+    }
+
+    // If it's a timetable query, read out the schedule
+    if (matchedPattern || 
+        normalizedCommand.includes('timetable') || 
+        normalizedCommand.includes('time table') || 
+        normalizedCommand.includes('schedule') ||
+        normalizedCommand.includes('classes') ||
+        normalizedCommand.includes('lectures')) {
+      
+      // Get the actual day name from the timetable
+      const dayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+      console.log('Current day name:', dayName);
+      
+      // Get the schedule for the current day
+      const schedule = getScheduleForDay(dayName);
+      console.log('Retrieved schedule:', schedule);
+      
+      if (schedule && schedule.length > 0) {
+        const response = `Here's your schedule for ${day}: ` +
+          schedule.map((item, index) => {
+            const isLast = index === schedule.length - 1;
+            const timeStr = item.time.replace(/-/g, ' to ');
+            return `${item.subject} from ${timeStr}, which is a ${item.type}${isLast ? '.' : '. Then, '}`;
+          }).join('');
+        console.log('Speaking response:', response);
+        speak(response);
+      } else {
+        speak(`You have no scheduled classes for ${day}.`);
+      }
+      return;
+    }
+
+    // Default response with suggestions
+    speak("I can help you with your timetable or attendance. Try saying 'show my timetable today' or 'mark my attendance for tomorrow'.");
   };
 
   return (
