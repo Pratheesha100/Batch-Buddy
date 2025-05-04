@@ -28,15 +28,11 @@ function Navbar({ isCollapsed, setIsCollapsed }) {
           {/* Navigation Items */}
           <nav className="admin-nav">
             <NavItem to="/dashboard" icon={<LayoutDashboard  />} text="Dashboard" isCollapsed={isCollapsed} />
-<<<<<<< HEAD
-            <NavItem to="/admin-timetable" icon={<CalendarClock  />} text="Timetable" isCollapsed={isCollapsed} />
-=======
             <NavItem to="/faculties" icon={<Users />} text="Faculty" isCollapsed={isCollapsed} />
             <NavItem to="/students" icon={<GraduationCap />} text="Students" isCollapsed={isCollapsed} />
             <NavItem to="/lecturers" icon={<UserSquare2 />} text="Lecturers" isCollapsed={isCollapsed} />
             <NavItem to="/locations" icon={<MapPin />} text="Locations" isCollapsed={isCollapsed} />
             <NavItem to="/timetable" icon={<CalendarClock  />} text="Timetable" isCollapsed={isCollapsed} />
->>>>>>> Admin-management-(Samadhi)
             <NavItem to="/events"  icon={<CalendarPlus2 />} text="Events" isCollapsed={isCollapsed} />
             <NavItem  icon={<Settings  />} text="Settings" isCollapsed={isCollapsed} />
           </nav>
