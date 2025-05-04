@@ -3,7 +3,9 @@ import Nav from "./Navigation/Navbar";
 import Header from "./Navigation/Header";
 import Footer from "./Navigation/Footer";
 import AddTimetable from "./AddTimetable";
-import UpdateTimetable from "./updateTimetable";
+import UpdateTimetable from "./UpdateTimetable";
+import TimetableCardSkeleton from "./TimetableCardSkeleton";
+import TimetableTableSkeleton from "./TimetableTableSkeleton";
 import "./timetable.css";
 import { motion } from "framer-motion";
 import { CalendarDays, PlusCircle, Trash2, Pencil, Upload, Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
@@ -32,18 +34,89 @@ function Timetable() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const [previewData, setPreviewData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [deletedTodayCount, setDeletedTodayCount] = useState(0); // State for deleted count
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [recordsPerPage] = useState(50); // Or another number you prefer
+  const [recordsPerPage] = useState(10);
 
-  // Filter timetables similar to Student component
+  // Function to fetch timetables
+  const fetchTimetables = async () => {
+    setError(null);
+    try {
+      const tRes = await fetch("http://localhost:5000/api/admin/timetables");
+      if (!tRes.ok) throw new Error('Failed to fetch timetables');
+      const tData = await tRes.json();
+      setTimetables(tData || []);
+    } catch (err) {
+      console.error("Error fetching timetable data:", err);
+      setError(err.message);
+      setTimetables([]);
+    } finally {
+      // setLoading(false) is handled after all initial fetches complete
+    }
+  };
+
+  // Function to fetch deleted count (placeholder)
+  const fetchDeletedCount = async () => {
+      try {
+          // --- Placeholder --- Replace with actual API call when backend is ready
+          // const res = await fetch("http://localhost:5000/api/admin/timetables/deleted-today-count");
+          // if (!res.ok) throw new Error('Failed to fetch deleted count');
+          // const data = await res.json();
+          // setDeletedTodayCount(data.count || 0);
+          // --- End Placeholder ---
+          console.warn("fetchDeletedCount is using placeholder data. Implement backend endpoint.");
+          // Simulate fetching count (remove this line when backend is ready)
+          setDeletedTodayCount(0); // Default to 0 for now
+      } catch (err) {
+          console.error("Error fetching deleted count:", err);
+          setDeletedTodayCount(0); // Default to 0 on error
+      }
+  };
+
+  // Fetch initial data on mount
+  useEffect(() => {
+    const fetchInitialData = async () => {
+        setLoading(true);
+        setError(null);
+        setDeletedTodayCount(0); // Reset count on load
+        try {
+             const fRes = await fetch("http://localhost:5000/api/admin/getFaculties");
+             if (!fRes.ok) throw new Error('Failed to fetch faculties');
+             const fData = await fRes.json();
+             setFaculties(fData || []);
+
+            // Fetch timetables and deleted count (can run in parallel)
+            await Promise.all([
+                fetchTimetables(),
+                fetchDeletedCount() // Fetch the deleted count
+            ]);
+
+        } catch (err) {
+            console.error("Error fetching initial data:", err);
+            setError(err.message);
+            setFaculties([]);
+        } finally {
+            setLoading(false); // Set loading false after all fetches attempt
+        }
+    };
+    fetchInitialData();
+  }, []);
+
+  // Filter timetables
   const filteredTimetables = timetables.filter((t) => {
     const term = searchTerm.toLowerCase();
     const matchesSearch =
-      t.module?.moduleCode.toLowerCase().includes(term) ||
-      t.module?.moduleName.toLowerCase().includes(term) ||
-      t.group?.groupNum.toLowerCase().includes(term);
+      (t.module?.moduleCode?.toLowerCase() || '').includes(term) ||
+      (t.module?.moduleName?.toLowerCase() || '').includes(term) ||
+      (t.group?.groupNum?.toLowerCase() || '').includes(term) ||
+      (t.lecturer?.lecturerName?.toLowerCase() || '').includes(term) ||
+      (t.location?.locationName?.toLowerCase() || '').includes(term) ||
+      (t.day?.toLowerCase() || '').includes(term);
+
     const matchesFaculty =
       facultyFilter === "all" || t.faculty?._id === facultyFilter;
     return matchesSearch && matchesFaculty;
@@ -65,33 +138,13 @@ function Timetable() {
     setCurrentPage(1);
   }, [searchTerm, facultyFilter]);
 
-  // Fetch timetables and faculties on mount
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [tRes, fRes] = await Promise.all([
-          fetch("http://localhost:5000/api/admin/timetables"),
-          fetch("http://localhost:5000/api/admin/getFaculties"),
-        ]);
-        const tData = tRes.ok ? await tRes.json() : [];
-        setTimetables(tData);
-        const fData = fRes.ok ? await fRes.json() : [];
-        setFaculties(fData);
-      } catch (err) {
-        console.error("Error fetching timetable data:", err);
-        setTimetables([]);
-        setFaculties([]);
-      }
-    };
-    fetchData();
-  }, []);
-
   const handleAddTimetable = () => {
     setShowAddTimetableForm(true);
   };
 
   const handleCloseAddTimetableForm = () => {
     setShowAddTimetableForm(false);
+    // Add and update handlers will re-fetch everything needed
   };
 
   const handleEditTimetable = (timetable) => {
@@ -104,12 +157,44 @@ function Timetable() {
     setSelectedTimetable(null);
   };
 
-  const handleUpdateTimetable = (updatedData) => {
-    setTimetables((prev) =>
-      prev.map((t) =>
-        t._id === selectedTimetable._id ? { ...t, ...updatedData } : t
-      )
-    );
+  const handleUpdateTimetable = async (id, updatedData) => {
+      try {
+          const res = await fetch(`http://localhost:5000/api/admin/updateTimetable/${id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(updatedData),
+          });
+
+          if (!res.ok) {
+              const errorData = await res.json().catch(() => ({ message: 'Update failed' }));
+              throw new Error(errorData.message || 'Failed to update timetable');
+          }
+
+          // Refresh main list and potentially counts (though update count logic is internal)
+          await Promise.all([ fetchTimetables(), fetchDeletedCount() ]);
+          setShowUpdateTimetableForm(false);
+          setSelectedTimetable(null);
+
+          await Swal.fire({
+              icon: 'success',
+              title: 'Timetable Updated',
+              text: 'The timetable entry was updated successfully.',
+              confirmButtonColor: '#2563eb',
+              width: 400,
+              timer: 1500,
+              showConfirmButton: false
+          });
+
+      } catch (err) {
+          console.error('Error updating timetable:', err);
+          await Swal.fire({
+              icon: 'error',
+              title: 'Update Failed',
+              text: err.message || 'Failed to update timetable. Please try again.',
+              confirmButtonColor: '#ef4444',
+              width: 400,
+          });
+      }
   };
 
   const handleDeleteClick = (timetable) => {
@@ -117,12 +202,46 @@ function Timetable() {
     setShowDeleteConfirmation(true);
   };
 
-  const handleDeleteConfirm = () => {
-    setTimetables((prev) =>
-      prev.filter((t) => t._id !== selectedTimetable._id)
-    );
-    setShowDeleteConfirmation(false);
-    setSelectedTimetable(null);
+  const handleDeleteConfirm = async () => {
+      if (!selectedTimetable || !selectedTimetable._id) return;
+
+      try {
+          const res = await fetch(`http://localhost:5000/api/admin/deleteTimetable/${selectedTimetable._id}`, {
+              method: 'DELETE',
+          });
+
+          if (!res.ok) {
+               const errorData = await res.json().catch(() => ({ message: 'Delete failed' }));
+               throw new Error(errorData.message || 'Failed to delete timetable entry');
+          }
+
+          // Refresh list and deleted count after successful delete
+          await Promise.all([ fetchTimetables(), fetchDeletedCount() ]);
+          setShowDeleteConfirmation(false);
+          setSelectedTimetable(null);
+
+          await Swal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: 'The timetable entry has been deleted.',
+              confirmButtonColor: '#2563eb',
+              width: 400,
+              timer: 1500,
+              showConfirmButton: false
+          });
+
+      } catch (err) {
+          console.error('Error deleting timetable:', err);
+          setShowDeleteConfirmation(false);
+          setSelectedTimetable(null);
+          await Swal.fire({
+              icon: 'error',
+              title: 'Delete Failed',
+              text: err.message || 'Could not delete the timetable entry. Please try again.',
+              confirmButtonColor: '#ef4444',
+              width: 400,
+          });
+      }
   };
 
   const handleDeleteCancel = () => {
@@ -130,60 +249,58 @@ function Timetable() {
     setSelectedTimetable(null);
   };
 
-  // Function to handle file selection
+  // File upload functions
   const handleFileSelection = () => {
     fileInputRef.current.click();
   };
-
-  // Function to process the selected file
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     setSelectedFile(file);
     setIsUploading(true);
-    
+
     try {
-      // Create form data to send to backend
       const formData = new FormData();
       formData.append('timetableFile', file);
-      
-      // Send to backend
       const response = await fetch('http://localhost:5000/api/admin/uploadTimetable', {
         method: 'POST',
         body: formData
       });
-      
-      if (!response.ok) throw new Error('Upload failed');
-      
+
+      if (!response.ok) {
+         const errorData = await response.json().catch(() => ({ message: 'Upload failed' }));
+         throw new Error(errorData.message || 'Upload failed');
+      }
+
       const extractedData = await response.json();
-      const previewArray = extractedData.preview || [];
-      setTimetables(prev => [...prev, ...previewArray]);
+      setPreviewData(extractedData.preview || []);
       await Swal.fire({
-        icon: 'success',
-        title: 'Upload Successful',
-        text: `Successfully extracted ${previewArray.length} timetable entries`,
+        icon: 'info',
+        title: 'Processing Complete',
+        text: `Ready to preview ${extractedData.preview?.length || 0} potential entries.`,
         confirmButtonColor: '#2563eb',
+        width: 400,
       });
-      setPreviewData(previewArray);
+
     } catch (error) {
       console.error("Error processing file:", error);
       await Swal.fire({
         icon: 'error',
         title: 'Upload Failed',
-        text: 'Failed to process file. Please try again.',
+        text: error.message || 'Failed to process file. Please try again.',
         confirmButtonColor: '#ef4444',
+        width: 400,
       });
     } finally {
       setIsUploading(false);
       setSelectedFile(null);
-      e.target.value = null; // Reset file input
+      if (e.target) e.target.value = null;
     }
   };
-
   const handleConfirmPreview = async (confirmedData) => {
-    console.log("Confirmed data:", confirmedData);
-    setPreviewData(null); // Close the preview modal
+    console.log("Confirmed data to save:", confirmedData);
+    setPreviewData(null);
 
     if (!confirmedData || confirmedData.length === 0) {
       Swal.fire({ icon: 'info', title: 'No Data', text: 'No data to save.', width: 400 });
@@ -191,12 +308,10 @@ function Timetable() {
     }
 
     try {
-      // Send the confirmed (and possibly edited) data to the backend to save
+        setIsUploading(true);
       const response = await fetch('http://localhost:5000/api/admin/addTimetables', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json', },
         body: JSON.stringify(confirmedData),
       });
 
@@ -205,16 +320,13 @@ function Timetable() {
         throw new Error(errorData.message || 'Failed to save timetable data');
       }
 
-      const savedEntries = await response.json();
-
-      // Update the main timetable list with the newly saved entries
-      // Note: The backend should return the saved entries with _ids
-      setTimetables(prev => [...prev, ...(Array.isArray(savedEntries) ? savedEntries : [])]);
+      // Refresh list and potentially counts
+      await Promise.all([ fetchTimetables(), fetchDeletedCount() ]);
 
       Swal.fire({
         icon: 'success',
         title: 'Save Successful',
-        text: `Successfully saved ${savedEntries.length} timetable entries.`,
+        text: `Successfully saved timetable entries.`,
         confirmButtonColor: '#2563eb',
         width: 400,
       });
@@ -228,92 +340,101 @@ function Timetable() {
         confirmButtonColor: '#ef4444',
         width: 400,
       });
+    } finally {
+        setIsUploading(false);
     }
   };
 
+
+   if (error && !loading) {
+     return (
+         <div className="admin-dashboard-container">
+             <Nav isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+             <div className={`admin-content ${isCollapsed ? "collapsed" : ""}`}>
+                 <Header />
+                 <div className="admin-maincontent-container">
+                    <div className="text-red-500 p-4">Error loading data: {error}</div>
+                 </div>
+                <Footer />
+            </div>
+        </div>
+     );
+   }
+
   return (
     <div className="admin-dashboard-container">
-      {/* Pass collapse state & setter to Navbar */}
       <Nav isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-
       <div className={`admin-content ${isCollapsed ? "collapsed" : ""}`}>
         <Header />
         <div className="admin-maincontent-container">
           <div className="admin-page-name">
             <h2>Timetable Management</h2>
           </div>
-          {/*main-top-container */}
           <div className="admin-main-top-content">
             <div className="admin-cards-container">
-              <div className="admin-card">
-                <div className="admin-card-text">
-                  <div className="admin-card-title">Total Timetables</div>
-                  <div className="admin-card-value">{filteredTimetables.length}</div>
-                </div>
-                <div
-                  className="admin-card-icon"
-                  style={{ backgroundColor: cardColors[0].bg }}
-                >
-                  <CalendarDays
-                    size={29}
-                    style={{ color: cardColors[0].icon }}
-                  />
-                </div>
-              </div>
-              <div className="admin-card">
-                <div className="admin-card-text">
-                  <div className="admin-card-title">Added Today</div>
-                  <div className="admin-card-value">
-                    {timetables.filter(t => {
-                      const createdDate = new Date(t.createdAt);
-                      const today = new Date();
-                      return createdDate.setHours(0,0,0,0) === today.setHours(0,0,0,0);
-                    }).length || 0}
+              {loading ? (
+                <TimetableCardSkeleton count={4} />
+              ) : (
+                <>
+                  <div className="admin-card">
+                      <div className="admin-card-text">
+                          <div className="admin-card-title">Total Timetables</div>
+                          <div className="admin-card-value">{timetables.length}</div>
+                      </div>
+                      <div className="admin-card-icon" style={{ backgroundColor: cardColors[0].bg }}>
+                          <CalendarDays size={29} style={{ color: cardColors[0].icon }} />
+                      </div>
                   </div>
-                </div>
-                <div
-                  className="admin-card-icon"
-                  style={{ backgroundColor: cardColors[1].bg }}
-                >
-                  <PlusCircle size={28} style={{ color: cardColors[1].icon }} />
-                </div>
-              </div>
-              <div className="admin-card">
-                <div className="admin-card-text">
-                  <div className="admin-card-title">Updated Today</div>
-                  <div className="admin-card-value">
-                    {timetables.filter(t => {
-                      if (!t.updatedAt || t.updatedAt === t.createdAt) return false;
-                      const updatedDate = new Date(t.updatedAt);
-                      const today = new Date();
-                      return updatedDate.setHours(0,0,0,0) === today.setHours(0,0,0,0);
-                    }).length || 0}
+                  <div className="admin-card">
+                      <div className="admin-card-text">
+                          <div className="admin-card-title">Added Today</div>
+                          <div className="admin-card-value">
+                              {timetables.filter(t => {
+                                  try {
+                                      const createdDate = new Date(t.createdAt);
+                                      const today = new Date();
+                                      return !isNaN(createdDate) && createdDate.toDateString() === today.toDateString();
+                                  } catch { return false; }
+                              }).length || 0}
+                          </div>
+                      </div>
+                      <div className="admin-card-icon" style={{ backgroundColor: cardColors[1].bg }}>
+                          <PlusCircle size={28} style={{ color: cardColors[1].icon }} />
+                      </div>
                   </div>
-                </div>
-                <div
-                  className="admin-card-icon"
-                  style={{ backgroundColor: cardColors[2].bg }}
-                >
-                  <Pencil size={27} style={{ color: cardColors[2].icon }} />
-                </div>
-              </div>
-              <div className="admin-card">
-                <div className="admin-card-text">
-                  <div className="admin-card-title">Deleted Today</div>
-                  <div className="admin-card-value">-</div>
-                </div>
-                <div
-                  className="admin-card-icon"
-                  style={{ backgroundColor: cardColors[3].bg }}
-                >
-                  <Trash2 size={27} style={{ color: cardColors[3].icon }} />
-                </div>
-              </div>
+                  <div className="admin-card">
+                      <div className="admin-card-text">
+                          <div className="admin-card-title">Updated Today</div>
+                          <div className="admin-card-value">
+                               {timetables.filter(t => {
+                                  try {
+                                      if (!t.updatedAt || t.updatedAt === t.createdAt) return false;
+                                      const updatedDate = new Date(t.updatedAt);
+                                      const today = new Date();
+                                      return !isNaN(updatedDate) && updatedDate.toDateString() === today.toDateString();
+                                  } catch { return false; }
+                              }).length || 0}
+                          </div>
+                      </div>
+                      <div className="admin-card-icon" style={{ backgroundColor: cardColors[2].bg }}>
+                          <Pencil size={27} style={{ color: cardColors[2].icon }} />
+                      </div>
+                  </div>
+                  <div className="admin-card">
+                      <div className="admin-card-text">
+                          <div className="admin-card-title">Deleted Today</div>
+                          <div className="admin-card-value">{deletedTodayCount}</div>
+                      </div>
+                      <div className="admin-card-icon" style={{ backgroundColor: cardColors[3].bg }}>
+                          <Trash2 size={27} style={{ color: cardColors[3].icon }} />
+                      </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
-          {/*main-middle-container */}
           <div className="admin-main-middle-content">
-            <div className="admin-main-addtimetable-container">
+             <div className="admin-main-addtimetable-container">
               <motion.button
                 className="admin-btnn admin-add-btn"
                 onClick={handleAddTimetable}
@@ -322,11 +443,11 @@ function Timetable() {
               >
                 <PlusCircle size={21} /> Add New Timetable
               </motion.button>
-              <input 
-                type="file" 
+              <input
+                type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}
-                accept=".pdf,image/*"
+                accept=".xlsx, .xls, .csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv"
                 style={{ display: 'none' }}
               />
               <motion.button
@@ -340,7 +461,7 @@ function Timetable() {
                   <>Processing...</>
                 ) : (
                   <>
-                    <Upload size={21} /> Upload Files
+                    <Upload size={21} /> Upload File
                   </>
                 )}
               </motion.button>
@@ -350,10 +471,10 @@ function Timetable() {
               <Search size={20} style={{ color: "#6c757d" }} />
               <input
                 type="text"
-                placeholder="Search by module code/name or group"
+                placeholder="Search by module, group, lecturer, location, day..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-transparent outline-none w-full"
+                className="bg-transparent outline-none w-full text-sm"
                 style={{ color: "#212529" }}
               />
             </div>
@@ -362,7 +483,7 @@ function Timetable() {
                 <select
                   value={facultyFilter}
                   onChange={(e) => setFacultyFilter(e.target.value)}
-                  className="bg-transparent outline-none text-gray-400 text-[14px]"
+                  className="bg-transparent outline-none text-gray-500 text-sm"
                 >
                   <option value="all">All Faculties</option>
                   {faculties.map((f) => (
@@ -375,59 +496,52 @@ function Timetable() {
             </div>
           </div>
 
-          {/*main-bottom-container */}
           <div className="admin-main-bottom-content">
             <div className="admin-main-timetable-container">
               <h2>
                 Timetable
-                {facultyFilter !== "all" && faculties.find(f => f._id === facultyFilter) && 
+                {facultyFilter !== "all" && faculties.find(f => f._id === facultyFilter) &&
                   ` - ${faculties.find(f => f._id === facultyFilter).facultyName}`
                 }
               </h2>
               <div className="overflow-x-auto" style={{ width: '100%' }}>
-                <table className="admin-timetable" style={{ tableLayout: 'fixed' }}>
+                <table className="admin-timetable" >
                   <thead>
                     <tr>
-                      <th>Timetable ID</th>
-                      <th>Batch ID</th>
-                      <th>Faculty ID</th>
-                      <th>Group ID</th>
-                      <th>Year</th>
-                      <th>Module ID</th>
-                      <th>Lecturer ID</th>
-                      <th>Room ID</th>
-                      <th>Day of Week</th>
+                      <th>Faculty</th>
+                      <th>Batch</th>
+                      <th>Group (Year)</th>
+                      <th>Module</th>
+                      <th>Lecturer</th>
+                      <th>Location</th>
+                      <th>Day</th>
                       <th>Start Time</th>
                       <th>End Time</th>
-                      <th>Session Type</th>
+                      <th>Type</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {currentRecords.length > 0 ? (
+                    {loading ? (
+                      <TimetableTableSkeleton rows={recordsPerPage} />
+                    ) : currentRecords.length > 0 ? (
                       currentRecords.map((timetable) => (
                         <tr key={timetable._id}>
-                          <td>
-                            <div style={{ maxWidth: '230px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={timetable._id}>
-                              {timetable._id}
-                            </div>
-                          </td>
-                          <td>{timetable.batch?.batchType || "-"}</td>
                           <td>{timetable.faculty?.facultyName || "-"}</td>
-                          <td>{timetable.group?.groupNum || "-"}</td>
-                          <td>{timetable.group?.year || "-"}</td>
+                          <td>{timetable.batch?.batchType || "-"}</td>
+                          <td>{`${timetable.group?.groupNum || "?"} (Y${timetable.year || "?"}S${timetable.semester || "?"})`}</td>
                           <td>
-                            <div style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={timetable.module?.moduleCode || "-"}>
-                              {timetable.module?.moduleCode || "-"}
+                            <div style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={`${timetable.module?.moduleName || "?"} (${timetable.module?.moduleCode || "?"})`}>
+                              {timetable.module?.moduleCode || "-"} {timetable.module?.moduleName ? `(${timetable.module.moduleName.substring(0, 10)}...)` : ''}
                             </div>
                           </td>
                           <td>
-                            <div style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={timetable.lecturer?.lecturerCode || "-"}>
-                              {timetable.lecturer?.lecturerCode || "-"}
+                            <div style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={timetable.lecturer?.lecturerName || "?"}>
+                              {timetable.lecturer?.lecturerName || "-"}
                             </div>
                           </td>
                           <td>
-                            <div style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={timetable.location?.locationCode || "-"}>
+                            <div style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={`${timetable.location?.locationName || "?"} (${timetable.location?.locationCode || "?"})`}>
                               {timetable.location?.locationCode || "-"}
                             </div>
                           </td>
@@ -436,9 +550,9 @@ function Timetable() {
                           <td>{timetable.endTime || "-"}</td>
                           <td>
                             <span
-                              className={`admin-session admin-${timetable.type.toLowerCase()}`}
+                              className={`admin-session admin-${timetable.type?.toLowerCase()}`}
                             >
-                              {timetable.type}
+                              {timetable.type || '-'}
                             </span>
                           </td>
                           <td className="admin-actions">
@@ -463,15 +577,15 @@ function Timetable() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="10" className="text-center">
-                          No timetables found
+                        <td colSpan="11" className="text-center p-4">
+                          No timetables found matching your criteria
                         </td>
                       </tr>
                     )}
                   </tbody>
                 </table>
               </div>
-              {filteredTimetables.length > recordsPerPage && (
+               {!loading && filteredTimetables.length > recordsPerPage && totalPages > 1 && (
                 <div className="flex items-center justify-between mt-6 px-4">
                   <div className="text-sm text-gray-600">
                     Showing {indexOfFirstRecord + 1} to {Math.min(indexOfLastRecord, filteredTimetables.length)} of {filteredTimetables.length} entries
@@ -484,48 +598,30 @@ function Timetable() {
                     >
                       <ChevronLeft size={18} className="mr-1" /> Previous
                     </button>
-                    
                     <div className="flex items-center gap-1">
                       {(() => {
                         const pageNumbers = [];
-                        const maxPagesToShow = 7; // Number of page buttons to show (adjust as needed)
+                        const maxPagesToShow = 7;
                         let startPage, endPage;
-
                         if (totalPages <= maxPagesToShow) {
-                          // Less pages than max, show all
-                          startPage = 1;
-                          endPage = totalPages;
+                          startPage = 1; endPage = totalPages;
                         } else {
-                          // More pages than max, calculate range
                           const maxPagesBeforeCurrent = Math.floor(maxPagesToShow / 2);
                           const maxPagesAfterCurrent = Math.ceil(maxPagesToShow / 2) - 1;
-
                           if (currentPage <= maxPagesBeforeCurrent) {
-                            // Near the start
-                            startPage = 1;
-                            endPage = maxPagesToShow;
+                            startPage = 1; endPage = maxPagesToShow;
                           } else if (currentPage + maxPagesAfterCurrent >= totalPages) {
-                            // Near the end
-                            startPage = totalPages - maxPagesToShow + 1;
-                            endPage = totalPages;
+                            startPage = totalPages - maxPagesToShow + 1; endPage = totalPages;
                           } else {
-                            // In the middle
-                            startPage = currentPage - maxPagesBeforeCurrent;
-                            endPage = currentPage + maxPagesAfterCurrent;
+                            startPage = currentPage - maxPagesBeforeCurrent; endPage = currentPage + maxPagesAfterCurrent;
                           }
                         }
-
-                        // Add page number buttons
                         for (let i = startPage; i <= endPage; i++) {
                           pageNumbers.push(
                             <button
                               key={i}
                               onClick={() => paginate(i)}
-                              className={`px-3 py-1 rounded-md text-sm font-medium ${ 
-                                currentPage === i
-                                  ? 'bg-blue-600 text-white'
-                                  : 'text-gray-600 bg-white hover:bg-gray-100'
-                              }`}
+                              className={`px-3 py-1 rounded-md text-sm font-medium ${currentPage === i ? 'bg-blue-600 text-white' : 'text-gray-600 bg-white hover:bg-gray-100'}`}
                             >
                               {i}
                             </button>
@@ -534,7 +630,6 @@ function Timetable() {
                         return pageNumbers;
                       })()}
                     </div>
-                    
                     <button
                       onClick={nextPage}
                       disabled={currentPage === totalPages}
@@ -552,16 +647,16 @@ function Timetable() {
         <Footer />
       </div>
       {showAddTimetableForm && (
-        <AddTimetable onClose={handleCloseAddTimetableForm} />
+        <AddTimetable onClose={handleCloseAddTimetableForm} onTimetableAdded={fetchTimetables} />
       )}
-      {showUpdateTimetableForm && (
+      {showUpdateTimetableForm && selectedTimetable && (
         <UpdateTimetable
           timetable={selectedTimetable}
           onClose={handleCloseUpdateTimetableForm}
           onUpdate={handleUpdateTimetable}
         />
       )}
-      {showDeleteConfirmation && (
+      {showDeleteConfirmation && selectedTimetable && (
         <div className="admin-modal-overlay">
           <div className="admin-modal-content-container admin-delete-confirmation">
             <div className="admin-form-name-container">
@@ -570,16 +665,19 @@ function Timetable() {
             </div>
             <div className="admin-confirmation-details">
               <p>
-                <strong>Timetable ID:</strong> {selectedTimetable?.id}
+                <strong>Module:</strong> {selectedTimetable.module?.moduleName || 'N/A'} ({selectedTimetable.module?.moduleCode || 'N/A'})
               </p>
               <p>
-                <strong>Course:</strong> {selectedTimetable?.course}
+                <strong>Group:</strong> {selectedTimetable.group?.groupNum || 'N/A'}
+              </p>
+               <p>
+                <strong>Lecturer:</strong> {selectedTimetable.lecturer?.lecturerName || 'N/A'}
               </p>
               <p>
-                <strong>Group:</strong> {selectedTimetable?.group}
+                <strong>Day:</strong> {selectedTimetable.day}
               </p>
-              <p>
-                <strong>Day:</strong> {selectedTimetable?.day}
+               <p>
+                <strong>Time:</strong> {selectedTimetable.startTime} - {selectedTimetable.endTime}
               </p>
             </div>
             <div className="admin-form-actions">

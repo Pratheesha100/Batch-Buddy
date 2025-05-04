@@ -110,6 +110,8 @@ body {
     border-radius: 4px;
     font-size: 14px;
     transition: border-color 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .admin-select:focus, .admin-input:focus, .admin-textarea:focus {

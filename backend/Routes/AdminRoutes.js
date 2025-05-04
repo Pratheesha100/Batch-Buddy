@@ -10,7 +10,7 @@ import { getAllStudents, addStudents } from '../Controllers/AdminControllers/Adm
 import { getAllLecturerModules, addLecturerModules, addMultipleLecModules } from '../Controllers/AdminControllers/AdminController.js';
 import { getAllStudentGroups, addStudentGroups } from '../Controllers/AdminControllers/AdminController.js';
 import { getAllStudentModules, addStudentModules } from '../Controllers/AdminControllers/AdminController.js';
-import { getAllTimetables, addTimetables, updateTimetable, deleteTimetable} from '../Controllers/AdminControllers/AdminController.js';
+import { getAllTimetables, addTimetables, updateTimetable, deleteTimetable, getDeletedTodayCount } from '../Controllers/AdminControllers/AdminController.js';
 import { getAllEvents, addEvents, updateEvents, deleteEvents } from '../Controllers/AdminControllers/AdminController.js';
 import { getAllReschedules, addReschedules, updateReschedules, deleteReschedules } from '../Controllers/AdminControllers/AdminController.js';
 import { upload, processTimetableFile } from '../Controllers/AdminControllers/UploadController.js';
@@ -75,8 +75,9 @@ router.post("/addStudentModules", addStudentModules);
 //path for timetables
 router.get("/timetables", getAllTimetables);
 router.post("/addTimetables", addTimetables);
-router.put("/updateTimetable", updateTimetable);
-router.delete("/deleteTimetable", deleteTimetable);
+router.put("/updateTimetable/:id", updateTimetable);
+router.delete("/deleteTimetable/:id", deleteTimetable);
+router.get("/timetables/deleted-today-count", getDeletedTodayCount);
 router.post('/uploadTimetable', (req, res) => {
     console.log('Received file:', req.file);
     console.log('Body:', req.body);

@@ -718,9 +718,9 @@ const getAllTimetables = async (req, res) => {
     try {
         const timetables = await Timetable.find()
             .populate('module', 'moduleCode moduleName')
-            .populate('location', 'locationCode')
-            .populate('lecturer', 'lecturerCode')
-            .populate('group', 'groupNum year')
+            .populate('location', 'locationCode locationName')
+            .populate('lecturer', 'lecturerCode lecturerName')
+            .populate('group', 'groupNum year semester')
             .populate('batch', 'batchType')
             .populate('faculty', 'facultyName')
             .lean();
@@ -734,19 +734,31 @@ export { getAllTimetables };
 
 //create timetables
 const addTimetables = async (req, res) => {
-    const { module, day, startTime, endTime, location, lecturer, group, year,semester, faculty, type } = req.body;
-    //input validation
-    if (!module || !day || !startTime || !endTime || !location || !lecturer || !group || !year || !semester || !faculty || !type) {
-    return res.status(404).json({ message: 'module, day, startTime, endTime, location and lecturer are required' });
+    const { module, day, startTime, endTime, location, lecturer, group, year, semester, batch, faculty, type } = req.body;
+
+    if (!module || !day || !startTime || !endTime || !location || !lecturer || !group || !year || !semester || !batch || !faculty || !type) {
+       return res.status(400).json({ message: 'All fields (module, day, startTime, endTime, location, lecturer, group, year, semester, batch, faculty, type) are required' });
     }
 
     try {
-        const newTimetable = new Timetable({ module, day, startTime, endTime, location, lecturer, group,year,semester, faculty, type });
+        const newTimetable = new Timetable({ module, day, startTime, endTime, location, lecturer, group, year, semester, batch, faculty, type });
         await newTimetable.save();
-        res.status(200).json(newTimetable);
+        const populatedTimetable = await Timetable.findById(newTimetable._id)
+            .populate('module', 'moduleCode moduleName')
+            .populate('location', 'locationCode locationName')
+            .populate('lecturer', 'lecturerCode lecturerName')
+            .populate('group', 'groupNum year semester')
+            .populate('batch', 'batchType')
+            .populate('faculty', 'facultyName')
+            .lean(); 
+
+        res.status(201).json(populatedTimetable);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error creating timetable' });
+        console.error("Error creating timetable:", err);
+        if (err.name === 'ValidationError') {
+             return res.status(400).json({ message: `Validation Error: ${err.message}` });
+        }
+        res.status(500).json({ message: 'Error creating timetable entry' });
     }
 }
 export { addTimetables };
@@ -781,7 +793,7 @@ const deleteTimetable = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const deletedTimetable = await Events.findByIdAndDelete(id);
+        const deletedTimetable = await Timetable.findByIdAndDelete(id);
 
         if (!deletedTimetable) {
             return res.status(404).json({ message: 'Timetable not found' });
@@ -970,6 +982,33 @@ const deleteReschedules = async (req, res) => {
     }
 }
 export { deleteReschedules };
+
+// Get count of timetables deleted today (Placeholder)
+const getDeletedTodayCount = async (req, res) => {
+    try {
+        // --- Placeholder Logic --- 
+        // This requires a proper tracking mechanism (e.g., soft delete with deletedAt timestamp
+        // or an audit log) to determine which timetables were deleted today.
+        // For now, returning 0.
+        //
+        // Example (if using soft delete with deletedAt):
+        // const today = new Date();
+        // today.setHours(0, 0, 0, 0);
+        // const tomorrow = new Date(today);
+        // tomorrow.setDate(tomorrow.getDate() + 1);
+        // const count = await Timetable.countDocuments({
+        //     deletedAt: { $gte: today, $lt: tomorrow }
+        // });
+
+        const count = 0; // Replace with actual query logic later
+
+        res.status(200).json({ count });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error fetching deleted timetable count' });
+    }
+};
+export { getDeletedTodayCount };
 
 
 
