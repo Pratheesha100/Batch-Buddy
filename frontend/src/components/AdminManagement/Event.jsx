@@ -546,11 +546,23 @@ function Event() {
         <Footer />
       </div>
 
-      <Suspense fallback={<div>Loading form...</div>}>
+      <Suspense fallback={
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-content-container" style={{textAlign: 'center', padding: '40px 0'}}>
+            Loading form...
+          </div>
+        </div>
+      }>
         {showForm && <AddReschedule onClose={handleCloseForm} />}
       </Suspense>
       
-      <Suspense fallback={<div>Loading form...</div>}>
+      <Suspense fallback={
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-content-container" style={{textAlign: 'center', padding: '40px 0'}}>
+            Loading form...
+          </div>
+        </div>
+      }>
         {showUpdateForm && selectedSchedule && (
           <UpdateReschedule
             schedule={selectedSchedule}
@@ -562,7 +574,13 @@ function Event() {
         )}
       </Suspense>
 
-      <Suspense fallback={<div>Loading form...</div>}>
+      <Suspense fallback={
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-content-container" style={{textAlign: 'center', padding: '40px 0'}}>
+            Loading form...
+          </div>
+        </div>
+      }>
         {showUpdateForm && selectedEvent && (
           <UpdateEvent
             event={selectedEvent}
@@ -573,8 +591,19 @@ function Event() {
         )}
       </Suspense>
 
-      <Suspense fallback={<div>Loading form...</div>}>
-        {showAddEventForm && <AddEvent faculties={faculties} onClose={handleCloseAddEventForm} onAdd={handleCreateEvent} />}
+      <Suspense fallback={
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-content-container" style={{textAlign: 'center', padding: '40px 0'}}>
+            Loading form...
+          </div>
+        </div>
+      }>
+        {showAddEventForm && (
+          <AddEvent
+            onClose={handleCloseAddEventForm}
+            onEventAdded={() => fetchEvents(setError, setEvents)}
+          />
+        )}
       </Suspense>
 
       {showDeleteConfirmation && (

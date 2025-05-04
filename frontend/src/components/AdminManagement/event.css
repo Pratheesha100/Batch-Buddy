@@ -69,12 +69,13 @@
 
 .admin-events-card-container {
   position: relative;
-  padding: 0 2rem;
+  padding: 0;
   background-color: #f8f9fa;
   max-width: 100%;
   width: calc(300px * 3 + 48px); /* Exactly 3 cards + gaps */
   margin: 0 auto;
   overflow: hidden; /* Clip the inner scroll container */
+  box-sizing: border-box;
 }
 
 .admin-events-card-container-scroll {
@@ -86,6 +87,7 @@
   margin: 0;
   -ms-overflow-style: none;  /* Hide scrollbar IE and Edge */
   scrollbar-width: none;  /* Hide scrollbar Firefox */
+  min-width: 0;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -108,6 +110,7 @@
   cursor: pointer;
   z-index: 2;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  pointer-events: auto;
 }
 
 .carousel-button:hover {

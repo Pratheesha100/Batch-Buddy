@@ -1,23 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 import "./shared.css";
 
-function AddEvent({ onClose }) {
+function AddEvent({ onClose, onEventAdded }) {
+    // Lock body scroll and compensate for scrollbar width when modal is open
+    useEffect(() => {
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+        document.body.style.overflow = 'hidden';
+        if (scrollbarWidth > 0) {
+            document.body.style.paddingRight = `${scrollbarWidth}px`;
+        }
+        return () => {
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        };
+    }, []);
+
     const [formData, setFormData] = useState({
         eventName: '',
-        faculty: '',
-        date: '',
+        eventDescription: '',
+        eventDate: '',
         time: '',
         location: '',
-        notes: ''
+        faculty: ''
     });
 
+    const [faculties, setFaculties] = useState([]);
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Fetch faculties for dropdown
+    useEffect(() => {
+        const fetchFaculties = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/admin/getFaculties');
+                if (response.ok) {
+                    const data = await response.json();
+                    setFaculties(data);
+                }
+            } catch (error) {
+                console.error('Error fetching faculties:', error);
+            }
+        };
+        fetchFaculties();
+    }, []);
 
     // Validation rules
     const validateField = (name, value) => {
         let error = '';
-        
         switch (name) {
             case 'eventName':
                 if (!value.trim()) {
@@ -28,33 +58,28 @@ function AddEvent({ onClose }) {
                     error = 'Event name must not exceed 100 characters';
                 }
                 break;
-
             case 'faculty':
                 if (!value) {
                     error = 'Please select a faculty';
                 }
                 break;
-
-            case 'date':
+            case 'eventDate':
                 if (!value) {
                     error = 'Date is required';
                 } else {
                     const selectedDate = new Date(value);
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
-                    
                     if (selectedDate < today) {
                         error = 'Date cannot be in the past';
                     }
                 }
                 break;
-
             case 'time':
                 if (!value) {
                     error = 'Time is required';
                 }
                 break;
-
             case 'location':
                 if (!value.trim()) {
                     error = 'Location is required';
@@ -62,8 +87,7 @@ function AddEvent({ onClose }) {
                     error = 'Location must be at least 5 characters';
                 }
                 break;
-
-            case 'notes':
+            case 'eventDescription':
                 if (!value.trim()) {
                     error = 'Description is required';
                 } else if (value.length < 10) {
@@ -71,6 +95,8 @@ function AddEvent({ onClose }) {
                 } else if (value.length > 500) {
                     error = 'Description must not exceed 500 characters';
                 }
+                break;
+            default:
                 break;
         }
         return error;
@@ -83,7 +109,6 @@ function AddEvent({ onClose }) {
             ...prev,
             [name]: value
         }));
-
         // Validate on change
         const error = validateField(name, value);
         setErrors(prev => ({
@@ -96,27 +121,49 @@ function AddEvent({ onClose }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
-
         // Validate all fields
         const newErrors = {};
         Object.keys(formData).forEach(key => {
             const error = validateField(key, formData[key]);
             if (error) newErrors[key] = error;
         });
-
         setErrors(newErrors);
-
-        // If there are no errors, proceed with submission
         if (Object.keys(newErrors).length === 0) {
             try {
-                // Add your API call here
-                console.log('Form submitted:', formData);
-                onClose(); // Close the modal after successful submission
+                const eventData = {
+                    eventName: formData.eventName,
+                    eventDescription: formData.eventDescription,
+                    eventDate: formData.eventDate,
+                    time: formData.time,
+                    location: formData.location,
+                    faculty: formData.faculty
+                };
+                const res = await fetch('http://localhost:5000/api/admin/addEvents', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(eventData)
+                });
+                if (!res.ok) throw new Error('Failed to create event');
+                if (onEventAdded) onEventAdded();
+                onClose();
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Event Created',
+                    text: 'The event was created successfully.',
+                    confirmButtonColor: '#2563eb',
+                    width: 400,
+                });
             } catch (error) {
                 console.error('Error submitting form:', error);
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Create Failed',
+                    text: 'Failed to create event. Please try again.',
+                    confirmButtonColor: '#ef4444',
+                    width: 400,
+                });
             }
         }
-
         setIsSubmitting(false);
     };
 
@@ -155,10 +202,9 @@ function AddEvent({ onClose }) {
                                 required
                             >
                                 <option value="">Select Faculty</option>
-                                <option value="computing">Computing</option>
-                                <option value="engineering">Engineering</option>
-                                <option value="business">Business</option>
-                                <option value="humanities">Humanities</option>
+                                {faculties.map(faculty => (
+                                    <option key={faculty._id} value={faculty._id}>{faculty.facultyName}</option>
+                                ))}
                             </select>
                             {errors.faculty && <span className="admin-error-message">{errors.faculty}</span>}
                         </div>
@@ -166,14 +212,14 @@ function AddEvent({ onClose }) {
                             <label className="admin-label">Date</label>
                             <input 
                                 type="date" 
-                                name="date"
-                                value={formData.date}
+                                name="eventDate"
+                                value={formData.eventDate}
                                 onChange={handleChange}
                                 min={today}
-                                className={errors.date ? 'admin-input admin-error' : 'admin-input'}
+                                className={errors.eventDate ? 'admin-input admin-error' : 'admin-input'}
                                 required
                             />
-                            {errors.date && <span className="admin-error-message">{errors.date}</span>}
+                            {errors.eventDate && <span className="admin-error-message">{errors.eventDate}</span>}
                         </div>
                         <div>
                             <label className="admin-label">Time </label>
@@ -204,14 +250,14 @@ function AddEvent({ onClose }) {
                     <div className="admin-note-container">
                         <label className="admin-label">Description </label>
                         <textarea 
-                            name="notes"
-                            value={formData.notes}
+                            name="eventDescription"
+                            value={formData.eventDescription}
                             onChange={handleChange}
                             placeholder="Enter a description (minimum 10 characters)"
-                            className={errors.notes ? 'admin-textarea admin-error' : 'admin-textarea'}
+                            className={errors.eventDescription ? 'admin-textarea admin-error' : 'admin-textarea'}
                             required
                         ></textarea>
-                        {errors.notes && <span className="admin-error-message">{errors.notes}</span>}
+                        {errors.eventDescription && <span className="admin-error-message">{errors.eventDescription}</span>}
                     </div>
                     <div className="admin-form-actions">
                         <button
