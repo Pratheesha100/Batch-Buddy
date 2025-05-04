@@ -3,6 +3,102 @@ import { Mic, Calendar, Clock, ChevronRight, BookOpen, Beaker, Users, Check, Use
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from 'axios';
 
+// Utility functions for date handling
+const getCurrentDay = () => {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  return days[new Date().getDay()];
+};
+
+const getAdjacentDays = () => {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const today = new Date().getDay();
+  const yesterday = days[(today + 6) % 7];
+  const tomorrow = days[(today + 1) % 7];
+  return { yesterday, tomorrow };
+};
+
+// Google Cloud Speech-to-Text API implementation
+const useGoogleSpeechRecognition = () => {
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [error, setError] = useState(null);
+
+  const startListening = async () => {
+    try {
+      setIsListening(true);
+      setError(null);
+
+      // Initialize the audio context
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const source = audioContext.createMediaStreamSource(stream);
+      
+      // Create a processor node
+      const processor = audioContext.createScriptProcessor(4096, 1, 1);
+      source.connect(processor);
+      processor.connect(audioContext.destination);
+
+      // Buffer to store audio data
+      let audioBuffer = [];
+      
+      processor.onaudioprocess = (e) => {
+        const inputData = e.inputBuffer.getChannelData(0);
+        audioBuffer = audioBuffer.concat(Array.from(inputData));
+      };
+
+      // Send audio data to Google Cloud Speech-to-Text API
+      const sendAudioToGoogle = async () => {
+        if (audioBuffer.length === 0) return;
+
+        try {
+          const response = await fetch('YOUR_GOOGLE_CLOUD_FUNCTION_ENDPOINT', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              audio: audioBuffer,
+              config: {
+                encoding: 'LINEAR16',
+                sampleRateHertz: 16000,
+                languageCode: 'en-US',
+                enableAutomaticPunctuation: true,
+              },
+            }),
+          });
+
+          const data = await response.json();
+          if (data.transcript) {
+            setTranscript(data.transcript);
+          }
+        } catch (err) {
+          console.error('Error sending audio to Google:', err);
+          setError('Error processing speech');
+        }
+      };
+
+      // Send audio data every 2 seconds
+      const interval = setInterval(sendAudioToGoogle, 2000);
+
+      return () => {
+        clearInterval(interval);
+        stream.getTracks().forEach(track => track.stop());
+        audioContext.close();
+      };
+    } catch (err) {
+      console.error('Error starting speech recognition:', err);
+      setError('Error accessing microphone');
+      setIsListening(false);
+    }
+  };
+
+  const stopListening = () => {
+    setIsListening(false);
+  };
+
+  return { isListening, transcript, error, startListening, stopListening };
+};
+
 const BatchBuddy = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,6 +111,10 @@ const BatchBuddy = () => {
   const [timetable, setTimetable] = useState(null);
   const [loading, setLoading] = useState(true);
   const [noTimetable, setNoTimetable] = useState(false);
+
+  // Get current and adjacent days
+  const { yesterday, tomorrow } = getAdjacentDays();
+  const today = getCurrentDay();
 
   const getTypeIcon = (type) => {
     switch (type) {
@@ -88,25 +188,7 @@ const BatchBuddy = () => {
     fetchData();
   }, [location]);
 
-  // Initialize audio objects
-  useEffect(() => {
-    // Use reliable sound files
-    const startAudio = new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3');
-    const stopAudio = new Audio('https://www.soundjay.com/buttons/sounds/button-4.mp3');
-    
-    startAudio.volume = 0.3;
-    stopAudio.volume = 0.3;
-    
-    setStartSound(startAudio);
-    setStopSound(stopAudio);
-
-    return () => {
-      startAudio.pause();
-      stopAudio.pause();
-    };
-  }, []);
-
-  // Speech Recognition Setup
+  // Initialize speech recognition
   useEffect(() => {
     if ('webkitSpeechRecognition' in window) {
       const recognitionInstance = new window.webkitSpeechRecognition();
@@ -160,6 +242,24 @@ const BatchBuddy = () => {
     };
   }, [startSound, stopSound]);
 
+  // Initialize audio objects
+  useEffect(() => {
+    // Use reliable sound files
+    const startAudio = new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3');
+    const stopAudio = new Audio('https://www.soundjay.com/buttons/sounds/button-4.mp3');
+    
+    startAudio.volume = 0.3;
+    stopAudio.volume = 0.3;
+    
+    setStartSound(startAudio);
+    setStopSound(stopAudio);
+
+    return () => {
+      startAudio.pause();
+      stopAudio.pause();
+    };
+  }, []);
+
   const startListening = () => {
     if (recognition) {
       try {
@@ -174,47 +274,11 @@ const BatchBuddy = () => {
     }
   };
 
-  const speak = (text) => {
-    // Cancel any ongoing speech
-    window.speechSynthesis.cancel();
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.1;
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
-    
-    utterance.onstart = () => console.log('Started speaking...');
-    utterance.onend = () => console.log('Finished speaking...');
-    utterance.onerror = (event) => console.error('Speech synthesis error:', event);
-    
-    window.speechSynthesis.speak(utterance);
-  };
-
-  // Move these outside the component for reuse
-  const getCurrentDay = () => {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return days[new Date().getDay()];
-  };
-
-  const getAdjacentDays = () => {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const today = new Date().getDay();
-    const yesterday = days[(today + 6) % 7];
-    const tomorrow = days[(today + 1) % 7];
-    return { yesterday, tomorrow };
-  };
-
-  const { yesterday, tomorrow } = getAdjacentDays();
-  const today = getCurrentDay();
-  // Debug: log the day values being used
-  console.log('Today:', today, 'Yesterday:', yesterday, 'Tomorrow:', tomorrow);
-
   const handleVoiceCommand = (command) => {
     console.log('Processing command:', command);
     
-    // Improved timetable check
-    const hasValidTimetable = timetable && timetable.days && timetable.days.length > 0;
-    if (!hasValidTimetable) {
+    // Check if timetable data is available
+    if (!timetable || !timetable.days || timetable.days.length === 0) {
       speak("I'm still loading your timetable. Please wait a moment and try again.");
       return;
     }
@@ -222,7 +286,6 @@ const BatchBuddy = () => {
     // Normalize the command
     const normalizedCommand = command.trim().toLowerCase().replace(/\s+/g, ' ');
 
-    // Use the same today, yesterday, tomorrow as the UI
     // Command map for voice queries
     const commandMap = {
       'today': getScheduleForDay(today),
@@ -274,7 +337,7 @@ const BatchBuddy = () => {
       }
     }
 
-    // Handle attendance marking commands with more flexible matching
+    // Handle attendance marking commands
     const attendancePatterns = [
       /(mark|record|take).*(attendance|present).*(for|on)?\s*(today|tomorrow|yesterday)?/i,
       /(mark|record|take).*(me|my).*(attendance|present).*(for|on)?\s*(today|tomorrow|yesterday)?/i
@@ -319,6 +382,22 @@ const BatchBuddy = () => {
       type: slot.type || 'Lecture',
       location: slot.location
     }));
+  };
+
+  const speak = (text) => {
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.1;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    
+    utterance.onstart = () => console.log('Started speaking...');
+    utterance.onend = () => console.log('Finished speaking...');
+    utterance.onerror = (event) => console.error('Speech synthesis error:', event);
+    
+    window.speechSynthesis.speak(utterance);
   };
 
   return (

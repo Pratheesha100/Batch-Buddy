@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Mic, Calendar, Clock, ChevronRight, BookOpen, Beaker, Users } from "lucide-react";
+import { Mic, Calendar, Clock, ChevronRight, BookOpen, Beaker, Users, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 import axios from 'axios';
 import NavigationBar from './NavigationBar';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const TimeTable = () => {
   const navigate = useNavigate();
@@ -117,6 +119,101 @@ const TimeTable = () => {
     setTimeout(() => setIsListening(false), 3000); // Temporary simulation
   };
 
+  const downloadPDF = async () => {
+    const timetableElement = document.getElementById('timetable-content');
+    if (!timetableElement) return;
+
+    try {
+      // Create a temporary container for all days
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '-9999px';
+      document.body.appendChild(tempContainer);
+
+      // Create a container for each day's content
+      const allDaysContainer = document.createElement('div');
+      allDaysContainer.style.backgroundColor = '#ffffff';
+      allDaysContainer.style.padding = '20px';
+      tempContainer.appendChild(allDaysContainer);
+
+      // Add title
+      const title = document.createElement('h1');
+      title.textContent = 'Weekly Timetable';
+      title.style.textAlign = 'center';
+      title.style.fontSize = '24px';
+      title.style.marginBottom = '20px';
+      title.style.color = '#1a365d';
+      allDaysContainer.appendChild(title);
+
+      // Get content for each day
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      for (const day of days) {
+        setSelectedDay(day);
+        // Wait for the state to update
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        const dayContainer = document.createElement('div');
+        dayContainer.style.marginBottom = '30px';
+        
+        const dayTitle = document.createElement('h2');
+        dayTitle.textContent = day;
+        dayTitle.style.fontSize = '18px';
+        dayTitle.style.color = '#2d3748';
+        dayTitle.style.marginBottom = '10px';
+        dayTitle.style.paddingBottom = '5px';
+        dayTitle.style.borderBottom = '2px solid #e2e8f0';
+        dayContainer.appendChild(dayTitle);
+
+        const dayContent = timetableElement.cloneNode(true);
+        dayContent.style.boxShadow = 'none';
+        dayContent.style.border = '1px solid #e2e8f0';
+        dayContent.style.marginBottom = '20px';
+        dayContainer.appendChild(dayContent);
+        
+        allDaysContainer.appendChild(dayContainer);
+      }
+
+      const canvas = await html2canvas(allDaysContainer, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const imgWidth = 210; // A4 width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pageHeight = 297; // A4 height in mm
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      // Clean up
+      document.body.removeChild(tempContainer);
+      setSelectedDay(days[0]); // Reset to first day
+
+      pdf.save('weekly-timetable.pdf');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <NavigationBar 
@@ -128,13 +225,22 @@ const TimeTable = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-gray-800">Weekly Schedule</h1>
-            <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all flex items-center space-x-2">
-              <Calendar className="w-5 h-5" />
-              <span>Export Calendar</span>
-            </button>
+            <div className="flex space-x-4">
+              <button 
+                onClick={downloadPDF}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all flex items-center space-x-2"
+              >
+                <Download className="w-5 h-5" />
+                <span>Download PDF</span>
+              </button>
+              <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all flex items-center space-x-2">
+                <Calendar className="w-5 h-5" />
+                <span>Export Calendar</span>
+              </button>
+            </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div id="timetable-content" className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex flex-wrap gap-2 mb-6">
               {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
                 <button
