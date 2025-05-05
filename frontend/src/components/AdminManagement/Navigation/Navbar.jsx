@@ -32,7 +32,7 @@ function Navbar({ isCollapsed, setIsCollapsed }) {
             <NavItem to="/students" icon={<GraduationCap />} text="Students" isCollapsed={isCollapsed} />
             <NavItem to="/lecturers" icon={<UserSquare2 />} text="Lecturers" isCollapsed={isCollapsed} />
             <NavItem to="/locations" icon={<MapPin />} text="Locations" isCollapsed={isCollapsed} />
-            <NavItem to="/timetable" icon={<CalendarClock  />} text="Timetable" isCollapsed={isCollapsed} />
+            <NavItem to="/timetables" icon={<CalendarClock  />} text="Timetable" isCollapsed={isCollapsed} />
             <NavItem to="/events"  icon={<CalendarPlus2 />} text="Events" isCollapsed={isCollapsed} />
             <NavItem  icon={<Settings  />} text="Settings" isCollapsed={isCollapsed} />
           </nav>
