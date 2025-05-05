@@ -1,8 +1,6 @@
 import { UserLog } from '../Models/UserLogModel.js';
 import Student from '../Models/UPStudentModel.js';
-import Degree from '../Models/UPDegreeModel.js';
-import Faculty from '../Models/UPFacultyModel.js';
-import Batch from '../Models/UPBatchModel.js';
+import Faculty from '../Models/Faculty.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
