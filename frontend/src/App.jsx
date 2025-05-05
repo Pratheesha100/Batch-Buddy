@@ -1,13 +1,10 @@
 import React from 'react';
 import { Route, Routes, useLocation } from "react-router-dom";
-import jsPDF from "jspdf";
+//import jsPDF from "jspdf";
 
 // Admin management system
 import AdminDash from './components/AdminManagement/AdminDashboard.jsx';
-import Timetable from './components/AdminManagement/Timetable.jsx';
-
-
-
+import Timetables from './components/AdminManagement/Timetable.jsx';
 import Event from './components/AdminManagement/Event.jsx'
 import Faculty from "./components/AdminManagement/Faculty.jsx";
 import Student from "./components/AdminManagement/Student.jsx";
@@ -47,7 +44,7 @@ function App() {
         {/* Admin Routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/dashboard" element={<AdminDash />}/>
-        <Route path="/admin-timetable" element={<Timetable />}/>
+        <Route path="/timetables" element={<Timetables />}/>
         <Route path="/events" element={<Event />}/>
         <Route path="/faculties" element={<Faculty/>}/>
         <Route path="/students" element={<Student/>}/>
