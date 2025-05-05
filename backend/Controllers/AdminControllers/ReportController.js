@@ -42,68 +42,94 @@ const addListItem = (doc, text) => {
 
 // Helper for improved tables
 const addTable = (doc, headers, rows, colWidths = []) => {
-  const startX = 50;
-  let y = doc.y;
-  const defaultColWidth = 120;
-  // Defensive: Ensure colWidths is valid
-  if (!Array.isArray(colWidths) || colWidths.length !== headers.length) {
+  const startX = doc.page.margins.left;
+  const pageEndY = doc.page.height - doc.page.margins.bottom;
+  const defaultColWidth = (doc.page.width - doc.page.margins.left - doc.page.margins.right) / headers.length; // Distribute width if not specified
+
+  // Use provided colWidths or default
+  if (!Array.isArray(colWidths) || colWidths.length !== headers.length || colWidths.some(isNaN)) {
     colWidths = Array(headers.length).fill(defaultColWidth);
   }
 
   // Defensive: If no rows, skip drawing table
   if (!Array.isArray(rows) || rows.length === 0) {
-    doc.moveDown(1);
+    // doc.moveDown(1); // Don't move down if nothing was drawn
     return;
   }
 
-  // Header
-  doc.font('Helvetica-Bold').fontSize(10);
-  let x = startX;
-  headers.forEach((header, i) => {
-    doc.text(header, x, y, { width: colWidths[i], align: 'left' });
-    x += colWidths[i];
-  });
-  y = doc.y + 5;
+  const headerHeight = doc.heightOfString(headers.join(' '), { 
+      width: colWidths.reduce((a, b) => a + b, 0), 
+      align: 'left' 
+  }) + 10; // Estimate header height with padding
+  const firstRowHeight = doc.heightOfString(rows[0].join(' '), { 
+      width: colWidths.reduce((a, b) => a + b, 0), 
+      align: 'left' 
+  }) + 5; // Estimate first row height
 
-  // Defensive: Only draw line if y and colWidths are valid
-  const totalWidth = colWidths.reduce((a, b) => (isNaN(a) ? 0 : a) + (isNaN(b) ? 0 : b), 0);
-  if (!isNaN(y) && !isNaN(totalWidth) && totalWidth > 0) {
-    doc.moveTo(startX, y).lineTo(startX + totalWidth, y).stroke();
+  // Check if header + first row fit, if not, add page
+  if (doc.y + headerHeight + firstRowHeight > pageEndY) {
+    doc.addPage();
+    doc.y = doc.page.margins.top; // Reset y position
   }
-  y += 2;
+
+  let currentY = doc.y;
+
+  // Function to draw header (reusable for page breaks)
+  const drawHeader = (yPos) => {
+    doc.font('Helvetica-Bold').fontSize(10);
+    let currentX = startX;
+    headers.forEach((header, i) => {
+      doc.text(header, currentX, yPos, { width: colWidths[i], align: 'left' });
+      currentX += colWidths[i];
+    });
+    const headerBottomY = doc.y + 5; // Get y after header text is potentially wrapped
+    // Draw line below header
+    doc.moveTo(startX, headerBottomY).lineTo(startX + colWidths.reduce((a, b) => a + b, 0), headerBottomY).stroke();
+    return headerBottomY + 2; // Return Y position below the header line
+  };
+
+  // Draw initial header
+  currentY = drawHeader(currentY);
+  doc.y = currentY; // Update doc's y position
 
   // Rows
   doc.font('Helvetica').fontSize(10);
-  rows.forEach(row => {
-    let x = startX;
+  rows.forEach((row, rowIndex) => {
     let cellHeights = [];
-    // First, measure the height of each cell
+    // Measure cell heights for the current row
     row.forEach((cell, i) => {
       const cellText = cell == null ? '' : String(cell);
-      const options = { width: colWidths[i], align: typeof cell === 'number' || /^\d/.test(cellText) ? 'right' : 'left' };
-      let height = 0;
+      const options = { width: colWidths[i], align: 'left' /* Default left, adjust if needed */ };
+      let height = 12; // Min height
       try {
         height = doc.heightOfString(cellText, options);
-      } catch (e) {
-        height = 12; // fallback height
-      }
-      if (isNaN(height) || height <= 0) height = 12;
-      cellHeights.push(height);
+      } catch (e) { /* ignore error */ }
+      cellHeights.push(Math.max(height, 12)); // Ensure minimum height
     });
-    const rowHeight = Math.max(...cellHeights, 12);
+    const rowHeight = Math.max(...cellHeights) + 4; // Max height + padding
 
-    // Now, actually render each cell at the same y
-    x = startX;
+    // Check if the current row fits on the page
+    if (currentY + rowHeight > pageEndY) {
+      doc.addPage();
+      currentY = doc.page.margins.top; // Reset Y for new page
+      currentY = drawHeader(currentY); // Redraw header on new page
+      doc.y = currentY; // Update doc's y position
+    }
+
+    // Draw the row content
+    let currentX = startX;
     row.forEach((cell, i) => {
       const cellText = cell == null ? '' : String(cell);
-      const options = { width: colWidths[i], align: typeof cell === 'number' || /^\d/.test(cellText) ? 'right' : 'left' };
-      doc.text(cellText, x, y, options);
-      x += colWidths[i];
+      const options = { width: colWidths[i], align: typeof cell === 'number' ? 'right' : 'left' }; // Align numbers right
+      doc.text(cellText, currentX, currentY, options);
+      currentX += colWidths[i];
     });
-    y += rowHeight + 2; // Add a little space between rows
-    doc.y = y; // Ensure doc.y is always at the bottom of the table
+
+    currentY += rowHeight; // Move Y down by the calculated row height
+    doc.y = currentY; // Update doc's y position after drawing row
   });
-  doc.moveDown(1);
+
+  doc.moveDown(1); // Add space after the entire table
 };
 
 export const generateAnalysisReport = async (req, res) => {
@@ -147,17 +173,17 @@ export const generateAnalysisReport = async (req, res) => {
     const logoPath = path.join(__dirname, '../../../frontend/src/assets/logo.png'); 
     try {
         if (fs.existsSync(logoPath)) {
-             doc.image(logoPath, 50, 35, { width: 120 }); // Increased width for bigger logo
+             doc.image(logoPath, 50, 40, { width: 120 }); // Set Y back near top (e.g., 40)
         } else {
             console.warn("Logo file not found at:", logoPath);
         }
     } catch (imgErr) {
         console.error("Error adding logo:", imgErr);
     }
-  
-    // Header Text (position adjusted for logo)
-    doc.fontSize(18).font('Helvetica-Bold').text('University Attendance Analysis Report', 50, 60, { align: 'center' });
-    doc.fontSize(10).font('Helvetica').text(`Generated on: ${moment().format('YYYY-MM-DD HH:mm')}`, { align: 'center' });
+
+    // Header Text (aligned considering margin)
+    doc.fontSize(18).font('Helvetica-Bold').text('University Attendance Analysis Report', doc.page.margins.left, 60, { align: 'center' });
+    doc.fontSize(10).font('Helvetica').text(`Generated on: ${moment().format('YYYY-MM-DD HH:mm')}`, doc.page.margins.left, 85, { align: 'center' });
     doc.moveDown(3); // More space after header
 
     // AI Summary Section
@@ -279,14 +305,15 @@ export const generateAnalysisReport = async (req, res) => {
         plugins: {
             legend: { display: true },
             datalabels: {
-                anchor: 'center',
-                align: 'center',
+                anchor: 'end',
+                align: 'end',
                 formatter: (value, context) => {
                     return value > 0 ? value : '';
                 },
-                color: '#ffffff',
+                color: '#555',
                 font: {
-                    weight: 'bold'
+                    weight: 'normal',
+                    size: 9
                 }
             }
         }
@@ -314,14 +341,15 @@ export const generateAnalysisReport = async (req, res) => {
         plugins: {
            legend: { display: true },
            datalabels: {
-                anchor: 'center',
-                align: 'center',
+                anchor: 'end',
+                align: 'end',
                 formatter: (value, context) => {
-                    return value > 5 ? value.toFixed(1) + '%' : '';
+                    return value > 0 ? value.toFixed(1) + '%' : '';
                 },
-                color: '#333',
+                color: '#555',
                 font: {
-                    weight: 'bold'
+                    weight: 'normal',
+                    size: 9
                 }
             }
         }

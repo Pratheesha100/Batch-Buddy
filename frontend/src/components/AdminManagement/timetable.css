@@ -286,3 +286,29 @@
     flex-shrink: 0;
 }
 
+/* Custom blue scrollbar for main content area */
+.admin-content::-webkit-scrollbar,
+.admin-maincontent-container::-webkit-scrollbar {
+  width: 10px;
+  background: #f0f4ff;
+}
+
+.admin-content::-webkit-scrollbar-thumb,
+.admin-maincontent-container::-webkit-scrollbar-thumb {
+  background: #2563eb; /* Blue */
+  border-radius: 8px;
+  border: 2px solid #f0f4ff;
+}
+
+.admin-content::-webkit-scrollbar-thumb:hover,
+.admin-maincontent-container::-webkit-scrollbar-thumb:hover {
+  background: #1746a2; /* Darker blue on hover */
+}
+
+/* For Firefox */
+.admin-content,
+.admin-maincontent-container {
+  scrollbar-width: thin;
+  scrollbar-color: #2563eb #f0f4ff;
+}
+

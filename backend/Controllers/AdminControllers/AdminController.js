@@ -734,33 +734,95 @@ export { getAllTimetables };
 
 //create timetables
 const addTimetables = async (req, res) => {
-    const { module, day, startTime, endTime, location, lecturer, group, year, semester, batch, faculty, type } = req.body;
+    const timetableData = req.body;
 
-    if (!module || !day || !startTime || !endTime || !location || !lecturer || !group || !year || !semester || !batch || !faculty || !type) {
-       return res.status(400).json({ message: 'All fields (module, day, startTime, endTime, location, lecturer, group, year, semester, batch, faculty, type) are required' });
-    }
-
-    try {
-        const newTimetable = new Timetable({ module, day, startTime, endTime, location, lecturer, group, year, semester, batch, faculty, type });
-        await newTimetable.save();
-        const populatedTimetable = await Timetable.findById(newTimetable._id)
-            .populate('module', 'moduleCode moduleName')
-            .populate('location', 'locationCode locationName')
-            .populate('lecturer', 'lecturerCode lecturerName')
-            .populate('group', 'groupNum year semester')
-            .populate('batch', 'batchType')
-            .populate('faculty', 'facultyName')
-            .lean(); 
-
-        res.status(201).json(populatedTimetable);
-    } catch (err) {
-        console.error("Error creating timetable:", err);
-        if (err.name === 'ValidationError') {
-             return res.status(400).json({ message: `Validation Error: ${err.message}` });
+    // Check if the input is an array (from bulk upload/preview confirm)
+    if (Array.isArray(timetableData)) {
+        // --- Bulk Insert Logic ---
+        if (timetableData.length === 0) {
+            return res.status(400).json({ message: 'No timetable entries provided.' });
         }
-        res.status(500).json({ message: 'Error creating timetable entry' });
+
+        // Optional: Filter out entries flagged as invalid during mapping, if the flag exists
+        const validEntries = timetableData.filter(entry => entry._isValidForSave !== false);
+        const invalidCount = timetableData.length - validEntries.length;
+
+        if (validEntries.length === 0) {
+             return res.status(400).json({ message: 'No valid timetable entries found to save after processing.' });
+        }
+
+        console.log(`Attempting to bulk insert ${validEntries.length} timetable entries...`);
+
+        try {
+            // Use insertMany for efficiency
+            // Note: Mongoose insertMany bypasses schema validation & middleware by default.
+            // Add explicit validation here if complex rules are needed beyond schema types.
+            const insertedTimetables = await Timetable.insertMany(validEntries, { ordered: false }); // ordered: false allows partial success on errors like duplicates
+
+            const successCount = insertedTimetables.length;
+            let message = `Successfully added ${successCount} timetable entries.`;
+            if (invalidCount > 0) {
+                message += ` ${invalidCount} entries were skipped due to mapping errors or missing required fields.`;
+            }
+            console.log(message);
+
+            // Respond with success count and informational message
+            res.status(201).json({
+                message: message,
+                count: successCount
+            });
+
+        } catch (err) {
+             console.error("Error during bulk timetable insert:", err);
+             // Handle potential bulk write errors
+             let errorMessage = err.message;
+             let statusCode = 500;
+             if (err.name === 'MongoBulkWriteError' && err.writeErrors) {
+                errorMessage = `Failed to insert some entries. ${err.writeErrors.length} errors occurred. First error: ${err.writeErrors[0].errmsg}`;
+                // Keep status 500, but provide more detail
+             } else if (err.name === 'ValidationError'){
+                 statusCode = 400; // If validation somehow runs and fails
+                 errorMessage = `Validation Error: ${err.message}`;
+             }
+             res.status(statusCode).json({ message: `Error saving timetable entries: ${errorMessage}` });
+        }
+
+    } else {
+        // --- Single Insert Logic (Manual Add Form) ---
+        const { module, day, startTime, endTime, location, lecturer, group, year, semester, batch, faculty, type } = timetableData;
+
+        // Validate required fields for single entry
+        const requiredSingle = ['module', 'day', 'startTime', 'endTime', 'location', 'lecturer', 'group', 'year', 'semester', 'batch', 'faculty', 'type'];
+        const missingSingle = requiredSingle.filter(f => !timetableData[f]);
+        if (missingSingle.length > 0) {
+           return res.status(400).json({ message: `Missing required fields for single entry: ${missingSingle.join(', ')}` });
+        }
+
+        try {
+            const newTimetable = new Timetable({ module, day, startTime, endTime, location, lecturer, group, year, semester, batch, faculty, type });
+            await newTimetable.save(); // .save() runs full validation and middleware
+
+            // Populate the single saved document before sending back
+            const populatedTimetable = await Timetable.findById(newTimetable._id)
+                .populate('module', 'moduleCode moduleName')
+                .populate('location', 'locationCode locationName')
+                .populate('lecturer', 'lecturerCode lecturerName')
+                .populate('group', 'groupNum year semester')
+                .populate('batch', 'batchType')
+                .populate('faculty', 'facultyName')
+                .lean();
+
+            res.status(201).json(populatedTimetable); // Send back the single populated entry
+
+        } catch (err) {
+            console.error("Error creating single timetable:", err);
+            if (err.name === 'ValidationError') {
+                 return res.status(400).json({ message: `Validation Error: ${err.message}` });
+            }
+            res.status(500).json({ message: `Error creating timetable entry: ${err.message}` });
+        }
     }
-}
+};
 export { addTimetables };
 
 //update timetables
