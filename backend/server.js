@@ -10,7 +10,8 @@ import simulateAdminRoutes from './Routes/SimulateAdminRoutes.js';
 import timetableRoutes from './Routes/TimetableRoutes.js';
 import timetableAssignmentRoutes from './Routes/timetableAssignmentRoutes.js';
 import attendanceRoutes from './Routes/AttendanceRoutes.js';
-import adminRouter from "./Routes/AdminRoutes.js"; 
+import reminderRoutes from './Routes/reminderRoutes.js';
+import adminRouter from "./Routes/AdminRoutes.js";
 import analysisRouter from "./Routes/AnalyticsRoutes.js"; 
 
 dotenv.config(); // Load environment variables
@@ -44,6 +45,7 @@ app.use('/api/simulate', simulateAdminRoutes);
 app.use('/api/timetable', timetableRoutes);
 app.use('/api/timetable-assignments', timetableAssignmentRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/reminders', reminderRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

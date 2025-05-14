@@ -34,6 +34,9 @@ import TaskCorner from "./components/UserManagement/TaskCorner";
 import SimulateAdmin from "./components/SimulateAdmin/SimulateAdmin";
 import TimetableManager from "./components/SimulateAdmin/TimetableManager";
 
+// Notification Management
+import Reminders from "./pages/Reminders";
+
 // Optional: NotFound component
 const NotFound = () => <div>404 - Page not found</div>;
 
@@ -70,6 +73,7 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/user-profile" element={<UserProfile />} />
+        <Route path="/reminders" element={<Reminders />} />
 
         {/* Simulate Admin Route */}
         <Route path="/simulate-admin" element={<SimulateAdmin />} />

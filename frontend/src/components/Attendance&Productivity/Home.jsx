@@ -411,7 +411,7 @@ const BatchBuddy = () => {
               <div className="hidden md:flex space-x-6">
                 <Link to="/timetable" className="text-gray-600 hover:text-blue-600 transition-colors">Time Table</Link>
                 <Link to="/attendance" className="text-gray-600 hover:text-blue-600 transition-colors">Attendance</Link>
-                <Link to="/add-reminder" className="text-gray-600 hover:text-blue-600 transition-colors">Add Reminder</Link>
+                <Link to="/reminders" className="text-gray-600 hover:text-blue-600 transition-colors">Reminder</Link>
                 <Link to="/task-corner" className="text-gray-600 hover:text-blue-600 transition-colors">Task Corner</Link>
                 <Link to="/about" className="text-gray-600 hover:text-blue-600 transition-colors">About</Link>
                 <Link to="/contact" className="text-gray-600 hover:text-blue-600 transition-colors">Contact</Link>
