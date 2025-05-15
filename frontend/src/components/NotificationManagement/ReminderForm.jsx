@@ -2,13 +2,59 @@ import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
 const ReminderForm = ({ onSave, onClose, initialData = {} }) => {
+  // Format date for the form input (YYYY-MM-DD)
+  const formatDateForInput = (dateValue) => {
+    if (!dateValue) return '';
+    
+    try {
+      // Handle different date formats
+      let dateObj;
+      if (typeof dateValue === 'string') {
+        if (dateValue.includes('T')) {
+          // Handle ISO string
+          dateObj = new Date(dateValue);
+        } else if (dateValue.includes('-')) {
+          // Handle YYYY-MM-DD
+          const [year, month, day] = dateValue.split('-').map(Number);
+          dateObj = new Date(year, month - 1, day);
+        } else if (dateValue.includes('/')) {
+          // Handle MM/DD/YYYY
+          const [month, day, year] = dateValue.split('/').map(Number);
+          dateObj = new Date(year, month - 1, day);
+        } else {
+          dateObj = new Date(dateValue);
+        }
+      } else {
+        dateObj = new Date(dateValue);
+      }
+      
+      // Check if valid date
+      if (isNaN(dateObj.getTime())) return '';
+      
+      // Format as YYYY-MM-DD
+      return dateObj.toISOString().split('T')[0];
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return '';
+    }
+  };
+  
+  // Process initial form data with proper date formatting
+  const processedInitialData = {
+    ...initialData,
+    date: formatDateForInput(initialData.date)
+  };
+  
+  console.log('Initial data:', initialData);
+  console.log('Processed initial data:', processedInitialData);
+  
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     date: '',
     time: '',
     priority: 'medium',
-    ...initialData
+    ...processedInitialData
   });
   const [errors, setErrors] = useState({});
   const [repeat, setRepeat] = useState('none');
