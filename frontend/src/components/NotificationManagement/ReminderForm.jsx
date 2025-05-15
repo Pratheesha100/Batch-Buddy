@@ -11,6 +11,8 @@ const ReminderForm = ({ onSave, onClose, initialData = {} }) => {
     ...initialData
   });
   const [errors, setErrors] = useState({});
+  const [repeat, setRepeat] = useState('none');
+  const [labels, setLabels] = useState([]);
 
   useEffect(() => {
     // Set default time to 30 minutes from now if no initial data
@@ -75,9 +77,9 @@ const ReminderForm = ({ onSave, onClose, initialData = {} }) => {
   
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
-      onSave(formData);
+      onSave({ ...formData, repeat, labels });
     }
   };
 
@@ -180,6 +182,39 @@ const ReminderForm = ({ onSave, onClose, initialData = {} }) => {
                   </p>
                 )}
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="repeat" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Repeat
+              </label>
+              <select
+                id="repeat"
+                name="repeat"
+                value={repeat}
+                onChange={(e) => setRepeat(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="none">None</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="labels" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Labels/Categories
+              </label>
+              <input
+                type="text"
+                id="labels"
+                name="labels"
+                value={labels.join(', ')}
+                onChange={(e) => setLabels(e.target.value.split(',').map(label => label.trim()))}
+                placeholder="Enter labels separated by commas"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+              />
             </div>
             
             <div className="flex justify-end space-x-3 pt-4">

@@ -67,6 +67,12 @@ const ReminderList = ({ reminders, onReminderUpdate, onReminderDelete, onSpeak }
   const [viewingReminder, setViewingReminder] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredReminders = reminders.filter(reminder =>
+    reminder.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    reminder.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleToggleComplete = async (id, completed) => {
     try {
@@ -126,6 +132,30 @@ const ReminderList = ({ reminders, onReminderUpdate, onReminderDelete, onSpeak }
     setViewingReminder(null);
   };
 
+  const handleSnooze = async (id) => {
+    try {
+      const snoozeTime = new Date();
+      snoozeTime.setMinutes(snoozeTime.getMinutes() + 10); // Snooze for 10 minutes
+
+      await reminderService.updateReminder(id, { date: snoozeTime.toISOString().split('T')[0], time: snoozeTime.toTimeString().substring(0, 5) });
+      onReminderUpdate();
+    } catch (error) {
+      console.error('Error snoozing reminder:', error);
+    }
+  };
+
+  const handleRemoveCompleted = async () => {
+    try {
+      const completedReminders = reminders.filter(reminder => reminder.completed);
+      for (const reminder of completedReminders) {
+        await reminderService.deleteReminder(reminder._id);
+      }
+      onReminderUpdate();
+    } catch (error) {
+      console.error('Error removing completed reminders:', error);
+    }
+  };
+
   if (reminders.length === 0) {
     return (
       <div className="bg-gray-50 rounded-2xl p-8 text-center border-2 border-dashed border-gray-200">
@@ -144,8 +174,18 @@ const ReminderList = ({ reminders, onReminderUpdate, onReminderDelete, onSpeak }
   }
 
   return (
-    <div className="space-y-4">
-      {reminders
+    <div className="space-y-6 max-w-4xl mx-auto">
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search reminders..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full px-5 py-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+        />
+      </div>
+      
+      {filteredReminders
         .sort((a, b) => {
           const dateA = new Date(`${a.date}T${a.time}`);
           const dateB = new Date(`${b.date}T${b.time}`);
@@ -154,22 +194,22 @@ const ReminderList = ({ reminders, onReminderUpdate, onReminderDelete, onSpeak }
         .map(reminder => (
           <div 
             key={reminder._id} 
-            className="group bg-white rounded-xl shadow-sm p-5 hover:shadow-md transition-all duration-200 border border-gray-100 hover:border-blue-100 cursor-pointer"
+            className="group bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-200 border border-gray-200 hover:border-blue-200 cursor-pointer"
             onClick={() => handleViewReminder(reminder)}
           >
             <div className="flex justify-between items-start">
               <div className="flex-1">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-3 h-3 rounded-full flex-shrink-0 mt-1 ${
+                <div className="flex items-center space-x-4">
+                  <div className={`w-4 h-4 rounded-full flex-shrink-0 mt-1 ${
                     reminder.priority === 'high' ? 'bg-red-500' :
                     reminder.priority === 'medium' ? 'bg-yellow-500' :
                     'bg-green-500'
                   }`}></div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-medium text-gray-900 text-base">{reminder.title}</h3>
-                      <div className="flex items-center space-x-1">
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                      <h3 className="font-semibold text-gray-900 text-lg">{reminder.title}</h3>
+                      <div className="flex items-center space-x-2">
+                        <span className={`text-sm font-medium px-3 py-1 rounded-full ${
                           reminder.priority === 'high' ? 'bg-red-100 text-red-800' :
                           reminder.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
                           'bg-green-100 text-green-800'
@@ -177,20 +217,20 @@ const ReminderList = ({ reminders, onReminderUpdate, onReminderDelete, onSpeak }
                           {reminder.priority}
                         </span>
                         {reminder.completed && (
-                          <span className="inline-flex items-center text-xs font-medium text-green-800 bg-green-100 px-2 py-0.5 rounded-full">
-                            <Check className="w-3 h-3 mr-1" /> Done
+                          <span className="inline-flex items-center text-sm font-medium text-green-800 bg-green-100 px-3 py-1 rounded-full">
+                            <Check className="w-4 h-4 mr-1" /> Done
                           </span>
                         )}
                       </div>
                     </div>
-                    
+
                     {reminder.description && (
-                      <p className="mt-2 text-sm text-gray-600 line-clamp-2">{reminder.description}</p>
+                      <p className="mt-3 text-base text-gray-600 line-clamp-3">{reminder.description}</p>
                     )}
                     
-                    <div className="mt-3 flex items-center text-sm text-gray-500 space-x-4">
+                    <div className="mt-4 flex items-center text-base text-gray-500 space-x-6">
                       <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-1.5 text-gray-400" />
+                        <Calendar className="w-5 h-5 mr-2 text-gray-400" />
                         <span>{
                           (() => {
                             try {
@@ -236,7 +276,7 @@ const ReminderList = ({ reminders, onReminderUpdate, onReminderDelete, onSpeak }
                         }</span>
                       </div>
                       <div className="flex items-center">
-                        <Clock className="w-4 h-4 mr-1.5 text-gray-400" />
+                        <Clock className="w-5 h-5 mr-2 text-gray-400" />
                         <span>{
                           (() => {
                             try {
@@ -283,26 +323,26 @@ const ReminderList = ({ reminders, onReminderUpdate, onReminderDelete, onSpeak }
                 </div>
               </div>
               
-              <div className="flex space-x-1 ml-3 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+              <div className="flex space-x-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     readReminderAloud(reminder);
                   }}
-                  className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                   title="Read aloud"
                 >
-                  <Volume2 className="w-4 h-4" />
+                  <Volume2 className="w-5 h-5" />
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleEdit(reminder);
                   }}
-                  className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                   title="Edit"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </button>
@@ -311,12 +351,40 @@ const ReminderList = ({ reminders, onReminderUpdate, onReminderDelete, onSpeak }
                     e.stopPropagation();
                     handleDelete(reminder._id);
                   }}
-                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  className="p-3 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   title="Delete"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-5 h-5" />
                 </button>
               </div>
+            </div>
+
+            <div className="flex items-center space-x-6 mt-4">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSnooze(reminder._id);
+                }}
+                className="text-base text-blue-600 hover:underline"
+              >
+                Snooze
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggleComplete(reminder._id, reminder.completed);
+                }}
+                className={`text-base ${reminder.completed ? 'text-green-600' : 'text-gray-600'} hover:underline`}
+              >
+                {reminder.completed ? 'Mark as Incomplete' : 'Mark as Complete'}
+              </button>
+            </div>
+
+            <div className="flex items-center space-x-3 mt-3">
+              <span className={`text-sm font-medium px-3 py-1 rounded-full ${reminder.completed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{reminder.completed ? 'Completed' : 'Pending'}</span>
+              {reminder.labels && reminder.labels.map(label => (
+                <span key={label} className="text-sm font-medium px-3 py-1 rounded-full bg-gray-100 text-gray-800">{label}</span>
+              ))}
             </div>
           </div>
         ))}
@@ -499,6 +567,8 @@ const ReminderList = ({ reminders, onReminderUpdate, onReminderDelete, onSpeak }
           </div>
         </div>
       )}
+
+      
     </div>
   );
 };

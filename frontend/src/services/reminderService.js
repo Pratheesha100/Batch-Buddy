@@ -33,7 +33,8 @@ export const reminderService = {
   // Delete a reminder
   deleteReminder: async (id) => {
     try {
-      await axios.delete(`${API_URL}/${id}`, getAuthHeader());
+      const response = await axios.delete(`${API_URL}/${id}`, getAuthHeader());
+      return response.data; // Return the response data to the caller
     } catch (error) {
       console.error('Error deleting reminder:', error);
       throw error;

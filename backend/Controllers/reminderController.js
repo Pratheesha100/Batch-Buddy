@@ -146,9 +146,11 @@ export const deleteReminder = asyncHandler(async (req, res) => {
     console.log('Found reminder:', reminder);
 
     if (!reminder) {
-      console.log('Reminder not found');
-      res.status(404);
-      throw new Error('Reminder not found');
+      console.log('Reminder not found or already deleted');
+      return res.status(200).json({
+        success: true,
+        message: 'Reminder not found or already deleted'
+      });
     }
 
     console.log('Attempting to delete reminder...');

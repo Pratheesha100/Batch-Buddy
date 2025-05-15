@@ -1,0 +1,16 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Test Reminder Update Flow",
+			"type": "shell",
+			"command": "npm test",
+			"args": [
+				"--updateReminder"
+			],
+			"problemMatcher": [],
+			"group": "test",
+			"isBackground": false
+		}
+	]
+}

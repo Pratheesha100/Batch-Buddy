@@ -273,9 +273,14 @@ const Reminders = () => {
   // Handle reminder deletion
   const handleDeleteReminder = async (id) => {
     try {
-      await reminderService.deleteReminder(id);
-      setReminders(prev => prev.filter(r => r._id !== id));
-      speak('Reminder deleted');
+      const result = await reminderService.deleteReminder(id);
+      if (result.acknowledged && result.deletedCount > 0) {
+        setReminders(prev => prev.filter(r => r._id !== id));
+        speak('Reminder deleted');
+      } else {
+        console.warn('Reminder not found or already deleted.');
+        setReminders(prev => prev.filter(r => r._id !== id)); // Remove from UI anyway
+      }
     } catch (error) {
       console.error('Error deleting reminder:', error);
       speak('Sorry, there was an error deleting your reminder.');
@@ -398,18 +403,31 @@ const Reminders = () => {
                             <h3 className="font-medium text-gray-800 line-through">{reminder.title}</h3>
                             <div className="mt-1 flex items-center text-sm text-gray-500">
                               <Calendar className="w-4 h-4 mr-1.5 text-gray-400" />
-                              <span>{new Date(reminder.date).toLocaleDateString('en-US', { 
-                                month: 'short', 
-                                day: 'numeric' 
-                              })}</span>
+                              <span>{new Date(reminder.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                             </div>
                           </div>
+                          <button
+                            onClick={async () => {
+                              try {
+                                await reminderService.deleteReminder(reminder._id);
+                                fetchReminders();
+                              } catch (error) {
+                                console.error('Error removing reminder:', error);
+                              }
+                            }}
+                            className="px-1 py-1 bg-red-400 text-white rounded-lg shadow-md hover:bg-red-400 transition-colors"
+                          >
+                            Remove
+                          </button>
                         </div>
                       </div>
                     ))}
                 </div>
               )}
             </div>
+            
+            
+            
           </div>
         </div>
       </div>
