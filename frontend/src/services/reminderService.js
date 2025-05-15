@@ -76,6 +76,21 @@ export const reminderService = {
       throw error;
     }
   },
+  
+  // Snooze a reminder for a specified duration
+  snoozeReminder: async (id, minutes = 15) => {
+    try {
+      const response = await axios.patch(
+        `${API_URL}/${id}/snooze`,
+        { minutes },
+        getAuthHeader()
+      );
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('Error snoozing reminder:', error);
+      throw error;
+    }
+  },
 
   // Get due reminders
   getDueReminders: async () => {

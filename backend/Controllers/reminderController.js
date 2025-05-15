@@ -265,6 +265,40 @@ export const getDueReminders = asyncHandler(async (req, res) => {
       ]
     });
 
+    // If there are due reminders, emit a WebSocket event for each one
+    if (dueReminders.length > 0) {
+      console.log(`Found ${dueReminders.length} due reminders, sending notifications...`);
+      
+      // For each reminder, emit a socket event to the user's room
+      for (const reminder of dueReminders) {
+        // Format date and time for display
+        const date = new Date(reminder.date);
+        const formattedDate = date.toLocaleDateString();
+        const formattedTime = reminder.time || 'No specific time';
+
+        // Create notification payload
+        const notificationPayload = {
+          id: reminder._id,
+          title: reminder.title,
+          description: reminder.description || '',
+          date: formattedDate,
+          time: formattedTime,
+          priority: reminder.priority
+        };
+
+        // Emit to the user's room
+        if (global.io) {
+          global.io.to(`user-${reminder.user}`).emit('reminder-due', notificationPayload);
+          console.log(`Emitted reminder-due event to user-${reminder.user} for reminder: ${reminder.title}`);
+          
+          // Also update the reminder as notified in the database
+          reminder.notified = true;
+          await reminder.save();
+        } else {
+          console.warn('Socket.io instance not available for sending notification');
+        }
+      }
+    }
 
     res.status(200).json({
       success: true,
@@ -325,6 +359,68 @@ export const getUpcomingReminders = asyncHandler(async (req, res) => {
     count: reminders.length,
     data: reminders
   });
+});
+
+// @desc    Snooze a reminder for a specified duration (default 15 minutes)
+// @route   PATCH /api/reminders/:id/snooze
+// @access  Private
+export const snoozeReminder = asyncHandler(async (req, res) => {
+  try {
+    const { minutes = 15 } = req.body;
+    
+    // Find the reminder
+    const reminder = await Reminder.findOne({
+      _id: req.params.id,
+      user: req.user.id
+    });
+
+    if (!reminder) {
+      res.status(404);
+      throw new Error('Reminder not found');
+    }
+
+    // Calculate new time (15 minutes from now by default)
+    const now = new Date();
+    const newDate = new Date(now.getTime() + (minutes * 60000));
+    
+    // Format for storage
+    const formattedDate = newDate.toISOString().split('T')[0]; // YYYY-MM-DD
+    const formattedTime = newDate.toTimeString().substring(0, 5); // HH:MM
+
+    // Update the reminder
+    reminder.date = formattedDate;
+    reminder.time = formattedTime;
+    reminder.notified = false; // Reset notification status so it will trigger again
+    reminder.completed = false; // Make sure it's not marked as completed
+    
+    const updatedReminder = await reminder.save();
+
+    // Send success response
+    res.status(200).json({
+      success: true,
+      message: `Reminder snoozed for ${minutes} minutes`,
+      data: updatedReminder
+    });
+    
+    // Emit a socket event to inform the client
+    if (global.io) {
+      global.io.to(`user-${req.user.id}`).emit('reminder-snoozed', {
+        id: reminder._id,
+        title: reminder.title,
+        newDate: formattedDate,
+        newTime: formattedTime,
+        minutes: minutes
+      });
+    }
+    
+  } catch (error) {
+    console.error('Error snoozing reminder:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error snoozing reminder',
+      error: error.message
+    });
+  }
 });
 
 // All functions are already exported using named exports

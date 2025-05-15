@@ -9,9 +9,10 @@ import {
   toggleReminder, 
   getUpcomingReminders,
   getDueReminders,
-  markAsNotified 
+  markAsNotified,
+  snoozeReminder 
 } from '../Controllers/reminderController.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { protect } from '../Middleware/authMiddleware.js';
 
 // All routes are protected and require authentication
 router.use(protect);
@@ -43,5 +44,9 @@ router
 router
   .route('/:id/notified')
   .patch(markAsNotified);
+
+router
+  .route('/:id/snooze')
+  .patch(snoozeReminder);
 
 export default router;

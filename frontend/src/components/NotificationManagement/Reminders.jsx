@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import ReminderForm from './ReminderForm';
 import { reminderService } from '../../services/reminderService';
+import { socketService } from '../../services/socketService';
 import { MicButton } from './VoiceControl';
 
 const Reminders = () => {
@@ -10,6 +11,7 @@ const Reminders = () => {
   const [reminders, setReminders] = useState([]);
   const [editingReminder, setEditingReminder] = useState(null);
   const recognitionRef = useRef(null);
+  const notificationsEnabled = useRef(false);
   
   // Initialize speech synthesis ref
   const speakRef = useRef((text) => {
@@ -29,9 +31,55 @@ const Reminders = () => {
     }
   };
 
-  // Initial data fetch
+  // Initial data fetch and WebSocket setup
   useEffect(() => {
     fetchReminders();
+    
+    // Request notification permission
+    if ('Notification' in window) {
+      if (Notification.permission === 'granted') {
+        notificationsEnabled.current = true;
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(permission => {
+          notificationsEnabled.current = permission === 'granted';
+        });
+      }
+    }
+    
+    // Connect to WebSocket server
+    socketService.connect();
+    
+    // Register for reminder notifications
+    const handleReminderNotification = (reminderData) => {
+      console.log('Received reminder notification:', reminderData);
+      
+      // Show browser notification if enabled
+      if (notificationsEnabled.current) {
+        const notification = new Notification('Reminder: ' + reminderData.title, {
+          body: reminderData.description || 'Priority: ' + reminderData.priority,
+          icon: '/favicon.ico'
+        });
+        
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+        };
+      }
+      
+      // Play voice alert
+      const message = `Reminder: ${reminderData.title}. ${reminderData.description ? reminderData.description + '.' : ''} Scheduled for ${reminderData.date} at ${reminderData.time}.`;
+      speakRef.current?.(message);
+      
+      // Mark reminder as completed in the UI
+      fetchReminders();
+    };
+    
+    socketService.registerListener('reminder-due', handleReminderNotification);
+    
+    // Clean up on component unmount
+    return () => {
+      socketService.unregisterListener('reminder-due', handleReminderNotification);
+    };
   }, []);
 
   // Handle saving a reminder (create or update)
@@ -70,6 +118,16 @@ const Reminders = () => {
     } catch (error) {
       console.error('Error toggling reminder status:', error);
     }
+  };
+  
+  // Handle browser notification permission
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window) {
+      const permission = await Notification.requestPermission();
+      notificationsEnabled.current = permission === 'granted';
+      return permission;
+    }
+    return 'denied';
   };
 
   // Initialize speech recognition

@@ -6,6 +6,7 @@ import VoiceControl from '../components/NotificationManagement/VoiceControl';
 import Navbar from '../components/nav_and_Footer/Navbar';
 import Footer from '../components/nav_and_Footer/Footer';
 import { reminderService } from '../services/reminderService';
+import { socketService } from '../services/socketService';
 import { requestNotificationPermission, showNotification, speakText, isReminderDue } from '../utils/notificationUtils';
 
 const Reminders = () => {
@@ -197,39 +198,74 @@ const Reminders = () => {
     }
   }, []);
 
-  // Check for due reminders and show notifications
-  const checkDueReminders = useCallback(async () => {
-    try {
-      const dueReminders = await reminderService.getDueReminders();
+  // Handle reminder notifications coming from WebSocket
+  const handleReminderNotification = useCallback((reminderData) => {
+    console.log('Received WebSocket reminder notification:', reminderData);
+    
+    // Show browser notification with action buttons
+    if ('Notification' in window && Notification.permission === 'granted') {
+      // Create notification options
+      const options = {
+        body: reminderData.description || `Priority: ${reminderData.priority}`,
+        tag: `reminder-${reminderData.id}`,
+        data: { reminderId: reminderData.id },
+        requireInteraction: true, // Notification persists until user interacts with it
+        actions: [
+          { action: 'complete', title: 'Complete' },
+          { action: 'snooze', title: 'Snooze' }
+        ]
+      };
       
-      for (const reminder of dueReminders) {
-        if (isReminderDue(reminder)) {
-          // Show notification
-          showNotification(
-            `Reminder: ${reminder.title}`,
-            {
-              body: reminder.description || 'No description',
-              tag: `reminder-${reminder._id}`,
-              data: { reminderId: reminder._id }
-            }
-          );
-
-          // Speak the reminder
-          speakText(`Reminder: ${reminder.title}. ${reminder.description || ''}`);
-
-          // Mark as notified
-          await reminderService.markAsNotified(reminder._id);
-          
-          // Refresh reminders to update the UI
-          await fetchReminders();
+      // Create and show the notification
+      const notification = new Notification(`Reminder: ${reminderData.title}`, options);
+      
+      // Handle notification click
+      notification.onclick = async (event) => {
+        // Focus the window
+        window.focus();
+        
+        // Check if an action button was clicked
+        if (event.action === 'complete') {
+          // Mark as complete
+          try {
+            await reminderService.toggleReminder(reminderData.id);
+            speak('Reminder marked as complete');
+          } catch (error) {
+            console.error('Error completing reminder:', error);
+          }
+        } else if (event.action === 'snooze') {
+          // Snooze the reminder
+          try {
+            await reminderService.snoozeReminder(reminderData.id, 15);
+            speak('Reminder snoozed for 15 minutes');
+          } catch (error) {
+            console.error('Error snoozing reminder:', error);
+          }
         }
-      }
-    } catch (error) {
-      console.error('Error checking due reminders:', error);
+        
+        notification.close();
+        fetchReminders();
+      };
+    } else {
+      // Fallback for browsers without Notification API
+      console.log('Browser notifications not available or permission denied');
     }
-  }, [fetchReminders]);
 
-  // Set up notification permission and check for due reminders on component mount
+    // Speak the reminder
+    speakText(`Reminder: ${reminderData.title}. ${reminderData.description || ''} Scheduled for ${reminderData.date} at ${reminderData.time}.`);
+    
+    // Refresh reminders to update the UI
+    fetchReminders();
+  }, [fetchReminders, speak]);
+
+  // Handle reminder snooze events
+  const handleReminderSnooze = useCallback((snoozeData) => {
+    console.log('Received reminder snooze event:', snoozeData);
+    speak(`Reminder ${snoozeData.title} snoozed for ${snoozeData.minutes} minutes`);
+    fetchReminders();
+  }, [fetchReminders, speak]);
+  
+  // Set up WebSocket connection and notification permission on component mount
   useEffect(() => {
     // Request notification permission when component mounts
     requestNotificationPermission();
@@ -237,17 +273,77 @@ const Reminders = () => {
     // Initial fetch of reminders
     fetchReminders();
     
-    // Set up interval to check for due reminders every minute
-    const intervalId = setInterval(() => {
-      checkDueReminders();
-    }, 60000); // Check every minute
+    // Connect to WebSocket server
+    socketService.connect();
     
-    // Initial check
-    checkDueReminders();
+    // Get user ID from localStorage (should be set during login)
+    const userId = localStorage.getItem('userId') || localStorage.getItem('userData')?._id;
+    if (userId) {
+      socketService.joinUserRoom(userId);
+      console.log('Joined user room with ID:', userId);
+    } else {
+      console.warn('No user ID found for WebSocket room');
+      // Try to get user ID from other sources
+      try {
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        if (userData && userData._id) {
+          socketService.joinUserRoom(userData._id);
+          console.log('Joined user room with ID from userData:', userData._id);
+        } else if (userData && userData.user && userData.user._id) {
+          socketService.joinUserRoom(userData.user._id);
+          console.log('Joined user room with ID from userData.user:', userData.user._id);
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
     
-    // Clean up interval on component unmount
-    return () => clearInterval(intervalId);
-  }, [fetchReminders, checkDueReminders]);
+    // Register for various notification events through WebSocket
+    socketService.registerListener('reminder-due', handleReminderNotification);
+    socketService.registerListener('reminder-snoozed', handleReminderSnooze);
+    
+    // Listen for custom events from the socket service for UI updates
+    const handleReminderCompleted = (event) => {
+      console.log('Received reminder-completed event:', event.detail);
+      fetchReminders(); // Refresh the UI
+      speak('Reminder completed');
+    };
+    
+    const handleReminderSnoozed = (event) => {
+      console.log('Received reminder-snoozed event:', event.detail);
+      fetchReminders(); // Refresh the UI
+      speak('Reminder snoozed for 15 minutes');
+    };
+    
+    // Add event listeners for custom events
+    window.addEventListener('reminder-completed', handleReminderCompleted);
+    window.addEventListener('reminder-snoozed', handleReminderSnoozed);
+    
+    // Set up notification click handler for service worker notifications
+    if ('serviceWorker' in navigator && 'Notification' in window) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'notificationclick') {
+          const { action, reminderId } = event.data;
+          
+          if (action === 'complete') {
+            reminderService.toggleReminder(reminderId);
+          } else if (action === 'snooze') {
+            reminderService.snoozeReminder(reminderId);
+          }
+          
+          fetchReminders();
+        }
+      });
+    }
+    
+    // Clean up on component unmount
+    return () => {
+      socketService.unregisterListener('reminder-due', handleReminderNotification);
+      socketService.unregisterListener('reminder-snoozed', handleReminderSnooze);
+      window.removeEventListener('reminder-completed', handleReminderCompleted);
+      window.removeEventListener('reminder-snoozed', handleReminderSnoozed);
+    };
+  }, [fetchReminders, handleReminderNotification, handleReminderSnooze, speak]);
 
   // Handle reminder creation/update
   const handleSaveReminder = async (reminderData) => {
@@ -347,6 +443,7 @@ const Reminders = () => {
             </div>
             <div className="mt-6 md:mt-0 flex space-x-4">
               <MicButton />
+              
               <button
                 onClick={() => setShowForm(true)}
                 className="flex items-center space-x-2 px-6 py-3 bg-white text-blue-600 rounded-xl hover:bg-blue-50 transition-all transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"

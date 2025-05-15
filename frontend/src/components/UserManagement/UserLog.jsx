@@ -57,8 +57,22 @@ const UserLog = () => {
         isAdmin: false
       });
       if (response.data && response.data.token) {
+        // Store token and user data
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('userData', JSON.stringify(response.data));
+        
+        // Store user ID specifically for WebSocket connections
+        if (response.data._id) {
+          localStorage.setItem('userId', response.data._id);
+          console.log('Stored user ID for WebSocket:', response.data._id);
+        } else if (response.data.user && response.data.user._id) {
+          localStorage.setItem('userId', response.data.user._id);
+          console.log('Stored user ID for WebSocket:', response.data.user._id);
+        }
+        
+        // Also store the entire user object just in case
+        localStorage.setItem('user', JSON.stringify(response.data.user || response.data));
+        
         Swal.fire({
           icon: 'success',
           title: 'Login Successful!',
