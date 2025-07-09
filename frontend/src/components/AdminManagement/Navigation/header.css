@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height:25px;
+    background: white;
+    margin-top: 0px;
+    padding: 10px 20px;
+    box-shadow: 0px 2px 0px rgba(0, 0, 0, 0.2);
+    font-family: 'Inter', sans-serif;
+    margin-left: 0px;
+    transition: width 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+}
+
+.admin-header-left {
+    display: flex;
+    align-items: center;
+}
+
+.admin-header-left h2 {
+    margin-left: 10px;
+    font-size: 17px;
+    font-weight: 500;
+    color: rgb(154, 154, 154);
+}
+
+.admin-header-right {
+    display: flex;
+    align-items: center;
+}
+
+.admin-notification-icon {
+    width: 20px; 
+    height: 20px;
+    margin-right: 35px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+.admin-notification-icon:hover {
+    opacity: 0.7;
+}
+
+.admin-user-avatar {
+    width: 33px;
+    height: 33px;
+    border-radius: 50%;
+    cursor: pointer;
+}
