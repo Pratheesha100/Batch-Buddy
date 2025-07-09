@@ -1,29 +1,84 @@
+import React from 'react';
 import { Route, Routes, useLocation } from "react-router-dom";
+//import jsPDF from "jspdf";
 
 // Admin management system
-import Test from "./components/AdminManagement/test"; // Capitalized
+import AdminDash from './components/AdminManagement/AdminDashboard.jsx';
+import Timetables from './components/AdminManagement/Timetable.jsx';
+import Event from './components/AdminManagement/Event.jsx'
+import Faculty from "./components/AdminManagement/Faculty.jsx";
+import Student from "./components/AdminManagement/Student.jsx";
+import Lecturer from "./components/AdminManagement/Lecturer.jsx";
+import Location from "./components/AdminManagement/Location.jsx";
+import AnalysisPage from "./components/AdminManagement/AnalysisPage.jsx";
+
 
 // User management system
+import LandingPage from "./components/UserManagement/landingPage";
+import UserLog from "./components/UserManagement/UserLog";
+import Register from "./components/UserManagement/Register";
+import ResetPassword from "./components/UserManagement/ResetPassword";
+import Report from "./components/UserManagement/Report";
 
-// Attendance management system
+// Attendance & Productivity management system
+import BatchBuddy from "./components/Attendance&Productivity/Home";
+import TimeTable from "./components/Attendance&Productivity/TimeTable";
+import AttendanceView from "./components/Attendance&Productivity/AttendanceView";
+import MarkAttendance from "./components/Attendance&Productivity/MarkAttendance";
+import Contact from "./components/Attendance&Productivity/Contact";
+import AboutUs from "./components/Attendance&Productivity/AboutUs";
+import UserProfile from "./components/Attendance&Productivity/UserProfile";
+import TaskCorner from "./components/UserManagement/TaskCorner";
 
-// Notification management system
+// Simulate Admin
+import SimulateAdmin from "./components/SimulateAdmin/SimulateAdmin";
+import TimetableManager from "./components/SimulateAdmin/TimetableManager";
+
+// Optional: NotFound component
+const NotFound = () => <div>404 - Page not found</div>;
 
 function App() {
-  const location = useLocation();
-
   return (
+    <div className="app">
       <Routes>
         {/* Admin Routes */}
-        <Route path="/" element={<Test />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/dashboard" element={<AdminDash />}/>
+        <Route path="/timetables" element={<Timetables />}/>
+        <Route path="/events" element={<Event />}/>
+        <Route path="/faculties" element={<Faculty/>}/>
+        <Route path="/students" element={<Student/>}/>
+        <Route path="/lecturers" element={<Lecturer/>}/>
+        <Route path="/locations" element={<Location/>}/>
+        <Route path="/analysis" element={<AnalysisPage/>}/>
+
+
+        {/* User Management Routes */}
         
-        {/* User Routes */}
+        <Route path="/login" element={<UserLog />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/get-started" element={<Register />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/task-corner" element={<TaskCorner />} />
+        <Route path="/report" element={<Report />} />
 
-        {/* Notification Routes */}
+        {/* Attendance & Productivity Routes */}
+        <Route path="/home" element={<BatchBuddy />} />
+        <Route path="/timetable" element={<TimeTable />} />
+        <Route path="/attendance" element={<AttendanceView />} />
+        <Route path="/mark-attendance" element={<MarkAttendance />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/about" element={<AboutUs />} />
+        <Route path="/user-profile" element={<UserProfile />} />
 
-        {/* Attendance Routes */}
-      </Routes>  
-      
+        {/* Simulate Admin Route */}
+        <Route path="/simulate-admin" element={<SimulateAdmin />} />
+        <Route path="/admin-timetable" element={<TimetableManager />} />
+
+        {/* Fallback route */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </div>
   );
 }
 
